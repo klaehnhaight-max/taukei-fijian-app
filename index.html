@@ -1,0 +1,1693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>iTaukei | Na Vosa Vaka-Viti</title>
+  <style>
+    /* ============================================================
+       iTaukei Language Learning App — Duolingo-style
+       Single self-contained web app, no external services
+       ============================================================ */
+
+    :root {
+      --primary: #4A90D9;
+      --primary-dark: #3A7BC8;
+      --secondary: #FF9F1C;
+      --accent: #2EE59D;
+      --bg: #F0F2F5;
+      --surface: #FFFFFF;
+      --surface-alt: #F8F9FA;
+      --text: #1A1A1A;
+      --text-secondary: #6B7280;
+      --border: #E5E7EB;
+      --correct: #10B981;
+      --incorrect: #EF4444;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+      --shadow-lg: 0 4px 20px rgba(0,0,0,0.12);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    header {
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      color: var(--primary);
+    }
+
+    .header-stats {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stat-value {
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* Main content */
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 24px 16px 80px;
+    }
+
+    /* Home / Skill Tree */
+    .home-screen {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .user-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border-radius: 16px;
+      color: white;
+    }
+
+    .user-header .avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .user-info h2 {
+      font-size: 1.2rem;
+    }
+
+    .user-info p {
+      font-size: 0.9rem;
+      opacity: 0.85;
+    }
+
+    /* Skill Tree Grid */
+    .skill-tree {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 16px;
+    }
+
+    .skill-node {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .skill-node:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .skill-node.locked {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .skill-node.completed .skill-icon {
+      color: var(--accent);
+    }
+
+    .skill-node .skill-icon {
+      font-size: 2.2rem;
+      margin-bottom: 8px;
+    }
+
+    .skill-node .skill-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .skill-node .skill-desc {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .skill-node .skill-xp {
+      font-size: 0.8rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .skill-node.locked .skill-icon {
+      color: var(--text-secondary);
+    }
+
+    /* Lesson Screen */
+    .lesson-screen {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .lesson-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .lesson-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .lesson-progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--surface-alt);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .lesson-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    /* Exercise Cards */
+    .exercise-card {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .exercise-prompt {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      text-align: center;
+      color: var(--text);
+    }
+
+    /* Matching Exercise */
+    .matching-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .match-column {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .match-item {
+      padding: 12px 16px;
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      background: var(--surface-alt);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .match-item:hover {
+      background: var(--bg);
+    }
+
+    .match-item.selected {
+      border-color: var(--primary);
+      background: rgba(74, 144, 217, 0.1);
+    }
+
+    .match-item.correct {
+      border-color: var(--correct);
+      background: rgba(16, 185, 135, 0.1);
+    }
+
+    .match-item.incorrect {
+      border-color: var(--incorrect);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .match-item.hidden {
+      visibility: hidden;
+    }
+
+    /* Multiple Choice */
+    .choice-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .choice-btn {
+      padding: 16px 20px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface-alt);
+      font-size: 1.05rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+
+    .choice-btn:hover {
+      background: var(--bg);
+      border-color: var(--primary);
+    }
+
+    .choice-btn.selected {
+      border-color: var(--primary);
+      background: rgba(74, 144, 217, 0.1);
+    }
+
+    .choice-btn.correct {
+      border-color: var(--correct);
+      background: rgba(16, 185, 135, 0.1);
+    }
+
+    .choice-btn.incorrect {
+      border-color: var(--incorrect);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .choice-btn:disabled {
+      pointer-events: none;
+    }
+
+    /* Sentence Builder */
+    .sentence-builder {
+      margin-top: 16px;
+    }
+
+    .sentence-target {
+      min-height: 60px;
+      padding: 16px 20px;
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      background: var(--surface-alt);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+
+    .sentence-target.drag-over {
+      border-color: var(--primary);
+      background: rgba(74, 144, 217, 0.05);
+    }
+
+    .sentence-target.correct {
+      border-color: var(--correct);
+    }
+
+    .sentence-target.incorrect {
+      border-color: var(--incorrect);
+    }
+
+    .drag-words {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .drag-word {
+      padding: 12px 18px;
+      background: var(--primary);
+      color: white;
+      border-radius: 20px;
+      font-weight: 600;
+      cursor: grab;
+      transition: all 0.2s ease;
+      font-size: 1.05rem;
+    }
+
+    .drag-word:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .drag-word.dragging {
+      opacity: 0.5;
+      transform: rotate(5deg);
+    }
+
+    /* Typing Exercise */
+    .typing-container {
+      margin-top: 16px;
+    }
+
+    .typing-input {
+      width: 100%;
+      padding: 14px 18px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-size: 1.2rem;
+      text-align: center;
+      margin-top: 16px;
+      transition: border-color 0.2s;
+    }
+
+    .typing-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .typing-input.correct {
+      border-color: var(--correct);
+      background: rgba(16, 185, 135, 0.1);
+    }
+
+    .typing-input.incorrect {
+      border-color: var(--incorrect);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    /* Feedback */
+    .feedback {
+      margin-top: 16px;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-size: 1rem;
+      text-align: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .feedback.correct {
+      background: rgba(16, 185, 135, 0.15);
+      color: var(--correct);
+      border: 1px solid var(--correct);
+    }
+
+    .feedback.incorrect {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--incorrect);
+      border: 1px solid var(--incorrect);
+    }
+
+    .feedback .correct-answer {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    /* Action Buttons */
+    .btn {
+      padding: 14px 28px;
+      border-radius: 30px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      margin-top: 16px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(74, 144, 217, 0.1);
+    }
+
+    .btn-block {
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    /* Completion Screen */
+    .completion-screen {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .completion-icon {
+      font-size: 5rem;
+      margin-bottom: 20px;
+    }
+
+    .completion-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+
+    .completion-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .xp-gain {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--secondary);
+      margin-bottom: 24px;
+    }
+
+    /* Source attribution */
+    .sources-note {
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: var(--surface-alt);
+      border-radius: 12px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .sources-note strong {
+      color: var(--text);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .bounce {
+      animation: bounce 0.6s ease;
+    }
+
+    /* Streak flame */
+    .streak-active {
+      color: var(--secondary);
+      animation: flameFlicker 2s infinite;
+    }
+
+    @keyframes flameFlicker {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+
+    .modal-content {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 32px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+    }
+
+    .modal h3 {
+      font-size: 1.3rem;
+      margin-bottom: 16px;
+    }
+
+    .modal p {
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .container { padding: 16px 8px 80px; }
+      header { padding: 12px 16px; }
+      .matching-container { grid-template-columns: 1fr; }
+      .nav-buttons { flex-direction: column; }
+    }
+
+    /* Pronunciation Guide */
+    .pronounce-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 0.95rem;
+    }
+
+    .pronounce-table th, .pronounce-table td {
+      padding: 12px 16px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .pronounce-table th {
+      background: var(--surface-alt);
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .pronounce-table .sound-cell {
+      font-family: monospace;
+      font-weight: 700;
+      color: var(--secondary);
+    }
+
+    .pronounce-tips {
+      list-style: none;
+      padding: 0;
+      margin-top: 16px;
+    }
+
+    .pronounce-tips li {
+      padding: 10px 16px;
+      background: var(--surface-alt);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      padding-left: 40px;
+      position: relative;
+    }
+
+    .pronounce-tips li:before {
+      content: "💡";
+      position: absolute;
+      left: 12px;
+      top: 10px;
+    }
+
+    /* Sources Page */
+    .sources-list {
+      list-style: none;
+      padding: 0;
+      margin-top: 16px;
+    }
+
+    .sources-list li {
+      padding: 10px 16px;
+      background: var(--surface-alt);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      border-left: 3px solid var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🌺 iTaukei</h1>
+    <div class="header-stats">
+      <div class="stat-item">
+        <span>🔥</span>
+        <span class="stat-value" id="streak-count">0</span>
+        <span>day streak</span>
+      </div>
+      <div class="stat-item">
+        <span>⭐</span>
+        <span class="stat-value" id="xp-count">0</span>
+        <span>XP</span>
+      </div>
+      <button id="review-btn" class="btn btn-secondary" style="padding: 6px 16px; font-size: 0.85rem;">
+        📚 Review
+      </button>
+    </div>
+  </header>
+
+  <div class="container" id="app-container">
+    <!-- Content loaded by app.js -->
+  </div>
+
+  <script src="data.js"></script>
+  <script>
+    // ============================================================
+    // iTaukei Language Learning App — Main JavaScript
+    // ═══════════════════════════════════════════════════════════
+    // Self-contained, uses localStorage for persistence
+    // ============================================================
+
+    // ─── Data Manager ──────────────────────────────────────────
+    const DataManager = {
+      // Progress is stored in localStorage under key 'taukei_progress'
+      _progressCache: null,
+
+      get progress() {
+        if (this._progressCache) {
+          return this._progressCache;
+        }
+        const raw = localStorage.getItem('taukei_progress');
+        if (raw) {
+          try {
+            this._progressCache = JSON.parse(raw);
+            return this._progressCache;
+          } catch(e) {}
+        }
+        this._progressCache = {
+          xp: 0,
+          streak: 0,
+          lastActive: null,
+          completedLessons: [],
+          lessonMastery: {},
+          wrongAnswers: [],
+          totalXP: {}
+        };
+        return this._progressCache;
+      },
+
+      saveProgress() {
+        localStorage.setItem('taukei_progress', JSON.stringify(this.progress));
+      },
+
+      addXP(amount) {
+        const p = this.progress;
+        p.xp += amount;
+        this.saveProgress();
+        // Trigger header update
+        App.updateHeader();
+      },
+
+      completeLesson(lessonId) {
+        const p = this.progress;
+        if (!p.completedLessons.includes(lessonId)) {
+          p.completedLessons.push(lessonId);
+        }
+        p.lessonMastery[lessonId] = true;
+        this.saveProgress();
+        App.checkUnlocks();
+      },
+
+      recordWrongAnswer(exercise) {
+        const p = this.progress;
+        // Store for spaced repetition
+        p.wrongAnswers.push({
+          exerciseId: exercise.id || JSON.stringify(exercise),
+          prompt: exercise.prompt,
+          answer: exercise.answer,
+          timestamp: Date.now(),
+          reviewCount: 0
+        });
+        this.saveProgress();
+      },
+
+      updateStreak() {
+        const p = this.progress;
+        const today = new Date().toDateString();
+        const yesterday = new Date(Date.now() - 86400000).toDateString();
+
+        if (p.lastActive === today) {
+          // Already active today, nothing to change
+          return;
+        }
+
+        if (p.lastActive === yesterday) {
+          p.streak += 1;
+        } else if (p.lastActive && p.lastActive !== today) {
+          // Streak broken
+          p.streak = 1;
+        } else {
+          p.streak = 1;
+        }
+
+        p.lastActive = today;
+        this.saveProgress();
+        App.updateHeader();
+      },
+
+      getWrongAnswersForReview() {
+        return this.progress.wrongAnswers.filter(wa => wa.reviewCount < 3);
+      },
+
+      incrementReviewCount(answerId) {
+        const p = this.progress;
+        p.wrongAnswers = p.wrongAnswers.map(wa =>
+          wa.exerciseId === answerId ? { ...wa, reviewCount: wa.reviewCount + 1 } : wa
+        );
+        this.saveProgress();
+      }
+    };
+
+    // ─── App Router ────────────────────────────────────────────
+    const App = {
+      currentScreen: 'home',
+      currentLesson: null,
+      currentExerciseIndex: 0,
+      exerciseResults: [],
+      reviewMode: false,
+
+      init() {
+        // Update streak for visiting today
+        DataManager.updateStreak();
+        App.updateHeader();
+        App.checkUnlocks();
+        App.render();
+      },
+
+      updateHeader() {
+        const p = DataManager.progress;
+        document.getElementById('streak-count').textContent = p.streak;
+        document.getElementById('streak-count').className = p.streak > 0 ? 'streak-active' : '';
+        document.getElementById('xp-count').textContent = p.xp;
+        document.getElementById('review-btn').style.display =
+          (p.wrongAnswers && p.wrongAnswers.length > 0) ? 'inline-block' : 'none';
+      },
+
+      checkUnlocks() {
+        const p = DataManager.progress;
+        // Check prerequisite completion
+        Object.keys(LESSONS).forEach(lessonId => {
+          const lesson = LESSONS[lessonId];
+          // Unlock based on completed prerequisites
+          const skillNode = SKILL_TREE.find(s => s.id === lessonId);
+          if (skillNode) {
+            const prereqsMet = skillNode.prerequisites.every(prereq =>
+              p.completedLessons.includes(prereq)
+            );
+            skillNode.unlocked = prereqsMet || skillNode.prerequisites.length === 0;
+            skillNode.completed = !!p.lessonMastery[lessonId];
+          }
+        });
+      },
+
+      render() {
+        const container = document.getElementById('app-container');
+        container.innerHTML = '';
+
+        if (this.currentScreen === 'home') {
+          container.appendChild(this.renderHome());
+        } else if (this.currentScreen === 'lesson') {
+          container.appendChild(this.renderLesson());
+        } else if (this.currentScreen === 'review') {
+          container.appendChild(this.renderReview());
+        } else if (this.currentScreen === 'completion') {
+          container.appendChild(this.renderCompletion());
+        } else if (this.currentScreen === 'pronunciation') {
+          container.appendChild(this.renderPronunciation());
+        } else if (this.currentScreen === 'sources') {
+          container.appendChild(this.renderSources());
+        }
+      },
+
+      renderHome() {
+        const div = document.createElement('div');
+        div.className = 'home-screen';
+
+        const p = DataManager.progress;
+
+        // User header
+        const userHeader = document.createElement('div');
+        userHeader.className = 'user-header';
+        userHeader.innerHTML = `
+          <div class="avatar">🌺</div>
+          <div class="user-info">
+            <h2>iTaukei Learner</h2>
+            <p>${p.xp} XP • ${p.streak} day streak</p>
+          </div>
+        `;
+        div.appendChild(userHeader);
+
+        // Title
+        const title = document.createElement('h2');
+        title.textContent = 'Learn iTaukei (Na Vosa Vaka-Viti)';
+        title.style.marginBottom = '8px';
+        div.appendChild(title);
+
+        const subtitle = document.createElement('p');
+        subtitle.textContent = 'The indigenous language of Fiji';
+        subtitle.style.color = 'var(--text-secondary)';
+        subtitle.style.marginBottom = '20px';
+        div.appendChild(subtitle);
+
+        // Skill tree title
+        const skillTitle = document.createElement('h3');
+        skillTitle.textContent = 'Learning Path';
+        skillTitle.style.fontSize = '1.2rem';
+        skillTitle.style.marginBottom = '12px';
+        div.appendChild(skillTitle);
+
+        // Skill tree
+        const tree = document.createElement('div');
+        tree.className = 'skill-tree';
+
+        SKILL_TREE.forEach(skill => {
+          const node = document.createElement('div');
+          node.className = `skill-node ${skill.completed ? 'completed' : ''} ${!skill.unlocked ? 'locked' : ''}`;
+          node.innerHTML = `
+            <div class="skill-icon">${skill.icon}</div>
+            <div class="skill-title">${skill.title}</div>
+            <div class="skill-desc">${skill.description}</div>
+            <div class="skill-xp">${skill.xp} XP</div>
+          `;
+
+          if (skill.unlocked) {
+            node.addEventListener('click', () => {
+              App.startLesson(skill.id);
+            });
+          }
+          tree.appendChild(node);
+        });
+
+        div.appendChild(tree);
+
+        // Sources note + Quick links
+        const note = document.createElement('div');
+        note.className = 'sources-note';
+        note.innerHTML = '<strong>Note:</strong> All vocabulary verified from Peace Corps Fijian, Schütz Reference Grammar, Vosavakaviti dictionary, and Pacific Learners sources. Click any lesson to review source attributions.';
+
+        div.appendChild(note);
+
+        // Quick links
+        const quickLinks = document.createElement('div');
+        quickLinks.style.display = 'flex';
+        quickLinks.style.gap = '12px';
+        quickLinks.style.marginTop = '16px';
+
+        const pronBtn = document.createElement('button');
+        pronBtn.className = 'btn btn-secondary';
+        pronBtn.textContent = '🔤 Pronunciation Guide';
+        pronBtn.onclick = () => { App.currentScreen = 'pronunciation'; App.render(); };
+        quickLinks.appendChild(pronBtn);
+
+        const srcBtn = document.createElement('button');
+        srcBtn.className = 'btn btn-secondary';
+        srcBtn.textContent = '📄 Sources';
+        srcBtn.onclick = () => { App.currentScreen = 'sources'; App.render(); };
+        quickLinks.appendChild(srcBtn);
+
+        div.appendChild(quickLinks);
+
+        return div;
+      },
+
+      startLesson(lessonId) {
+        this.currentLesson = LESSONS[lessonId];
+        this.currentLesson.id = lessonId;
+        this.currentExerciseIndex = 0;
+        this.exerciseResults = [];
+        this.reviewMode = false;
+        this.currentScreen = 'lesson';
+        this.render();
+      },
+
+      startReview() {
+        const wrong = DataManager.getWrongAnswersForReview();
+        if (wrong.length === 0) return;
+
+        // Build exercises from wrong answers
+        const reviewExercises = wrong.map(wa => {
+          try {
+            const exercise = JSON.parse(wa.exerciseId);
+            return { ...exercise, id: wa.exerciseId };
+          } catch(e) {
+            // Fallback: treat the stored object as an exercise
+            return {
+              type: 'multiple_choice',
+              prompt: wa.prompt || 'Review this answer',
+              choices: [wa.answer],
+              answer: 0,
+              id: wa.exerciseId
+            };
+          }
+        });
+
+        this.currentLesson = {
+          title: 'Review',
+          description: 'Practice answers you got wrong',
+          xp: 50,
+          exercises: reviewExercises,
+          isReview: true
+        };
+        this.currentLesson.id = 'review';
+        this.currentExerciseIndex = 0;
+        this.exerciseResults = [];
+        this.reviewMode = true;
+        this.currentScreen = 'lesson';
+        this.render();
+      },
+
+      renderLesson() {
+        const lesson = this.currentLesson;
+        const exercise = lesson.exercises[this.currentExerciseIndex];
+        const isLast = this.currentExerciseIndex === lesson.exercises.length - 1;
+
+        const div = document.createElement('div');
+        div.className = 'lesson-screen';
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'lesson-header';
+        header.innerHTML = `
+          <div class="lesson-title">${lesson.title}</div>
+        `;
+
+        // Progress bar
+        const totalExercises = lesson.exercises.length;
+        const progressPercent = ((this.currentExerciseIndex + 1) / totalExercises) * 100;
+        header.innerHTML += `
+          <div class="lesson-progress-bar">
+            <div class="lesson-progress-fill" style="width: ${progressPercent}%"></div>
+          </div>
+        `;
+        div.appendChild(header);
+
+        // Exercise
+        const exerciseDiv = this.renderExercise(exercise);
+        div.appendChild(exerciseDiv);
+
+        // Navigation
+        const nav = document.createElement('div');
+        nav.className = 'nav-buttons';
+
+        if (isLast) {
+          const completeBtn = document.createElement('button');
+          completeBtn.className = 'btn btn-primary btn-block';
+          completeBtn.textContent = 'Finish Lesson';
+          completeBtn.addEventListener('click', () => {
+            this.finishLesson();
+          });
+          nav.appendChild(completeBtn);
+        } else {
+          const nextBtn = document.createElement('button');
+          nextBtn.className = 'btn btn-primary btn-block';
+          nextBtn.textContent = 'Next';
+          nextBtn.addEventListener('click', () => {
+            this.nextExercise();
+          });
+          nav.appendChild(nextBtn);
+        }
+
+        div.appendChild(nav);
+
+        return div;
+      },
+
+      renderExercise(exercise) {
+        const card = document.createElement('div');
+        card.className = 'exercise-card';
+        card.id = `exercise-${this.currentExerciseIndex}`;
+
+        const promptEl = document.createElement('div');
+        promptEl.className = 'exercise-prompt';
+        promptEl.textContent = exercise.prompt;
+        card.appendChild(promptEl);
+
+        switch (exercise.type) {
+          case 'multiple_choice':
+            card.appendChild(this.renderMultipleChoice(exercise));
+            break;
+          case 'matching':
+            card.appendChild(this.renderMatching(exercise));
+            break;
+          case 'sentence_builder':
+            card.appendChild(this.renderSentenceBuilder(exercise));
+            break;
+          case 'typing':
+            card.appendChild(this.renderTyping(exercise));
+            break;
+        }
+
+        // Sources
+        if (exercise.sources) {
+          const src = document.createElement('div');
+          src.className = 'sources-note';
+          src.innerHTML = `<strong>Sources:</strong> ${exercise.sources.map(s => SOURCES[s] || s).join(', ')}`;
+          card.appendChild(src);
+        }
+
+        return card;
+      },
+
+      renderMultipleChoice(exercise) {
+        const div = document.createElement('div');
+        div.className = 'choice-list';
+
+        exercise.choices.forEach((choice, i) => {
+          const btn = document.createElement('button');
+          btn.className = 'choice-btn';
+          btn.textContent = choice;
+          btn.dataset.index = i;
+          btn.addEventListener('click', () => {
+            this.selectChoice(exercise, i);
+          });
+          div.appendChild(btn);
+        });
+
+        return div;
+      },
+
+      selectChoice(exercise, index) {
+        const buttons = document.querySelectorAll('.choice-btn');
+        buttons.forEach(b => b.disabled = true);
+
+        const selected = buttons[index];
+        const isCorrect = index === exercise.answer;
+
+        if (isCorrect) {
+          selected.classList.add('correct');
+          this.exerciseResults.push({ exercise, correct: true });
+        } else {
+          selected.classList.add('incorrect');
+          buttons[exercise.answer].classList.add('correct');
+          this.exerciseResults.push({ exercise, correct: false });
+          DataManager.recordWrongAnswer(exercise);
+        }
+
+        // Show feedback
+        const card = document.getElementById(`exercise-${this.currentExerciseIndex}`);
+        let feedback = document.createElement('div');
+        feedback.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+
+        if (isCorrect) {
+          feedback.textContent = '✓ Correct!';
+        } else {
+          feedback.innerHTML = `✗ Incorrect. ${exercise.explanation || ''}`;
+          if (exercise.explanation) {
+            feedback.innerHTML += ` <br><strong>Correct answer:</strong> ${exercise.choices[exercise.answer]}`;
+          }
+        }
+        card.appendChild(feedback);
+      },
+
+      renderMatching(exercise) {
+        const container = document.createElement('div');
+        container.className = 'matching-container';
+
+        const leftColumn = document.createElement('div');
+        leftColumn.className = 'match-column';
+        leftColumn.style.order = '1';
+
+        const rightColumn = document.createElement('div');
+        rightColumn.className = 'match-column';
+        rightColumn.style.order = '2';
+
+        // For mobile: show English first, then Fijian (swap order)
+        container.style.cssText = '@media (max-width: 480px) { .match-column:nth-child(1) { order: 2; } .match-column:nth-child(2) { order: 1; } }';
+
+        // Shuffle pairs independently for each column
+        const fijianWords = [...exercise.pairs].map(p => p.fijian || p.english).sort(() => Math.random() - 0.5);
+        const englishWords = [...exercise.pairs].map(p => p.english || p.fijian).sort(() => Math.random() - 0.5);
+
+        // Create a lookup to map words back to their pair index
+        const pairMap = {};
+        exercise.pairs.forEach((pair, idx) => {
+          const fijian = pair.fijian || pair.english;
+          const english = pair.english || pair.fijian;
+          pairMap[fijian] = idx;
+          pairMap[english] = idx;
+        });
+
+        let selectedLeft = null;
+        let matches = {};
+        let completed = false;
+        let wrongCount = 0;
+        let correctCount = 0;
+
+        // Render English column (right side / answers)
+        englishWords.forEach((word, i) => {
+          const item = document.createElement('div');
+          item.className = 'match-item';
+          item.textContent = word;
+          item.dataset.pairKey = pairMap[word];
+          item.dataset.column = 'right';
+          rightColumn.appendChild(item);
+
+          item.addEventListener('click', () => {
+            if (completed || !selectedLeft) return;
+
+            const pairKey = selectedLeft.dataset.pairKey;
+            const isMatch = pairKey === item.dataset.pairKey;
+
+            if (isMatch) {
+              item.classList.add('correct');
+              selectedLeft.classList.add('correct');
+              selectedLeft.classList.remove('selected');
+              selectedLeft = null;
+              matches[pairKey] = true;
+              correctCount++;
+
+              // Check if all matched
+              const allMatched = Object.keys(matches).length === exercise.pairs.length;
+              if (allMatched) {
+                completed = true;
+                const card = document.getElementById(`exercise-${this.currentExerciseIndex}`);
+                let feedback = card.querySelector('.feedback');
+                if (!feedback) {
+                  feedback = document.createElement('div');
+                  feedback.className = 'feedback correct';
+                  card.appendChild(feedback);
+                }
+                feedback.textContent = '✓ All matched correctly!';
+                this.exerciseResults.push({ exercise, correct: true });
+              }
+            } else {
+              wrongCount++;
+              selectedLeft.classList.remove('selected');
+              selectedLeft = null;
+
+              // Brief flash then reset
+              item.classList.add('incorrect');
+              setTimeout(() => {
+                item.classList.remove('incorrect');
+              }, 500);
+            }
+          });
+        });
+
+        // Render Fijian column (left side / prompts)
+        fijianWords.forEach((word, i) => {
+          const item = document.createElement('div');
+          item.className = 'match-item';
+          item.dataset.pairKey = pairMap[word];
+          item.dataset.fijianWord = word;
+          item.textContent = word;
+
+          leftColumn.appendChild(item);
+
+          item.addEventListener('click', () => {
+            if (completed) return;
+            if (selectedLeft && selectedLeft !== item) {
+              selectedLeft.classList.remove('selected');
+            }
+            selectedLeft = item;
+            item.classList.add('selected');
+          });
+        });
+
+        container.appendChild(leftColumn);
+        container.appendChild(rightColumn);
+
+        return container;
+      },
+
+      renderSentenceBuilder(exercise) {
+        const div = document.createElement('div');
+        div.className = 'sentence-builder';
+
+        // Target area
+        const target = document.createElement('div');
+        target.className = 'sentence-target';
+        target.dataset.answer = exercise.answer.toLowerCase().replace(/\s/g, '');
+        div.appendChild(target);
+
+        // Drag words
+        const dragContainer = document.createElement('div');
+        dragContainer.className = 'drag-words';
+
+        let completed = false;
+        let resultPushed = false;
+
+        // Shuffle words
+        const shuffledWords = [...exercise.words].sort(() => Math.random() - 0.5);
+
+        shuffledWords.forEach((word, i) => {
+          const wordEl = document.createElement('div');
+          wordEl.className = 'drag-word';
+          wordEl.draggable = true;
+          wordEl.dataset.index = i;
+          wordEl.textContent = word;
+
+          wordEl.addEventListener('dragstart', (e) => {
+            wordEl.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', word);
+          });
+
+          wordEl.addEventListener('dragend', () => {
+            wordEl.classList.remove('dragging');
+          });
+
+          dragContainer.appendChild(wordEl);
+        });
+
+        div.appendChild(dragContainer);
+
+        // Target drop handler
+        target.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          if (!completed) {
+            target.classList.add('drag-over');
+          }
+        });
+
+        target.addEventListener('dragleave', () => {
+          target.classList.remove('drag-over');
+        });
+
+        target.addEventListener('drop', (e) => {
+          if (completed) return;
+          e.preventDefault();
+          target.classList.remove('drag-over');
+          const word = e.dataTransfer.getData('text/plain');
+
+          // Check if word is already used
+          if (target.dataset.used && target.dataset.used.includes(word)) {
+            return;
+          }
+
+          const span = document.createElement('span');
+          span.textContent = word;
+          span.className = 'sentence-word';
+          target.appendChild(span);
+
+          if (!target.dataset.used) target.dataset.used = '';
+          target.dataset.used += word + ',';
+
+          // Hide the original drag word
+          const dragWords = dragContainer.querySelectorAll('.drag-word');
+          dragWords.forEach(w => {
+            if (w.textContent === word && !w.closest('.sentence-target')) {
+              w.style.visibility = 'hidden';
+            }
+          });
+
+          // Check if correct
+          const words = target.querySelectorAll('.sentence-word');
+          const current = Array.from(words).map(w => w.textContent.toLowerCase()).join('');
+          const answer = exercise.answer.toLowerCase().replace(/\s/g, '');
+
+          if (current === answer && current.length > 0) {
+            completed = true;
+            target.classList.add('correct');
+            target.classList.remove('incorrect');
+
+            if (!resultPushed) {
+              resultPushed = true;
+              this.exerciseResults.push({ exercise, correct: true });
+            }
+
+            // Show feedback
+            const card = target.closest('.exercise-card');
+            let feedback = card.querySelector('.feedback');
+            if (!feedback) {
+              feedback = document.createElement('div');
+              feedback.className = 'feedback correct';
+              card.appendChild(feedback);
+            }
+            feedback.textContent = '✓ Correct!';
+          }
+        });
+
+        return div;
+      },
+
+      renderTyping(exercise) {
+        const div = document.createElement('div');
+        div.className = 'typing-container';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'typing-input';
+        input.placeholder = 'Type your answer here...';
+
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const typed = input.value.trim().toLowerCase();
+            const answer = exercise.answer.toLowerCase().replace(/\s/g, '');
+
+            if (typed === answer) {
+              input.classList.add('correct');
+              input.classList.remove('incorrect');
+              this.exerciseResults.push({ exercise, correct: true });
+            } else {
+              input.classList.add('incorrect');
+              input.classList.remove('correct');
+              this.exerciseResults.push({ exercise, correct: false });
+              DataManager.recordWrongAnswer(exercise);
+            }
+
+            // Show feedback
+            const card = document.getElementById(`exercise-${this.currentExerciseIndex}`);
+            let feedback = card.querySelector('.feedback');
+            if (!feedback) {
+              feedback = document.createElement('div');
+              feedback.className = 'feedback';
+              card.appendChild(feedback);
+            }
+
+            if (typed === answer) {
+              feedback.className = 'feedback correct';
+              feedback.textContent = '✓ Correct!';
+            } else {
+              feedback.className = 'feedback incorrect';
+              feedback.innerHTML = `✗ Incorrect. The correct answer is: <span class="correct-answer">${exercise.answer}</span>`;
+            }
+
+            input.disabled = true;
+          }
+        });
+
+        div.appendChild(input);
+
+        if (exercise.note) {
+          const note = document.createElement('div');
+          note.className = 'sources-note';
+          note.innerHTML = `<strong>💡 Note:</strong> ${exercise.note}`;
+          div.appendChild(note);
+        }
+
+        return div;
+      },
+
+      nextExercise() {
+        this.currentExerciseIndex++;
+        this.render();
+      },
+
+      finishLesson() {
+        const lesson = this.currentLesson;
+        let totalXP = 0;
+
+        // Calculate XP based on accuracy
+        const correct = this.exerciseResults.filter(r => r.correct).length;
+        const total = this.exerciseResults.length;
+        const accuracy = total > 0 ? correct / total : 0;
+
+        if (accuracy > 0) {
+          // XP based on mastery (full XP at 100%, proportional otherwise)
+          totalXP = Math.round(lesson.xp * accuracy);
+          if (accuracy === 1) totalXP = lesson.xp;
+          if (accuracy >= 0.8) totalXP = Math.round(lesson.xp * 0.9);
+        }
+
+        DataManager.addXP(totalXP);
+
+        if (lesson.id && !lesson.isReview) {
+          DataManager.completeLesson(lesson.id);
+        }
+
+        if (this.reviewMode) {
+          // Increment review count for answers that were shown
+          const p = DataManager.progress;
+          p.wrongAnswers = p.wrongAnswers.map(wa => ({
+            ...wa,
+            reviewCount: wa.reviewCount + 1
+          }));
+          // Remove answers that have been reviewed 3+ times
+          p.wrongAnswers = p.wrongAnswers.filter(wa => wa.reviewCount < 3);
+          DataManager.saveProgress();
+        }
+
+        // Update streak
+        DataManager.updateStreak();
+
+        // Go to completion screen
+        this.completionData = {
+          lessonTitle: lesson.title,
+          xpEarned: totalXP,
+          accuracy: Math.round(accuracy * 100),
+          correct,
+          total
+        };
+
+        this.currentScreen = 'completion';
+        this.render();
+      },
+
+      renderCompletion() {
+        const data = this.completionData;
+        const div = document.createElement('div');
+        div.className = 'completion-screen';
+
+        div.innerHTML = `
+          <div class="completion-icon">🎉</div>
+          <div class="completion-title">Lesson Complete!</div>
+          <div class="completion-subtitle">${data.lessonTitle}</div>
+          <div class="xp-gain">+${data.xpEarned} XP</div>
+          <p style="margin-bottom: 8px; color: var(--text-secondary);">
+            Accuracy: ${data.accuracy}% (${data.correct}/${data.total} correct)
+          </p>
+          <div class="sources-note">
+            ${data.accuracy === 100 ? 'Perfect! All answers correct.' :
+              data.accuracy >= 80 ? 'Great job! Review the mistakes to improve.' :
+              'Keep practicing! Try reviewing this lesson again.'}
+          </div>
+        `;
+
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-primary';
+        btn.textContent = 'Back to Skills';
+        btn.style.marginTop = '20px';
+        btn.addEventListener('click', () => {
+          this.currentScreen = 'home';
+          this.render();
+        });
+        div.appendChild(btn);
+
+        if (data.accuracy < 100 && !this.reviewMode) {
+          const reviewBtn = document.createElement('button');
+          reviewBtn.className = 'btn btn-secondary';
+          reviewBtn.textContent = 'Review Mistakes';
+          reviewBtn.style.marginTop = '12px';
+          reviewBtn.style.marginLeft = '12px';
+          reviewBtn.addEventListener('click', () => {
+            App.startReview();
+          });
+          div.appendChild(reviewBtn);
+        }
+
+        return div;
+      },
+
+      renderReview() {
+        const wrong = DataManager.getWrongAnswersForReview();
+        if (wrong.length === 0) {
+          const div = document.createElement('div');
+          div.className = 'lesson-screen';
+          div.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px;">
+              <div style="font-size: 3rem; margin-bottom: 20px;">✅</div>
+              <h2>No Mistakes to Review</h2>
+              <p style="color: var(--text-secondary); margin-bottom: 24px;">
+                You have no incorrect answers stored for review. Keep practicing!
+              </p>
+              <button class="btn btn-primary" onclick="App.currentScreen='home';App.render();">
+                Back to Skills
+              </button>
+            </div>
+          `;
+          return div;
+        }
+
+        // Build exercises from wrong answers
+        const reviewExercises = wrong.map(wa => {
+          try {
+            const exercise = JSON.parse(wa.exerciseId);
+            return { ...exercise, id: wa.exerciseId };
+          } catch(e) {
+            return wa; // In case it's not JSON
+          }
+        });
+
+        // Render the lesson screen with review exercises
+        this.currentLesson = {
+          title: 'Review',
+          description: 'Practice answers you got wrong',
+          xp: 50,
+          exercises: reviewExercises,
+          isReview: true,
+          id: 'review'
+        };
+        this.currentExerciseIndex = 0;
+        this.exerciseResults = [];
+        this.reviewMode = true;
+        this.currentScreen = 'lesson';
+        return this.renderLesson();
+      },
+
+      renderPronunciation() {
+        const div = document.createElement('div');
+        div.className = 'home-screen';
+
+        const title = document.createElement('h2');
+        title.textContent = 'Pronunciation Guide';
+        title.style.marginBottom = '8px';
+        div.appendChild(title);
+
+        const subtitle = document.createElement('p');
+        subtitle.textContent = 'How to speak Fijian sounds';
+        subtitle.style.color = 'var(--text-secondary)';
+        subtitle.style.marginBottom = '20px';
+        div.appendChild(subtitle);
+
+        // Vowels table
+        const vowelTitle = document.createElement('h3');
+        vowelTitle.textContent = 'Vowels';
+        vowelTitle.style.marginBottom = '8px';
+        vowelTitle.style.color = 'var(--primary)';
+        div.appendChild(vowelTitle);
+
+        const vowelTable = document.createElement('table');
+        vowelTable.className = 'pronounce-table';
+        vowelTable.innerHTML = '<tr><th>Letter</th><th>Sound</th><th>Example</th></tr>';
+        PRONUNCIATION.vowels.forEach(v => {
+          const row = document.createElement('tr');
+          row.innerHTML = `<td><strong>${v.char}</strong></td><td class="sound-cell">/${v.sound}/</td><td>${v.example}</td>`;
+          vowelTable.appendChild(row);
+        });
+        div.appendChild(vowelTable);
+
+        // Consonants table
+        const consonantTitle = document.createElement('h3');
+        consonantTitle.textContent = 'Tricky Consonants';
+        consonantTitle.style.marginTop = '24px';
+        consonantTitle.style.marginBottom = '8px';
+        consonantTitle.style.color = 'var(--primary)';
+        div.appendChild(consonantTitle);
+
+        const consonantTable = document.createElement('table');
+        consonantTable.className = 'pronounce-table';
+        consonantTable.innerHTML = '<tr><th>Letter</th><th>Sound</th><th>Example</th></tr>';
+        PRONUNCIATION.consonants.forEach(c => {
+          const row = document.createElement('tr');
+          row.innerHTML = `<td><strong>${c.char}</strong></td><td class="sound-cell">/${c.sound}/</td><td>${c.example}</td>`;
+          consonantTable.appendChild(row);
+        });
+        div.appendChild(consonantTable);
+
+        // Tips
+        const tipsTitle = document.createElement('h3');
+        tipsTitle.textContent = 'Pronunciation Tips';
+        tipsTitle.style.marginTop = '24px';
+        tipsTitle.style.marginBottom = '8px';
+        tipsTitle.style.color = 'var(--primary)';
+        div.appendChild(tipsTitle);
+
+        const tipsList = document.createElement('ul');
+        tipsList.className = 'pronounce-tips';
+        PRONUNCIATION.tips.forEach(tip => {
+          const li = document.createElement('li');
+          li.textContent = tip;
+          tipsList.appendChild(li);
+        });
+        div.appendChild(tipsList);
+
+        // Back button
+        const backBtn = document.createElement('button');
+        backBtn.className = 'btn btn-secondary';
+        backBtn.textContent = '← Back to Skills';
+        backBtn.style.marginTop = '20px';
+        backBtn.onclick = () => { App.currentScreen = 'home'; App.render(); };
+        div.appendChild(backBtn);
+
+        return div;
+      },
+
+      renderSources() {
+        const div = document.createElement('div');
+        div.className = 'home-screen';
+
+        const title = document.createElement('h2');
+        title.textContent = 'Language Sources';
+        title.style.marginBottom = '8px';
+        div.appendChild(title);
+
+        const subtitle = document.createElement('p');
+        subtitle.textContent = 'All vocabulary verified from these authoritative sources:';
+        subtitle.style.color = 'var(--text-secondary)';
+        subtitle.style.marginBottom = '20px';
+        div.appendChild(subtitle);
+
+        const list = document.createElement('ul');
+        list.className = 'sources-list';
+        for (const [key, desc] of Object.entries(SOURCES)) {
+          const li = document.createElement('li');
+          li.innerHTML = `<strong>${key}</strong> — ${desc}`;
+          list.appendChild(li);
+        }
+        div.appendChild(list);
+
+        const disclaimer = document.createElement('p');
+        disclaimer.style.marginTop = '20px';
+        disclaimer.style.fontSize = '0.85rem';
+        disclaimer.style.color = 'var(--text-secondary)';
+        disclaimer.innerHTML = '<strong>Note:</strong> All vocabulary is verified from at least two independent sources where possible. Words that could not be cross-verified are flagged in the sources section.<br><strong>Color discrepancy:</strong> PolyglotClub [4] lists different color words that conflict with cross-verified sources [7,12]. We use the cross-verified set (vulavula=white, loaloa=black, etc.) based on Glosbe confirming drau=leaf, not white.';
+        div.appendChild(disclaimer);
+
+        // Back button
+        const backBtn = document.createElement('button');
+        backBtn.className = 'btn btn-secondary';
+        backBtn.textContent = '← Back to Skills';
+        backBtn.style.marginTop = '20px';
+        backBtn.onclick = () => { App.currentScreen = 'home'; App.render(); };
+        div.appendChild(backBtn);
+
+        return div;
+      }
+    };
+
+    // ─── Event Listeners ───────────────────────────────────────
+    document.getElementById('review-btn').addEventListener('click', () => {
+      if (DataManager.getWrongAnswersForReview().length > 0) {
+        App.currentScreen = 'review';
+        App.render();
+      }
+    });
+
+    // ─── Initialize ─────────────────────────────────────────────
+    App.init();
+  </script>
+</body>
+</html>

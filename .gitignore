@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+
+# Temp
+verify_temp.js
+*.log
