@@ -553,6 +553,17 @@
       50% { opacity: 0.8; }
     }
 
+    /* Pronunciation hint (inline phonetic guide) */
+    .pronunciation-hint {
+      margin-top: 8px;
+      padding: 6px 10px;
+      background: var(--surface-alt);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
     /* Modal */
     .modal {
       position: fixed;
@@ -792,6 +803,35 @@
         this.saveProgress();
       }
     };
+
+    // ─── Phonetic Helper ──────────────────────────────────────
+    // Convert Fijian words to English-approximate respelling
+    function fijianToPhonetic(text) {
+      if (!text) return text;
+      let result = text.toLowerCase();
+      // Fijian consonant pronunciations: c=th, q=ng, d=nd, g=ng, b=mb
+      // Note: these replacements are context-sensitive in real Fijian,
+      // but this gives a reasonable approximation for learning purposes
+      result = result.replace(/c/g, 'th');   // c -> th (as in "thin")
+      result = result.replace(/q/g, 'ng');   // q -> ng (as in "sing")
+      result = result.replace(/d/g, 'nd');   // d -> nd (as in "candy")
+      result = result.replace(/g/g, 'ng');   // g -> ng (as in "finger")
+      result = result.replace(/b/g, 'mb');   // b -> mb (prenasalized)
+      // Vowels are straightforward
+      // au -> ow (as in "how")
+      result = result.replace(/au/g, 'ow');
+      return result;
+    }
+
+    // Add inline phonetic guide to exercise prompt
+    function addPronunciationHint(promptEl, fijianText) {
+      if (!fijianText) return;
+      const phonetic = fijianToPhonetic(fijianText);
+      const hint = document.createElement('div');
+      hint.className = 'pronunciation-hint';
+      hint.innerHTML = `<small>(${phonetic})</small>`;
+      promptEl.appendChild(hint);
+    }
 
     // ─── App Router ────────────────────────────────────────────
     const App = {
@@ -1055,6 +1095,20 @@
         const promptEl = document.createElement('div');
         promptEl.className = 'exercise-prompt';
         promptEl.textContent = exercise.prompt;
+
+        // Add inline pronunciation hint for exercises with Fijian content
+        if (exercise.type === 'typing' && exercise.answer) {
+          const hint = document.createElement('div');
+          hint.className = 'pronunciation-hint';
+          hint.textContent = `Pronunciation: ${fijianToPhonetic(exercise.answer)}`;
+          promptEl.appendChild(hint);
+        } else if (exercise.type === 'sentence_builder' && exercise.answer) {
+          const hint = document.createElement('div');
+          hint.className = 'pronunciation-hint';
+          hint.textContent = `Answer pronunciation: ${fijianToPhonetic(exercise.answer)}`;
+          promptEl.appendChild(hint);
+        }
+
         card.appendChild(promptEl);
 
         switch (exercise.type) {
@@ -1321,8 +1375,8 @@
 
           // Track attempts
           droppedCount++;
-          const words = target.querySelectorAll('.sentence-word');
-          const current = Array.from(words).map(w => w.textContent.toLowerCase()).join('');
+          const placedWords = target.querySelectorAll('.sentence-word');
+          const current = Array.from(placedWords).map(w => w.textContent.toLowerCase()).join('');
           const answer = exercise.answer.toLowerCase().replace(/\s/g, '');
 
           // If we have more words than the answer, it's a wrong attempt
@@ -1347,12 +1401,12 @@
             }
           });
 
-          // Check if correct
+          // Check if correct — recheck with all placed words
           const words = target.querySelectorAll('.sentence-word');
-          const current = Array.from(words).map(w => w.textContent.toLowerCase()).join('');
-          const answer = exercise.answer.toLowerCase().replace(/\s/g, '');
+          const current2 = Array.from(words).map(w => w.textContent.toLowerCase()).join('');
+          const answer2 = exercise.answer.toLowerCase().replace(/\s/g, '');
 
-          if (current === answer && current.length > 0) {
+          if (current2 === answer2 && current2.length > 0) {
             completed = true;
             target.classList.add('correct');
             target.classList.remove('incorrect');
