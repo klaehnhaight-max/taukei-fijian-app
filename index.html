@@ -820,7 +820,8 @@
           p.completedLessons.push(lessonId);
         }
         // Store mastery as a percentage (can decay over time later)
-        p.lessonMastery[lessonId] = masteryPercent || 100;
+        // Use != null check to handle 0% mastery correctly (0 is a valid value)
+        p.lessonMastery[lessonId] = masteryPercent != null ? masteryPercent : 100;
         this.saveProgress();
         App.checkUnlocks();
       },
@@ -895,26 +896,40 @@
         const p = this.progress;
         const today = new Date().toDateString();
         const yesterday = new Date(Date.now() - 86400000).toDateString();
-        const now = Date.now();
+        const dayInMs = 24 * 60 * 60 * 1000;
 
-        // Check for streak freeze usage
+        // Already active today, nothing to change
         if (p.lastActive === today) {
-          // Already active today, nothing to change
           return;
         }
 
-        // Check if streak is broken but we have a freeze
-        if (p.lastActive && p.lastActive !== today && p.lastActive !== yesterday) {
-          // More than 1 day gap
-          if (p.streakFreezes > 0) {
-            p.streakFreezes -= 1;
-            p.streak += 1; // Continue streak, consume freeze
-          } else {
-            p.streak = 1;
+        if (p.lastActive && p.lastActive !== today) {
+          // Calculate how many days were missed
+          const lastDate = new Date(p.lastActive);
+          const daysSince = Math.floor((Date.now() - lastDate.getTime()) / dayInMs);
+
+          if (daysSince === 1) {
+            // Just yesterday — streak continues
+            p.streak += 1;
+          } else if (daysSince > 1) {
+            // Missed days — use a freeze for each missed day
+            const freezesNeeded = daysSince - 1;
+            if ((p.streakFreezes || 0) >= freezesNeeded) {
+              p.streakFreezes -= freezesNeeded;
+              p.streak += 1; // Streak saved (only counts today as active)
+            } else if ((p.streakFreezes || 0) > 0) {
+              // Partial freeze coverage — cover some missed days, streak still breaks
+              const covered = p.streakFreezes;
+              p.streakFreezes = 0;
+              p.streak = 1;
+              console.log(`Partial freeze: covered ${covered} of ${freezesNeeded} missed days`);
+            } else {
+              // No freezes — streak broken
+              p.streak = 1;
+            }
           }
-        } else if (p.lastActive === yesterday) {
-          p.streak += 1;
         } else {
+          // First day ever
           p.streak = 1;
         }
 
@@ -1148,6 +1163,40 @@
             <div class="goal-fill" style="width: ${goalProgress}%"></div>
           </div>
         `;
+
+        // Goal adjustment buttons
+        const goalControls = document.createElement('div');
+        goalControls.style.display = 'flex';
+        goalControls.style.justifyContent = 'center';
+        goalControls.style.gap = '8px';
+        goalControls.style.marginTop = '8px';
+
+        const decreaseBtn = document.createElement('button');
+        decreaseBtn.className = 'btn btn-secondary';
+        decreaseBtn.textContent = '−';
+        decreaseBtn.style.padding = '4px 12px';
+        decreaseBtn.style.fontSize = '0.9rem';
+        decreaseBtn.onclick = () => {
+          const current = DataManager.getDailyGoal();
+          DataManager.setDailyGoal(Math.max(10, current - 10));
+          App.render();
+        };
+
+        const increaseBtn = document.createElement('button');
+        increaseBtn.className = 'btn btn-secondary';
+        increaseBtn.textContent = '+';
+        increaseBtn.style.padding = '4px 12px';
+        increaseBtn.style.fontSize = '0.9rem';
+        increaseBtn.onclick = () => {
+          const current = DataManager.getDailyGoal();
+          DataManager.setDailyGoal(current + 10);
+          App.render();
+        };
+
+        goalControls.appendChild(decreaseBtn);
+        goalControls.appendChild(increaseBtn);
+        goalContainer.appendChild(goalControls);
+
         div.appendChild(goalContainer);
 
         // Skill tree title
@@ -1165,7 +1214,7 @@
           const node = document.createElement('div');
           node.className = `skill-node ${skill.completed ? 'completed' : ''} ${!skill.unlocked ? 'locked' : ''}`;
           const mastery = DataManager.progress.lessonMastery[skill.id];
-          const masteryText = mastery ? `${mastery}% mastered` : `${skill.xp} XP`;
+          const masteryText = mastery != null ? `${mastery}% mastered` : `${skill.xp} XP`;
           node.innerHTML = `
             <div class="skill-icon">${skill.icon}</div>
             <div class="skill-title">${skill.title}</div>
@@ -1475,11 +1524,13 @@
           item.textContent = word;
           item.dataset.pairKey = pairMap[word];
           item.dataset.column = 'right';
+          item.setAttribute('role', 'button');
+          item.setAttribute('tabindex', '0');
+          item.setAttribute('aria-label', `English meaning: ${word}. Click or press Enter to match.`);
           rightColumn.appendChild(item);
 
-          item.addEventListener('click', () => {
+          const handleMatch = () => {
             if (completed || !selectedLeft) return;
-
             const pairKey = selectedLeft.dataset.pairKey;
             const isMatch = pairKey === item.dataset.pairKey;
 
@@ -1502,12 +1553,13 @@
                   feedback.className = 'feedback correct';
                   card.appendChild(feedback);
                 }
-                // Record wrong attempts for review
+                // Record wrong attempts for review, or correct first-try for spaced rep
                 if (wrongCount > 0) {
                   this.exerciseResults.push({ exercise, correct: false });
                   DataManager.recordWrongAnswer(exercise);
                 } else {
                   this.exerciseResults.push({ exercise, correct: true });
+                  DataManager.recordCorrectAnswer(exercise);
                 }
                 feedback.textContent = wrongCount > 0
                   ? `✓ All matched! (${wrongCount} incorrect attempt${wrongCount > 1 ? 's' : ''} — review recommended)`
@@ -1524,6 +1576,14 @@
                 item.classList.remove('incorrect');
               }, 500);
             }
+          };
+
+          item.addEventListener('click', handleMatch);
+          item.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleMatch();
+            }
           });
         });
 
@@ -1534,16 +1594,27 @@
           item.dataset.pairKey = pairMap[word];
           item.dataset.fijianWord = word;
           item.textContent = word;
+          item.setAttribute('role', 'button');
+          item.setAttribute('tabindex', '0');
+          item.setAttribute('aria-label', `Fijian word: ${word}. Click or press Enter to select.`);
 
           leftColumn.appendChild(item);
 
-          item.addEventListener('click', () => {
+          const handleSelect = () => {
             if (completed) return;
             if (selectedLeft && selectedLeft !== item) {
               selectedLeft.classList.remove('selected');
             }
             selectedLeft = item;
             item.classList.add('selected');
+          };
+
+          item.addEventListener('click', handleSelect);
+          item.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleSelect();
+            }
           });
         });
 
@@ -1581,7 +1652,29 @@
           wordEl.draggable = true;
           wordEl.dataset.index = i;
           wordEl.textContent = word;
+          wordEl.setAttribute('role', 'button');
+          wordEl.setAttribute('tabindex', '0');
+          wordEl.setAttribute('aria-label', `Word: ${word}. Drag or press Enter to place.`);
 
+          // Click-to-place as keyboard alternative to drag-and-drop
+          wordEl.addEventListener('click', () => {
+            if (completed) return;
+            if (wordEl.style.visibility === 'hidden') return;
+            // Simulate drag-and-drop by dispatching a drop event
+            const dropEvent = new DragEvent('drop', {
+              dataTransfer: new DataTransfer(),
+              bubbles: true
+            });
+            dropEvent.dataTransfer.setData('text/plain', word);
+            target.dispatchEvent(dropEvent);
+          });
+
+          wordEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              wordEl.click();
+            }
+          });
           wordEl.addEventListener('dragstart', (e) => {
             wordEl.classList.add('dragging');
             e.dataTransfer.setData('text/plain', word);
@@ -1659,12 +1752,13 @@
 
             if (!resultPushed) {
               resultPushed = true;
-              // Record wrong attempts for review
+              // Record wrong attempts for review, or correct first-try for spaced rep
               if (wrongAttempts > 0) {
                 this.exerciseResults.push({ exercise, correct: false });
                 DataManager.recordWrongAnswer(exercise);
               } else {
                 this.exerciseResults.push({ exercise, correct: true });
+                DataManager.recordCorrectAnswer(exercise);
               }
             }
 
@@ -1785,15 +1879,16 @@
 
         if (lesson.id && !lesson.isReview) {
           DataManager.completeLesson(lesson.id, Math.round(accuracy * 100));
+          // Reward: completing a lesson with 80%+ accuracy earns a streak freeze
+          if (accuracy >= 0.8) {
+            DataManager.addStreakFreeze(1);
+          }
         }
 
         if (this.reviewMode) {
-          // Process review results with spaced repetition
-          const p = DataManager.progress;
-          this.exerciseResults.forEach(result => {
-            const exerciseId = result.exercise.id || JSON.stringify(result.exercise);
-            DataManager.incrementReviewCount(exerciseId, result.correct);
-          });
+          // Spaced repetition intervals are updated during exercise rendering
+          // (via recordCorrectAnswer/recordWrongAnswer), so no double-processing here.
+          // Just mark review complete.
         }
 
         // Update streak
