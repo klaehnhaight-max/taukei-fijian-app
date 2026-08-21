@@ -22,10 +22,26 @@ saved locally in your browser's `localStorage`.
 - **4 exercise types**: Multiple Choice, Matching, Sentence Builder (drag-and-drop),
   Typing (translation input)
 - **Immediate feedback**: Right/wrong per question with correct answer shown on miss
-- **Progress tracking**: XP, daily streak, per-lesson mastery (all in localStorage)
-- **Review mode**: Spaced repetition that resurfaces answers you got wrong
-- **Pronunciation guide**: Fijian sound guide with tricky consonant notes
+- **Progress tracking**: XP, daily streak (with streak freeze forgiveness), per-lesson
+  mastery percentage (all in localStorage)
+- **Real spaced repetition**: Leitner-style intervals (1→3→7→14→30→90 days) with
+  timestamp-based scheduling — both wrong and correct answers feed into the system
+- **Review queue**: Items due for review are surfaced based on elapsed time,
+  not a fixed replay count. Correctly answered items get longer intervals;
+  wrong answers reset to the shortest interval
+- **Daily goal**: Set and track a daily XP goal (default 50 XP) with a progress bar
+  on the home screen
+- **Streak freezes**: 3 built-in freezes prevent streak loss on missed days;
+  used automatically before breaking a streak
+- **Pronunciation guide**: Inline phonetic respelling on typing and sentence-builder
+  exercises (e.g., "moce" → "mo-they"), plus a dedicated Pronunciation Guide screen
 - **Source attributions**: Every vocabulary exercise lists its source(s)
+- **Dark mode**: Automatic via `prefers-color-scheme`, with manual CSS variables
+- **Mobile-responsive**: Works on phones and tablets, with accessible touch targets
+- **Check Answer button**: Typing exercises have both Enter-to-submit and a
+  visible Check button for touch devices
+- **Accessibility**: Basic aria-labels and keyboard handlers for matching and
+  sentence-builder exercises
 
 ## Source Verification
 
