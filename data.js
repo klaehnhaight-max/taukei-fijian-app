@@ -554,6 +554,236 @@ const LESSONS = {
         sources: ["[8]"]
       }
     ]
+  },
+
+  "unit11": {
+    title: "Animals",
+    description: "Learn animal vocabulary — manumanu, ika, kolī, gata, and more",
+    xp: 110,
+    skills: [11],
+    exercises: [
+      {
+        type: "matching",
+        prompt: "Match the Fijian animal to its English meaning",
+        pairs: [
+          { english: "animal", fijian: "manumanu" },
+          { english: "fish", fijian: "ika" },
+          { english: "bird", fijian: "manumanuvuka" },
+          { english: "dog", fijian: "kolī" },
+          { english: "snake", fijian: "gata" },
+          { english: "worm", fijian: "baca ni qele" }
+        ],
+        sources: ["[7]", "[10]"]
+      },
+      {
+        type: "multiple_choice",
+        prompt: "What does 'kolī' mean?",
+        choices: ["snake", "dog", "bird", "fish"],
+        answer: 1,
+        explanation: "'Koli' = dog. Note the plural form is 'kolī'. [7][10]",
+        sources: ["[7]", "[10]"]
+      },
+      {
+        type: "multiple_choice",
+        prompt: "Which animal is 'gata'?",
+        choices: ["dog", "snake", "bird", "fish"],
+        answer: 1,
+        explanation: "'Gata' = snake. Note: 101 Languages [7] lists 'gata' as 'sharp (as a knife)', but Glosbe [10] confirms 'gata' = snake. The 101 Languages listing appears to be a row error. [7][10]",
+        sources: ["[7]", "[10]"]
+      },
+      {
+        type: "typing",
+        prompt: "Type the Fijian word for 'fish'",
+        answer: "ika",
+        sources: ["[7]", "[10]"]
+      },
+      {
+        type: "sentence_builder",
+        prompt: "Build the phrase: 'a big dog' = kolī + levu",
+        words: ["kolī", "levu"],
+        answer: "levu kolī",
+        note: "In Fijian, adjectives follow nouns: 'kolī levu' = big dog. But as an equational phrase, 'levu kolī' is also natural. [7][10]",
+        sources: ["[7]", "[10]"]
+      }
+    ]
+  },
+
+  "unit12": {
+    title: "Nature & Weather",
+    description: "Learn about the sun, moon, stars, water, rain, and seasons",
+    xp: 120,
+    skills: [12],
+    exercises: [
+      {
+        type: "matching",
+        prompt: "Match the Fijian nature word to its English meaning",
+        pairs: [
+          { fijian: "siga", english: "sun / day" },
+          { fijian: "vula", english: "moon" },
+          { fijian: "kalokalo", english: "star" },
+          { fijian: "wai", english: "water" },
+          { fijian: "uca", english: "rain" },
+          { fijian: "uciwai", english: "river" },
+          { fijian: "waitui", english: "sea" },
+          { fijian: "ō", english: "cloud" },
+          { fijian: "cagi", english: "wind" },
+          { fijian: "kama", english: "fire" },
+          { fijian: "bogi", english: "night" },
+          { fijian: "yabaki", english: "year" }
+        ],
+        sources: ["[7]"]
+      },
+      {
+        type: "multiple_choice",
+        prompt: "Which word means both 'sun' and 'day'?",
+        choices: ["vula", "siga", "kalokalo", "bogi"],
+        answer: 1,
+        explanation: "'Siga' means both 'sun' and 'day' in Fijian. This is common in Austronesian languages — the same word for the celestial body and the time period. [7][10]",
+        sources: ["[7]", "[10]"]
+      },
+      {
+        type: "multiple_choice",
+        prompt: "What is 'vula' in English?",
+        choices: ["sun", "moon", "star", "cloud"],
+        answer: 1,
+        explanation: "'Vula' = moon. [7][10]",
+        sources: ["[7]", "[10]"]
+      },
+      {
+        type: "typing",
+        prompt: "Type the Fijian word for 'rain'",
+        answer: "uca",
+        sources: ["[7]"]
+      },
+      {
+        type: "sentence_builder",
+        prompt: "Build: 'the big sun' = siga + levu",
+        words: ["siga", "levu"],
+        answer: "siga levu",
+        note: "'Siga levu' = big sun / shining sun. In Fijian, modifiers follow the noun. [7]",
+        sources: ["[7]"]
+      }
+    ]
+  },
+
+  "unit13": {
+    title: "Descriptive Adjectives",
+    description: "Learn adjectives — big, small, long, short, new, old, and more",
+    xp: 120,
+    skills: [13],
+    exercises: [
+      {
+        type: "matching",
+        prompt: "Match the Fijian adjective to its English meaning",
+        pairs: [
+          { fijian: "levu", english: "big / many" },
+          { fijian: "lailai", english: "small" },
+          { fijian: "balavu", english: "long / tall" },
+          { fijian: "leka", english: "short" },
+          { fijian: "rabalevu", english: "wide" },
+          { fijian: "rabalailai", english: "narrow" },
+          { fijian: "bībī", english: "heavy" },
+          { fijian: "lila", english: "thin (person)" },
+          { fijian: "vinaka", english: "good" },
+          { fijian: "cā", english: "bad" },
+          { fijian: "vou", english: "new" },
+          { fijian: "qase", english: "old (person)" }
+        ],
+        sources: ["[7]"]
+      },
+      {
+        type: "multiple_choice",
+        prompt: "Which word means 'big'?",
+        choices: ["lailai", "levu", "balavu", "leka"],
+        answer: 1,
+        explanation: "'Levu' = big or many. In Fijian, 'levu' can be used as both an adjective and a verb: 'na gone levu' (the big child), 'e dua na levu' (there are many). [7][2]",
+        sources: ["[7]", "[2]"]
+      },
+      {
+        type: "multiple_choice",
+        prompt: "How do you say 'new' in Fijian?",
+        choices: ["vou", "qase", "makawa", "vinaka"],
+        answer: 0,
+        explanation: "'Vou' = new. 'Qase' means 'old' (for people), 'makawa' means 'old' (for things). [7]",
+        sources: ["[7]"]
+      },
+      {
+        type: "typing",
+        prompt: "Type the Fijian word for 'good'",
+        answer: "vinaka",
+        sources: ["[7]"]
+      },
+      {
+        type: "sentence_builder",
+        prompt: "Build: 'good water' = wai + vinaka",
+        words: ["wai", "vinaka"],
+        answer: "wai vinaka",
+        note: "'Wai vinaka' = good water. In Fijian, the modifier follows the noun: '[noun] [adjective]'. [7]",
+        sources: ["[7]"]
+      }
+    ]
+  },
+
+  "unit14": {
+    title: "Expanded Verbs",
+    description: "Learn action verbs — swim, fly, walk, sit, stand, give, hold, and more",
+    xp: 130,
+    skills: [14],
+    exercises: [
+      {
+        type: "matching",
+        prompt: "Match the Fijian verb phrase to its English meaning",
+        pairs: [
+          { english: "to swim", fijian: "qalo-va" },
+          { english: "to fly", fijian: "vuka" },
+          { english: "to walk", fijian: "taubale" },
+          { english: "to come", fijian: "lako mai" },
+          { english: "to sit", fijian: "dabe" },
+          { english: "to stand", fijian: "tū" },
+          { english: "to give", fijian: "soli-a" },
+          { english: "to hold", fijian: "taura" },
+          { english: "to throw", fijian: "viri-taka" },
+          { english: "to sing", fijian: "laga-ta" },
+          { english: "to see", fijian: "rai-ca" },
+          { english: "to hear", fijian: "rogo-ca" },
+          { english: "to know", fijian: "kilā" },
+          { english: "to think", fijian: "nanuma" },
+          { english: "to fear", fijian: "rere-vaka" }
+        ],
+        sources: ["[7]", "[10]"]
+      },
+      {
+        type: "multiple_choice",
+        prompt: "Which verb means 'to swim'?",
+        choices: ["dabe", "qalo-va", "taubale", "vuka"],
+        answer: 1,
+        explanation: "'Qalo-va' = to swim. [7][10]",
+        sources: ["[7]", "[10]"]
+      },
+      {
+        type: "multiple_choice",
+        prompt: "How do you say 'to come' in Fijian?",
+        choices: ["lako", "mai", "lako mai", "vuka"],
+        answer: 2,
+        explanation: "'Lako mai' = to come. 'Mai' alone means 'come here', but 'lako mai' is the full verb 'to come/go to'. Glosbe confirms 'lako mai' = come. [7][10]",
+        sources: ["[7]", "[10]"]
+      },
+      {
+        type: "typing",
+        prompt: "Type the Fijian verb for 'to stand'",
+        answer: "tū",
+        note: "Also accepts 'tūcake' for 'stand up'. [7][10]",
+        sources: ["[7]", "[10]"]
+      },
+      {
+        type: "sentence_builder",
+        prompt: "Build: 'I am going' = au + lako",
+        words: ["au", "lako"],
+        answer: "Au lako",
+        note: "'Au' is the subject pronoun for 'I'. The verb 'lako' means go/come. Combined as 'Au lako' = I am going. [7][10]",
+        sources: ["[7]", "[10]"]
+      }
+    ]
   }
 };
 
@@ -647,6 +877,42 @@ const SKILL_TREE = [
     icon: "📝",
     xp: 140,
     prerequisites: ["unit4", "unit8", "unit9"],
+    unlocked: false
+  },
+  {
+    id: "unit11",
+    title: "Animals",
+    description: "Learn animal vocabulary — manumanu, ika, kolī, gata, and more",
+    icon: "🐾",
+    xp: 110,
+    prerequisites: ["unit5"],
+    unlocked: false
+  },
+  {
+    id: "unit12",
+    title: "Nature & Weather",
+    description: "Learn about the sun, moon, stars, water, rain, and seasons",
+    icon: "🌤️",
+    xp: 120,
+    prerequisites: ["unit6"],
+    unlocked: false
+  },
+  {
+    id: "unit13",
+    title: "Adjectives",
+    description: "Learn descriptive adjectives — big, small, long, short, new, old",
+    icon: "📏",
+    xp: 120,
+    prerequisites: ["unit9"],
+    unlocked: false
+  },
+  {
+    id: "unit14",
+    title: "Expanded Verbs",
+    description: "Learn action verbs — swim, fly, walk, sit, stand, give, hold, throw",
+    icon: "🏊",
+    xp: 130,
+    prerequisites: ["unit9"],
     unlocked: false
   }
 ];

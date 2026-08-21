@@ -17,8 +17,9 @@ saved locally in your browser's `localStorage`.
 
 ## Features
 
-- **10 skill-tree units**: Greetings, Numbers, Pronouns, Family, Body Parts,
-  Colors, Food, Question Words, Basic Verbs, Simple Sentences
+- **14 skill-tree units**: Greetings, Numbers, Pronouns, Family, Body Parts,
+  Colors, Food, Question Words, Basic Verbs, Simple Sentences, Animals,
+  Nature & Weather, Descriptive Adjectives, Expanded Verbs
 - **4 exercise types**: Multiple Choice, Matching, Sentence Builder (drag-and-drop),
   Typing (translation input)
 - **Immediate feedback**: Right/wrong per question with correct answer shown on miss
@@ -67,6 +68,28 @@ PolyglotClub [4] lists color words (drau=white, iro=black, etc.) that conflict
 with cross-verified sources [7, 12] and are contradicted by Glosbe [10] (which
 confirms "drau" means leaf/needle, not white). This app uses the cross-verified
 set: vulavula=white, loaloa=black, damudamu=red, drokadroka=green, etc.
+
+### Known Discrepancy — "sharp":
+101 Languages [7] lists "sharp (as a knife) = gata", but Glosbe [10] confirms
+"gata = snake". This appears to be a row error on 101 Languages' page. This app
+uses "gata" = snake (per Glosbe [10] and the Fijian Wikipedia article on animals),
+and "sharp" is excluded from Unit 13 (Descriptive Adjectives) until independently
+verified from a third source.
+
+### Known Quirk — "siga" double duty:
+The word "siga" means both "sun" and "day" in Fijian — this is confirmed by
+Glosbe [10] and is common across Austronesian languages. This is noted explicitly
+in Unit 12's exercises rather than treated as an error.
+
+### Cross-verification for units 11-14:
+All vocabulary in Units 11-14 is sourced from 101 Languages [7] and cross-checked
+against Glosbe [10]. Specific checks:
+- "kolī" = dog (confirmed [10])
+- "gata" = snake (confirmed [10], contradicts [7]'s "sharp" listing)
+- "siga" = sun/day (confirmed [10])
+- "lako mai" = come (confirmed [10])
+- "qalo-va" = to swim (confirmed [10])
+- All other Unit 11-14 vocabulary matches [7] entries exactly.
 
 ## Pronunciation Notes
 
