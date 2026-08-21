@@ -591,6 +591,8 @@
       .container { padding: 16px 8px 80px; }
       header { padding: 12px 16px; }
       .matching-container { grid-template-columns: 1fr; }
+      .matching-container .match-column:nth-child(1) { order: 2; }
+      .matching-container .match-column:nth-child(2) { order: 1; }
       .nav-buttons { flex-direction: column; }
     }
 
@@ -730,12 +732,13 @@
         App.updateHeader();
       },
 
-      completeLesson(lessonId) {
+      completeLesson(lessonId, masteryPercent) {
         const p = this.progress;
         if (!p.completedLessons.includes(lessonId)) {
           p.completedLessons.push(lessonId);
         }
-        p.lessonMastery[lessonId] = true;
+        // Store mastery as a percentage (can decay over time later)
+        p.lessonMastery[lessonId] = masteryPercent || 100;
         this.saveProgress();
         App.checkUnlocks();
       },
@@ -799,8 +802,6 @@
       reviewMode: false,
 
       init() {
-        // Update streak for visiting today
-        DataManager.updateStreak();
         App.updateHeader();
         App.checkUnlocks();
         App.render();
@@ -895,11 +896,13 @@
         SKILL_TREE.forEach(skill => {
           const node = document.createElement('div');
           node.className = `skill-node ${skill.completed ? 'completed' : ''} ${!skill.unlocked ? 'locked' : ''}`;
+          const mastery = DataManager.progress.lessonMastery[skill.id];
+          const masteryText = mastery ? `${mastery}% mastered` : `${skill.xp} XP`;
           node.innerHTML = `
             <div class="skill-icon">${skill.icon}</div>
             <div class="skill-title">${skill.title}</div>
             <div class="skill-desc">${skill.description}</div>
-            <div class="skill-xp">${skill.xp} XP</div>
+            <div class="skill-xp">${masteryText}</div>
           `;
 
           if (skill.unlocked) {
@@ -1144,7 +1147,7 @@
         rightColumn.style.order = '2';
 
         // For mobile: show English first, then Fijian (swap order)
-        container.style.cssText = '@media (max-width: 480px) { .match-column:nth-child(1) { order: 2; } .match-column:nth-child(2) { order: 1; } }';
+        container.className = 'matching-container';
 
         // Shuffle pairs independently for each column
         const fijianWords = [...exercise.pairs].map(p => p.fijian || p.english).sort(() => Math.random() - 0.5);
@@ -1199,8 +1202,16 @@
                   feedback.className = 'feedback correct';
                   card.appendChild(feedback);
                 }
-                feedback.textContent = '✓ All matched correctly!';
-                this.exerciseResults.push({ exercise, correct: true });
+                // Record wrong attempts for review
+                if (wrongCount > 0) {
+                  this.exerciseResults.push({ exercise, correct: false });
+                  DataManager.recordWrongAnswer(exercise);
+                } else {
+                  this.exerciseResults.push({ exercise, correct: true });
+                }
+                feedback.textContent = wrongCount > 0
+                  ? `✓ All matched! (${wrongCount} incorrect attempt${wrongCount > 1 ? 's' : ''} — review recommended)`
+                  : '✓ All matched correctly!';
               }
             } else {
               wrongCount++;
@@ -1258,6 +1269,8 @@
 
         let completed = false;
         let resultPushed = false;
+        let wrongAttempts = 0;
+        let droppedCount = 0;
 
         // Shuffle words
         const shuffledWords = [...exercise.words].sort(() => Math.random() - 0.5);
@@ -1306,6 +1319,18 @@
             return;
           }
 
+          // Track attempts
+          droppedCount++;
+          const words = target.querySelectorAll('.sentence-word');
+          const current = Array.from(words).map(w => w.textContent.toLowerCase()).join('');
+          const answer = exercise.answer.toLowerCase().replace(/\s/g, '');
+
+          // If we have more words than the answer, it's a wrong attempt
+          if ((current + word.toLowerCase()).replace(/\s/g, '') !== answer &&
+              (current + word.toLowerCase()).replace(/\s/g, '').length > answer.length) {
+            wrongAttempts++;
+          }
+
           const span = document.createElement('span');
           span.textContent = word;
           span.className = 'sentence-word';
@@ -1334,7 +1359,13 @@
 
             if (!resultPushed) {
               resultPushed = true;
-              this.exerciseResults.push({ exercise, correct: true });
+              // Record wrong attempts for review
+              if (wrongAttempts > 0) {
+                this.exerciseResults.push({ exercise, correct: false });
+                DataManager.recordWrongAnswer(exercise);
+              } else {
+                this.exerciseResults.push({ exercise, correct: true });
+              }
             }
 
             // Show feedback
@@ -1345,7 +1376,9 @@
               feedback.className = 'feedback correct';
               card.appendChild(feedback);
             }
-            feedback.textContent = '✓ Correct!';
+            feedback.textContent = wrongAttempts > 0
+              ? `✓ Correct! (${wrongAttempts} wrong attempt${wrongAttempts > 1 ? 's' : ''} — review recommended)`
+              : '✓ Correct!';
           }
         });
 
@@ -1361,45 +1394,58 @@
         input.className = 'typing-input';
         input.placeholder = 'Type your answer here...';
 
+        const checkAnswer = () => {
+          if (input.disabled) return;
+          const typed = input.value.trim().toLowerCase().replace(/\s+/g, ' ');
+          const answer = exercise.answer.toLowerCase().trim().replace(/\s+/g, ' ');
+
+          if (typed === answer) {
+            input.classList.add('correct');
+            input.classList.remove('incorrect');
+            this.exerciseResults.push({ exercise, correct: true });
+          } else {
+            input.classList.add('incorrect');
+            input.classList.remove('correct');
+            this.exerciseResults.push({ exercise, correct: false });
+            DataManager.recordWrongAnswer(exercise);
+          }
+
+          // Show feedback
+          const card = document.getElementById(`exercise-${this.currentExerciseIndex}`);
+          let feedback = card.querySelector('.feedback');
+          if (!feedback) {
+            feedback = document.createElement('div');
+            feedback.className = 'feedback';
+            card.appendChild(feedback);
+          }
+
+          if (typed === answer) {
+            feedback.className = 'feedback correct';
+            feedback.textContent = '✓ Correct!';
+          } else {
+            feedback.className = 'feedback incorrect';
+            feedback.innerHTML = `✗ Incorrect. The correct answer is: <span class="correct-answer">${exercise.answer}</span>`;
+          }
+
+          input.disabled = true;
+        };
+
         input.addEventListener('keypress', (e) => {
           if (e.key === 'Enter') {
             e.preventDefault();
-            const typed = input.value.trim().toLowerCase();
-            const answer = exercise.answer.toLowerCase().replace(/\s/g, '');
-
-            if (typed === answer) {
-              input.classList.add('correct');
-              input.classList.remove('incorrect');
-              this.exerciseResults.push({ exercise, correct: true });
-            } else {
-              input.classList.add('incorrect');
-              input.classList.remove('correct');
-              this.exerciseResults.push({ exercise, correct: false });
-              DataManager.recordWrongAnswer(exercise);
-            }
-
-            // Show feedback
-            const card = document.getElementById(`exercise-${this.currentExerciseIndex}`);
-            let feedback = card.querySelector('.feedback');
-            if (!feedback) {
-              feedback = document.createElement('div');
-              feedback.className = 'feedback';
-              card.appendChild(feedback);
-            }
-
-            if (typed === answer) {
-              feedback.className = 'feedback correct';
-              feedback.textContent = '✓ Correct!';
-            } else {
-              feedback.className = 'feedback incorrect';
-              feedback.innerHTML = `✗ Incorrect. The correct answer is: <span class="correct-answer">${exercise.answer}</span>`;
-            }
-
-            input.disabled = true;
+            checkAnswer();
           }
         });
 
         div.appendChild(input);
+
+        // Add Check button as a redundant submit path for touch devices
+        const checkBtn = document.createElement('button');
+        checkBtn.className = 'btn btn-secondary btn-block';
+        checkBtn.textContent = 'Check Answer';
+        checkBtn.style.marginTop = '12px';
+        checkBtn.addEventListener('click', checkAnswer);
+        div.appendChild(checkBtn);
 
         if (exercise.note) {
           const note = document.createElement('div');
@@ -1412,6 +1458,8 @@
       },
 
       nextExercise() {
+        // Update streak when user progresses to next exercise (real practice)
+        DataManager.updateStreak();
         this.currentExerciseIndex++;
         this.render();
       },
@@ -1435,7 +1483,7 @@
         DataManager.addXP(totalXP);
 
         if (lesson.id && !lesson.isReview) {
-          DataManager.completeLesson(lesson.id);
+          DataManager.completeLesson(lesson.id, Math.round(accuracy * 100));
         }
 
         if (this.reviewMode) {

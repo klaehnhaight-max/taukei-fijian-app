@@ -81,7 +81,7 @@ const LESSONS = {
         prompt: "How do you say 'Nice to meet you'?",
         choices: ["Au sega ni kila", "Au marau sara", "O cei ko iko?", "Sota tale"],
         answer: 1,
-        explanation: "'Au marau sara' means 'Nice to meet you'. 'Au' = I, 'marau' = know, 'sara' = good/well.",
+        explanation: "'Au marau sara' means 'Nice to meet you'. 'Au' = I, 'marau' relates to gladness/rejoicing, 'sara' = good. Literally 'I rejoice'. [8]",
         sources: ["[8]"]
       }
     ]
