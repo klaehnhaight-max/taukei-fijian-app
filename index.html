@@ -949,38 +949,6 @@
         return this.getWrongAnswersForReview().length;
       },
 
-      incrementReviewCount(answerId, wasCorrect) {
-        const p = this.progress;
-        const now = Date.now();
-        const dayInMs = 24 * 60 * 60 * 1000;
-        const intervals = [1, 3, 7, 14, 30, 90]; // days: Leitner-like
-
-        p.wrongAnswers = p.wrongAnswers.map(wa => {
-          if (wa.exerciseId !== answerId) return wa;
-
-          if (wasCorrect) {
-            // Advance interval
-            const newIndex = Math.min(wa.intervalIndex + 1, intervals.length - 1);
-            return {
-              ...wa,
-              intervalIndex: newIndex,
-              nextReviewAt: now + intervals[newIndex] * dayInMs,
-              lastCorrect: now,
-              incorrectInRow: 0
-            };
-          } else {
-            // Reset to shortest interval
-            return {
-              ...wa,
-              intervalIndex: 0,
-              nextReviewAt: now + intervals[0] * dayInMs,
-              incorrectInRow: (wa.incorrectInRow || 0) + 1
-            };
-          }
-        });
-        this.saveProgress();
-      },
-
       useStreakFreeze() {
         const p = this.progress;
         if (p.streakFreezes > 0) {
@@ -1174,17 +1142,19 @@
         const decreaseBtn = document.createElement('button');
         decreaseBtn.className = 'btn btn-secondary';
         decreaseBtn.textContent = '−';
+        decreaseBtn.setAttribute('aria-label', 'Decrease daily goal by 10 XP');
         decreaseBtn.style.padding = '4px 12px';
         decreaseBtn.style.fontSize = '0.9rem';
         decreaseBtn.onclick = () => {
           const current = DataManager.getDailyGoal();
-          DataManager.setDailyGoal(Math.max(10, current - 10));
+          DataManager.setDailyGoal(Math.max(100, current - 10));
           App.render();
         };
 
         const increaseBtn = document.createElement('button');
         increaseBtn.className = 'btn btn-secondary';
         increaseBtn.textContent = '+';
+        increaseBtn.setAttribute('aria-label', 'Increase daily goal by 10 XP');
         increaseBtn.style.padding = '4px 12px';
         increaseBtn.style.fontSize = '0.9rem';
         increaseBtn.onclick = () => {
