@@ -475,6 +475,36 @@
             assert(win.App.currentExerciseIndex === 0, 'currentExerciseIndex should reset to 0');
             assert(win.App.currentLesson.id === 'unit1', 'currentLesson should be unit1');
           }
+        },
+        {
+          name: 'first-run intro card shows when no progress, hidden after dismiss',
+          fn: () => {
+            // Clear ALL localStorage to simulate first run
+            win.localStorage.removeItem('taukei_progress');
+            win.localStorage.removeItem('taukei_intro_dismissed');
+            win.DataManager._progressCache = null;
+
+            // Render home screen
+            win.App.currentScreen = 'home';
+            win.App.render();
+
+            // Intro card should be present
+            let introCard = Array.from(win.document.querySelectorAll('.sources-note'))
+              .find(d => d.innerHTML.includes('Welcome to iTaukei'));
+            assert(introCard, 'intro card should be present on first run (no saved progress)');
+
+            // Dismiss it
+            win.localStorage.setItem('taukei_intro_dismissed', 'true');
+            win.App.render();
+
+            // Intro card should be absent
+            introCard = Array.from(win.document.querySelectorAll('.sources-note'))
+              .find(d => d.innerHTML.includes('Welcome to iTaukei'));
+            assert(!introCard, 'intro card should be absent after dismissal');
+
+            // Clean up
+            win.localStorage.removeItem('taukei_intro_dismissed');
+          }
         }
       ];
 

@@ -1477,9 +1477,39 @@
         }
       },
 
+      renderIntroCard() {
+        const card = this.renderNoteCard(
+          '<strong>Welcome to iTaukei!</strong><br>' +
+          '<small style="color:#666">' +
+          'Tap a lesson to start. Wrong answers come back later for review. ' +
+          'Progress saves automatically on this device — signing in is ' +
+          'optional, only needed for cross-device sync.' +
+          '</small>'
+        );
+        const dismissBtn = document.createElement('button');
+        dismissBtn.className = 'btn btn-secondary';
+        dismissBtn.textContent = 'Got it';
+        dismissBtn.style.marginTop = '8px';
+        dismissBtn.onclick = () => {
+          localStorage.setItem('taukei_intro_dismissed', 'true');
+          card.remove();
+        };
+        card.appendChild(dismissBtn);
+        return card;
+      },
+
       renderHome() {
         const div = document.createElement('div');
         div.className = 'home-screen';
+
+        // First-run intro card: shown only when there's no saved progress
+        // (checked via localStorage directly to avoid lazily creating
+        // default progress inside DataManager.progress getter) and the
+        // user hasn't already dismissed it.
+        if (localStorage.getItem('taukei_progress') === null &&
+            localStorage.getItem('taukei_intro_dismissed') !== 'true') {
+          div.appendChild(this.renderIntroCard());
+        }
 
         const p = DataManager.progress;
 
