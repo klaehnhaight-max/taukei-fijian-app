@@ -2200,8 +2200,8 @@
           if (input.disabled) return;
           const typed = normalizeForCompare(input.value);
           const answer = normalizeForCompare(exercise.answer);
-
-          const isCorrect = typed === answer;
+          const altAnswers = (exercise.altAnswers || []).map(a => normalizeForCompare(a));
+          const isCorrect = typed === answer || altAnswers.some(a => typed === a);
           if (isCorrect) {
             input.classList.add('correct');
             input.classList.remove('incorrect');

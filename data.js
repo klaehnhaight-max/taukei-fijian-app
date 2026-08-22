@@ -838,6 +838,7 @@ const LESSONS = {
         id: "unit14-4",
         prompt: "Type the Fijian verb for 'to stand'",
         answer: "tū",
+        altAnswers: ["tūcake"],
         note: "Also accepts 'tūcake' for 'stand up'. [7][10]",
         sources: ["[7]", "[10]"]
       },

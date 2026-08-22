@@ -142,6 +142,20 @@
           }
         },
         {
+          name: 'typing accepts altAnswers (e.g. "tucake" matches "tūcake" for "tū")',
+          fn: () => {
+            resetProgress();
+            const ex = { id: '__test_alt__', type: 'typing', prompt: 'test', answer: 'tū', altAnswers: ['tūcake'] };
+            // Simulate the checkAnswer logic: normalize typed, normalize answer, normalize alts
+            const norm = win.normalizeForCompare;
+            const typed1 = norm('tu');
+            const typed2 = norm('tucake');
+            const answers = [norm(ex.answer), ...(ex.altAnswers || []).map(norm)];
+            assert(answers.includes(typed1), '"tu" should match the answer or altAnswers');
+            assert(answers.includes(typed2), '"tucake" should match the altAnswers');
+          }
+        },
+        {
           name: 'completeLesson() stores a real 0% mastery, not treated as missing',
           fn: () => {
             resetProgress();
