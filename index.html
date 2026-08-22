@@ -1334,7 +1334,7 @@
         } else if (this.currentScreen === 'sources') {
           container.appendChild(this.renderSources());
         } else if (this.currentScreen === 'auth') {
-          container.appendChild(AuthScreen.render());
+          container.appendChild((window.AuthScreen || AuthScreen).render());
         }
       },
 
@@ -2505,6 +2505,8 @@
         return div;
       }
     };
+
+    window.AuthScreen = AuthScreen;
 
     // ─── Initialize ─────────────────────────────────────────────
     FirebaseSync.init();
