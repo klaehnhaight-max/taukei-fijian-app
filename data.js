@@ -917,7 +917,7 @@ const LESSONS = {
         prompt: "Match the Fijian verb phrase to its English meaning",
         pairs: [
           { english: "to know", fijian: "kilā" },
-          { english: "to think", fijian: "nanuma" },
+          { english: "think/remember", fijian: "nanuma" },
           { english: "to fear", fijian: "rere-vaka" }
         ],
         sources: ["[7]", "[10]"]
