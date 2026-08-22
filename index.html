@@ -687,10 +687,11 @@
     /* Responsive */
     @media (max-width: 480px) {
       .container { padding: 16px 8px 80px; }
-      header { padding: 12px 16px; }
-      .matching-container { grid-template-columns: 1fr; }
-      .matching-container .match-column:nth-child(1) { order: 2; }
-      .matching-container .match-column:nth-child(2) { order: 1; }
+      header { padding: 8px 8px; }
+      .header-stats { gap: 10px; }
+      .stat-item span:last-child { display: none; }
+      .btn-label { display: none; }
+      #review-btn, #sync-btn, #settings-btn { padding: 8px 10px; font-size: 0.8rem; }
       .nav-buttons { flex-direction: column; }
     }
 
@@ -863,22 +864,22 @@
   <header>
     <h1 id="home-logo" role="button" tabindex="0" aria-label="Go to home screen">🌺 iTaukei</h1>
     <div class="header-stats">
-      <div class="stat-item">
+      <div class="stat-item" aria-label="0 day streak">
         <span>🔥</span>
         <span class="stat-value" id="streak-count">0</span>
         <span>day streak</span>
       </div>
-      <div class="stat-item">
+      <div class="stat-item" aria-label="0 XP">
         <span>⭐</span>
         <span class="stat-value" id="xp-count">0</span>
         <span>XP</span>
       </div>
-      <button id="review-btn" class="btn btn-secondary" style="padding: 6px 16px; font-size: 0.85rem;">
-        📚 Review</button>
-      <button id="sync-btn" class="btn btn-secondary" style="padding: 6px 16px; font-size: 0.85rem;">
-        ☁️ Sync</button>
-      <button id="settings-btn" class="btn btn-secondary" style="padding: 6px 16px; font-size: 0.85rem;">
-        ⚙️ Settings</button>
+      <button id="review-btn" class="btn btn-secondary" style="padding: 6px 16px; font-size: 0.85rem;" aria-label="Review">
+        📚<span class="btn-label"> Review</span></button>
+      <button id="sync-btn" class="btn btn-secondary" style="padding: 6px 16px; font-size: 0.85rem;" aria-label="Sync">
+        ☁️<span class="btn-label"> Sync</span></button>
+      <button id="settings-btn" class="btn btn-secondary" style="padding: 6px 16px; font-size: 0.85rem;" aria-label="Settings">
+        ⚙️<span class="btn-label"> Settings</span></button>
     </div>
   </header>
 
@@ -1375,9 +1376,16 @@
 
       updateHeader() {
         const p = DataManager.progress;
-        document.getElementById('streak-count').textContent = p.streak;
-        document.getElementById('streak-count').className = p.streak > 0 ? 'streak-active' : '';
-        document.getElementById('xp-count').textContent = p.xp;
+        const streakEl = document.getElementById('streak-count');
+        streakEl.textContent = p.streak;
+        streakEl.className = p.streak > 0 ? 'streak-active' : '';
+        const xpEl = document.getElementById('xp-count');
+        xpEl.textContent = p.xp;
+        // Update aria-labels on stat items for screen reader accessibility
+        const streakItem = streakEl.closest('.stat-item');
+        const xpItem = xpEl.closest('.stat-item');
+        if (streakItem) streakItem.setAttribute('aria-label', p.streak + ' day streak');
+        if (xpItem) xpItem.setAttribute('aria-label', p.xp + ' XP');
         document.getElementById('review-btn').style.display =
           DataManager.getReviewCount() > 0 ? 'inline-block' : 'none';
 
