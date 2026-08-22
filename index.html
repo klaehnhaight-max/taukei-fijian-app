@@ -2404,6 +2404,7 @@
 
         // Go to completion screen
         this.completionData = {
+          lessonId: lesson.id,
           lessonTitle: lesson.title,
           xpEarned: totalXP,
           accuracy: Math.round(accuracy * 100),
@@ -2467,6 +2468,19 @@
             this.render();
           });
           div.appendChild(reviewBtn);
+        }
+
+        if (!this.reviewMode) {
+          const practiceBtn = document.createElement('button');
+          practiceBtn.className = 'btn btn-secondary';
+          practiceBtn.textContent = 'Practice Again';
+          practiceBtn.style.marginTop = '12px';
+          practiceBtn.style.marginLeft = '12px';
+          practiceBtn.addEventListener('click', () => {
+            this.startLesson(this.completionData.lessonId);
+            this.render();
+          });
+          div.appendChild(practiceBtn);
         }
 
         return div;

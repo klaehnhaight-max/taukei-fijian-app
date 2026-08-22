@@ -449,6 +449,32 @@
             assert(feedback2.getAttribute('aria-live') === 'polite',
               'aria-live should persist on reuse');
           }
+        },
+        {
+          name: 'Practice Again button on completion screen restarts the lesson',
+          fn: () => {
+            resetProgress();
+            // Set up a mock lesson with exercises and exerciseResults
+            win.App.currentLesson = { id: 'unit1', title: 'Greetings', exercises: [{}] };
+            win.App.exerciseResults = [{ exercise: {}, correct: true }];
+            win.App.reviewMode = false;
+            // Trigger finishLesson to set completionData and render completion
+            win.App.finishLesson();
+            // Should be on completion screen
+            assert(win.App.currentScreen === 'completion', 'should be on completion screen after finishLesson');
+            assert(win.App.completionData.lessonId === 'unit1', 'completionData should have lessonId');
+            // Render the completion screen and check for Practice Again button
+            const rendered = win.App.renderCompletion();
+            const practiceBtn = rendered.querySelector('button');
+            const allBtns = rendered.querySelectorAll('button');
+            const practiceBtnEl = Array.from(allBtns).find(b => b.textContent === 'Practice Again');
+            assert(practiceBtnEl, 'Practice Again button should exist on completion screen');
+            // Click it — should call startLesson and set screen to lesson
+            practiceBtnEl.click();
+            assert(win.App.currentScreen === 'lesson', 'should be on lesson screen after Practice Again click');
+            assert(win.App.currentExerciseIndex === 0, 'currentExerciseIndex should reset to 0');
+            assert(win.App.currentLesson.id === 'unit1', 'currentLesson should be unit1');
+          }
         }
       ];
 
