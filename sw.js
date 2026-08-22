@@ -3,7 +3,14 @@
  * Firebase Auth/Firestore calls require network and won't work offline,
  * but the core learning app (exercises, progress, localStorage) works offline.
  */
-const CACHE_NAME = 'taukei-fijian-app-v1';
+
+/* BUMP THIS whenever index.html, data.js, or sync.js change.
+ * The browser only re-evaluates the service worker when its bytes change,
+ * so a content-only update (same script, new HTML/JS) won't reach users
+ * until APP_VERSION is bumped — which changes CACHE_NAME, which triggers
+ * a new install/activate cycle and clears the old cache. */
+const APP_VERSION = 'v2';
+const CACHE_NAME = 'taukei-fijian-app-' + APP_VERSION;
 const OFFLINE_URL = 'index.html';
 const CORE_ASSETS = [
   'index.html',
