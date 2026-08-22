@@ -13,7 +13,55 @@ python3 -m http.server PORT
 Then open `http://localhost:PORT` in your browser.
 
 No external accounts, no paid services, no API keys required. All progress is
-saved locally in your browser's `localStorage`.
+saved locally in your browser's `localStorage`. Optionally sign in with a
+Firebase account for cloud sync across devices.
+
+## Syncing Across Devices (Optional)
+
+Sign in with Email/Password or Google to sync your progress across devices.
+This is entirely optional — the app works fully offline without any account.
+
+### How it works
+- **Sign-in is opt-in**: Click the ☁️ Sync button in the header to open the
+  auth screen. Choose "Continue without an account" to skip forever.
+- **Most-recent-wins merge**: When you sign in, your local progress and cloud
+  progress are compared by timestamp. The newer one wins and is propagated to
+  the other.
+- **Always writes to localStorage first**: Even when signed in, your progress
+  is saved to localStorage immediately so the app works offline. Firestore sync
+  happens in the background.
+- **Offline fallback**: If you're signed in but offline, localStorage is used
+  as the source of truth. Sync resumes automatically when connectivity returns.
+
+### Firebase setup (for self-hosters)
+If you want to enable cloud sync, create a free Firebase project:
+1. Go to [console.firebase.google.com](https://console.firebase.google.com/)
+2. Create a project and add a web app
+3. Enable Authentication (Email/Password + Google)
+4. Create a Firestore database (production mode)
+5. Paste the config values into the `firebaseConfig` object in `index.html`
+
+### Firestore security rules
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+```
+
+### Firebase free-tier limits
+The Firebase Spark (free) plan is sufficient for personal and family use:
+- 1 GB Firestore storage (you'll use ~1 KB per user)
+- 50,000 reads/day, 20,000 writes/day, 20,000 deletes/day
+- 10 GB network egress/month
+
+For a single user syncing across 2-3 devices, usage will be negligible. A paid
+plan ($0.06/GB) would only be needed for heavy multi-user usage exceeding these
+limits.
 
 ## Features
 

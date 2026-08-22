@@ -729,6 +729,94 @@
       margin-top: 16px;
     }
 
+    /* Firebase auth screen */
+    .auth-screen {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .auth-card {
+      background: var(--surface-alt);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 360px;
+      width: 100%;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .auth-card h2 {
+      margin: 0 0 8px;
+      font-size: 1.5rem;
+      color: var(--text);
+    }
+
+    .auth-card p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin: 0 0 24px;
+      line-height: 1.5;
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .auth-form input {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+
+    .auth-form input:focus {
+      outline: 2px solid var(--primary);
+      border-color: var(--primary);
+    }
+
+    .auth-btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .auth-btn:hover { opacity: 0.9; }
+    .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .google-btn { background: #4285f4; color: white; }
+    .google-btn:hover { background: #3367d6; }
+
+    .email-btn { background: var(--primary); color: white; }
+    .email-btn:hover { background: var(--primary-dark); }
+
+    .skip-btn {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      margin-top: 16px;
+    }
+
+    .skip-btn:hover { color: var(--text); }
+
+    .auth-error {
+      color: var(--error, #ff4444);
+      font-size: 0.85rem;
+      margin-top: 8px;
+    }
+
     .sources-list li {
       padding: 10px 16px;
       background: var(--surface-alt);
@@ -737,6 +825,22 @@
       border-left: 3px solid var(--primary);
     }
   </style>
+
+  <!-- Firebase SDK (for optional cloud sync) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script>
+    // Firebase config — replace with your own from console.firebase.google.com
+    const firebaseConfig = {
+      apiKey: "AIzaSyC41DGvskOwRMasJwpvzpLKIhMpUWa1N-U",
+      authDomain: "fijian-langue-app.firebaseapp.com",
+      projectId: "fijian-langue-app",
+      storageBucket: "fijian-langue-app.firebasestorage.app",
+      messagingSenderId: "933223655421",
+      appId: "1:933223655421:web:0409789e00cb17b16fdb94"
+    };
+  </script>
 </head>
 <body>
   <header>
@@ -753,8 +857,9 @@
         <span>XP</span>
       </div>
       <button id="review-btn" class="btn btn-secondary" style="padding: 6px 16px; font-size: 0.85rem;">
-        📚 Review
-      </button>
+        📚 Review</button>
+      <button id="sync-btn" class="btn btn-secondary" style="padding: 6px 16px; font-size: 0.85rem;">
+        ☁️ Sync</button>
     </div>
   </header>
 
@@ -781,12 +886,14 @@
         }
         const raw = localStorage.getItem('taukei_progress');
         if (raw) {
-          try {
-            this._progressCache = JSON.parse(raw);
-            return this._progressCache;
-          } catch(e) {}
+          return this._progressCache = JSON.parse(raw);
         }
-        this._progressCache = {
+        this._progressCache = this._defaultProgress();
+        return this._progressCache;
+      },
+
+      _defaultProgress() {
+        return {
           xp: 0,
           streak: 0,
           streakFreezes: 3,
@@ -799,11 +906,18 @@
           wrongAnswers: [],
           totalXP: {}
         };
-        return this._progressCache;
       },
 
       saveProgress() {
-        localStorage.setItem('taukei_progress', JSON.stringify(this.progress));
+        // Write to localStorage (always — this is the source of truth for offline use)
+        const p = this.progress;
+        p.lastModified = Date.now();
+        localStorage.setItem('taukei_progress', JSON.stringify(p));
+
+        // Sync to Firestore if user is signed in
+        if (window.FirebaseSync && window.FirebaseSync.isSignedIn() && !window.FirebaseSync.syncInProgress) {
+          window.FirebaseSync.syncProgress(p);
+        }
       },
 
       addXP(amount) {
@@ -997,6 +1111,126 @@
       }
     };
 
+    // ─── Firebase Sync (Optional Cloud Sync) ─────────────────────
+    // Sign-in is OPTIONAL. The app works fully offline with just localStorage.
+    // Firebase sync is an opt-in feature for cross-device progress sync.
+    const FirebaseSync = {
+      db: null,
+      auth: null,
+      currentUser: null,
+      syncInProgress: false,
+
+      init() {
+        if (typeof firebase === 'undefined') {
+          console.log('Firebase SDK not loaded — running in offline-only mode');
+          return;
+        }
+        try {
+          firebase.initializeApp(firebaseConfig);
+          this.auth = firebase.auth();
+          this.db = firebase.firestore();
+          // Listen for auth state changes
+          this.auth.onAuthStateChanged(user => {
+            this.currentUser = user;
+            if (user) {
+              this.onSignIn(user);
+            } else {
+              this.onSignOut();
+            }
+          });
+        } catch(e) {
+          console.error('Firebase init failed:', e);
+        }
+      },
+
+      isSignedIn() {
+        return !!this.currentUser;
+      },
+
+      async onSignIn(user) {
+        const localProgress = DataManager.progress;
+        try {
+          const doc = await this.db.collection('users').doc(user.uid).get();
+          if (doc.exists) {
+            const cloudProgress = doc.data().progress;
+            const cloudTime = doc.data().lastModified || 0;
+            const localTime = localProgress.lastModified || 0;
+            // Most-recently-modified wins
+            if (cloudTime > localTime) {
+              // Cloud is newer — use it
+              DataManager._progressCache = { ...cloudProgress };
+              // Re-save to localStorage to keep them in sync
+              localStorage.setItem('taukei_progress', JSON.stringify(DataManager.progress));
+              // Update streak check with new data
+              DataManager.updateStreak();
+            } else {
+              // Local is newer or same — push to cloud
+              await this.saveToFirestore(localProgress);
+            }
+          } else {
+            // New user — create their document
+            await this.saveToFirestore(localProgress);
+          }
+          App.updateHeader(); // Refresh header with sync status
+        } catch(e) {
+          console.error('Sign-in sync failed:', e);
+          // Fall back to local-only mode
+        }
+      },
+
+      onSignOut() {
+        // Nothing to do — local data stays in localStorage
+        App.updateHeader();
+      },
+
+      async saveToFirestore(progress) {
+        if (!this.currentUser || this.syncInProgress) return;
+        this.syncInProgress = true;
+        try {
+          await this.db.collection('users').doc(this.currentUser.uid).set({
+            progress: progress,
+            lastModified: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+        } catch(e) {
+          console.error('Firestore write failed:', e);
+          // Data stays in localStorage — retry on next save
+        } finally {
+          this.syncInProgress = false;
+        }
+      },
+
+      // Throttled sync — only writes if not recently synced
+      syncProgress(progress) {
+        const lastSync = localStorage.getItem('last_firestore_sync');
+        const now = Date.now();
+        if (lastSync && now - parseInt(lastSync) < 2000) {
+          // Throttle to once per 2 seconds
+          return;
+        }
+        localStorage.setItem('last_firestore_sync', now.toString());
+        this.saveToFirestore(progress);
+      },
+
+      signUpWithEmail(email, password) {
+        return this.auth.createUserWithEmailAndPassword(email, password);
+      },
+
+      signInWithEmail(email, password) {
+        return this.auth.signInWithEmailAndPassword(email, password);
+      },
+
+      signInWithGoogle() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        return this.auth.signInWithPopup(provider);
+      },
+
+      signOut() {
+        return this.auth.signOut();
+      }
+    };
+
+    window.FirebaseSync = FirebaseSync;
+
     // ─── Phonetic Helper ──────────────────────────────────────
     // Convert Fijian words to English-approximate respelling
     function fijianToPhonetic(text) {
@@ -1047,6 +1281,18 @@
         document.getElementById('xp-count').textContent = p.xp;
         document.getElementById('review-btn').style.display =
           (p.wrongAnswers && p.wrongAnswers.length > 0) ? 'inline-block' : 'none';
+
+        // Update sync button label based on auth state
+        const syncBtn = document.getElementById('sync-btn');
+        if (syncBtn) {
+          if (window.FirebaseSync && FirebaseSync.isSignedIn()) {
+            const user = FirebaseSync.currentUser;
+            const displayName = user.displayName || user.email.split('@')[0];
+            syncBtn.textContent = '☁️ ' + displayName;
+          } else {
+            syncBtn.textContent = '☁️ Sync';
+          }
+        }
       },
 
       checkUnlocks() {
@@ -1082,6 +1328,8 @@
           container.appendChild(this.renderPronunciation());
         } else if (this.currentScreen === 'sources') {
           container.appendChild(this.renderSources());
+        } else if (this.currentScreen === 'auth') {
+          container.appendChild(AuthScreen.render());
         }
       },
 
@@ -2109,7 +2357,7 @@
       }
     };
 
-    // ─── Event Listeners ───────────────────────────────────────
+    // ─── Event Listeners ─────────────────────────────────────────
     document.getElementById('review-btn').addEventListener('click', () => {
       if (DataManager.getWrongAnswersForReview().length > 0) {
         App.currentScreen = 'review';
@@ -2117,7 +2365,142 @@
       }
     });
 
+    document.getElementById('sync-btn').addEventListener('click', () => {
+      if (window.FirebaseSync && FirebaseSync.isSignedIn()) {
+        // If signed in, show sign-out option
+        if (confirm('Signed in as ' + FirebaseSync.currentUser.email + '\n\nClick OK to sign out, or Cancel to cancel.')) {
+          FirebaseSync.signOut();
+        }
+      } else {
+        App.currentScreen = 'auth';
+        App.render();
+      }
+    });
+
+    // ─── Auth Screen Renderer ───────────────────────────────────
+    const AuthScreen = {
+      render: () => {
+        const div = document.createElement('div');
+        div.className = 'auth-screen';
+
+        const card = document.createElement('div');
+        card.className = 'auth-card';
+
+        const title = document.createElement('h2');
+        title.textContent = '☁️ Sync Progress';
+
+        const desc = document.createElement('p');
+        desc.textContent = 'Sign in to sync your progress across devices. Your data is stored securely and only you can access it. The app works offline without an account — sign in only if you want cloud sync.';
+
+        card.appendChild(title);
+        card.appendChild(desc);
+
+        // Email form
+        const form = document.createElement('div');
+        form.className = 'auth-form';
+
+        const emailInput = document.createElement('input');
+        emailInput.type = 'email';
+        emailInput.placeholder = 'you@example.com';
+        emailInput.id = 'auth-email';
+
+        const passwordInput = document.createElement('input');
+        passwordInput.type = 'password';
+        passwordInput.placeholder = 'Password';
+        passwordInput.id = 'auth-password';
+
+        const signInBtn = document.createElement('button');
+        signInBtn.className = 'auth-btn email-btn';
+        signInBtn.textContent = 'Sign In';
+        signInBtn.onclick = async () => {
+          const email = emailInput.value;
+          const password = passwordInput.value;
+          const errorEl = document.getElementById('auth-error');
+          try {
+            await FirebaseSync.signInWithEmail(email, password);
+          } catch(e) {
+            errorEl.textContent = e.message;
+            errorEl.style.display = 'block';
+          }
+        };
+
+        const signUpBtn = document.createElement('button');
+        signUpBtn.className = 'auth-btn email-btn';
+        signUpBtn.textContent = 'Sign Up';
+        signUpBtn.onclick = async () => {
+          const email = emailInput.value;
+          const password = passwordInput.value;
+          const errorEl = document.getElementById('auth-error');
+          if (password.length < 6) {
+            errorEl.textContent = 'Password must be at least 6 characters';
+            errorEl.style.display = 'block';
+            return;
+          }
+          try {
+            await FirebaseSync.signUpWithEmail(email, password);
+          } catch(e) {
+            errorEl.textContent = e.message;
+            errorEl.style.display = 'block';
+          }
+        };
+
+        const divider = document.createElement('div');
+        divider.textContent = '— or —';
+        divider.style.textAlign = 'center';
+        divider.style.color = 'var(--text-secondary)';
+        divider.style.fontSize = '0.85rem';
+
+        const googleBtn = document.createElement('button');
+        googleBtn.className = 'auth-btn google-btn';
+        googleBtn.innerHTML = 'Sign in with Google';
+        googleBtn.onclick = async () => {
+          const errorEl = document.getElementById('auth-error');
+          try {
+            await FirebaseSync.signInWithGoogle();
+          } catch(e) {
+            errorEl.textContent = e.message;
+            errorEl.style.display = 'block';
+          }
+        };
+
+        const errorEl = document.createElement('div');
+        errorEl.id = 'auth-error';
+        errorEl.className = 'auth-error';
+        errorEl.style.display = 'none';
+
+        form.appendChild(emailInput);
+        form.appendChild(passwordInput);
+        form.appendChild(signInBtn);
+        form.appendChild(signUpBtn);
+        form.appendChild(divider);
+        form.appendChild(googleBtn);
+        form.appendChild(errorEl);
+
+        // Sign in handler
+        FirebaseSync.auth.onAuthStateChanged(() => {
+          // User signed in — go back to app
+          App.currentScreen = 'home';
+          App.render();
+        });
+
+        const skipBtn = document.createElement('button');
+        skipBtn.className = 'auth-btn skip-btn';
+        skipBtn.textContent = 'Continue without an account';
+        skipBtn.onclick = () => {
+          App.currentScreen = 'home';
+          App.render();
+        };
+
+        card.appendChild(form);
+        card.appendChild(skipBtn);
+        div.appendChild(card);
+
+        return div;
+      }
+    };
+
     // ─── Initialize ─────────────────────────────────────────────
+    FirebaseSync.init();
     App.init();
   </script>
 </body>
