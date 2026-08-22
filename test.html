@@ -676,6 +676,26 @@
             assert(!note || !note.textContent.includes('inclusivity'),
               'unit3 lesson note should be absent at exercise index 1');
           }
+        },
+        {
+          name: 'sentence_builder prompts do not leak the Fijian answer',
+          fn: () => {
+            // Reuse the app's own normalizeSentence() — the same function
+            // renderSentenceBuilder uses when comparing placed words.
+            const LESSONS = win.LESSONS;
+            for (const unitId of Object.keys(LESSONS)) {
+              const unit = LESSONS[unitId];
+              if (!unit || !unit.exercises) continue;
+              for (const ex of unit.exercises) {
+                if (ex.type === 'sentence_builder') {
+                  assert(
+                    !win.normalizeSentence(ex.prompt).includes(win.normalizeSentence(ex.answer)),
+                    `sentence_builder ${ex.id}: prompt "${ex.prompt}" leaks answer "${ex.answer}"`
+                  );
+                }
+              }
+            }
+          }
         }
       ];
 
