@@ -2371,7 +2371,7 @@
     });
 
     document.getElementById('sync-btn').addEventListener('click', () => {
-      if (typeof FirebaseSync !== 'undefined' && FirebaseSync.isSignedIn()) {
+      if (window.FirebaseSync && FirebaseSync.isSignedIn()) {
         // If signed in, show sign-out option
         if (confirm('Signed in as ' + FirebaseSync.currentUser.email + '\n\nClick OK to sign out, or Cancel to cancel.')) {
           FirebaseSync.signOut();
