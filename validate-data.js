@@ -9,7 +9,8 @@
  *      (using the SAME normalization as index.html's normalizeForCompare).
  *   2. Every multiple_choice exercise: the `answer` index is within bounds of `choices`.
  *   3. Every matching exercise: no duplicate English or Fijian values within pairs.
- *   4. Every exercise's `sources` array: each source key exists in SOURCES.
+ *   4. Every exercise's `sources` array: each source key exists in `SOURCES`.
+ *   5. Every matching exercise: at most 6 pairs (split requirement).
  *
  * Exits non-zero and prints offending ids if any check fails.
  */
@@ -165,6 +166,21 @@ for (const unitId of Object.keys(LESSONS)) {
         if (!(src in SOURCES)) {
           failures.push(`exercise ${ex.id || ex.type}: source '${src}' not found in SOURCES object`);
         }
+      }
+    }
+  }
+}
+
+// ─── Check 5: no matching exercise has more than 6 pairs ──────────
+for (const unitId of Object.keys(LESSONS)) {
+  const unit = LESSONS[unitId];
+  if (!unit || !unit.exercises) continue;
+  for (const ex of unit.exercises) {
+    if (ex.type === 'matching') {
+      checked++;
+      const pairs = ex.pairs || [];
+      if (pairs.length > 6) {
+        failures.push(`matching ${ex.id}: has ${pairs.length} pairs (max 6 allowed)`);
       }
     }
   }

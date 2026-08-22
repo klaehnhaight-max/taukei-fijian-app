@@ -101,7 +101,7 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
-        id: "unit2-1",
+        id: "unit2-1-a",
         prompt: "Match the number to its Fijian word",
         pairs: [
           { english: "1 (one)", fijian: "dua" },
@@ -109,7 +109,15 @@ const LESSONS = {
           { english: "3 (three)", fijian: "tolu" },
           { english: "4 (four)", fijian: "va" },
           { english: "5 (five)", fijian: "lima" },
-          { english: "6 (six)", fijian: "ono" },
+          { english: "6 (six)", fijian: "ono" }
+        ],
+        sources: ["[1]", "[7]", "[8]"]
+      },
+      {
+        type: "matching",
+        id: "unit2-1-b",
+        prompt: "Match the number to its Fijian word",
+        pairs: [
           { english: "7 (seven)", fijian: "vitu" },
           { english: "8 (eight)", fijian: "walu" },
           { english: "9 (nine)", fijian: "ciwa" },
@@ -153,16 +161,24 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
-        id: "unit3-1",
+        id: "unit3-1-a",
         prompt: "Match the pronoun to its meaning",
         pairs: [
-          { fijian: "au", english: "I / me" },
-          { fijian: "iko", english: "you (singular)" },
-          { fijian: "koya", english: "he / she / him / her" },
-          { fijian: "keda", english: "we (inclusive)" },
-          { fijian: "keirau", english: "we (exclusive)" },
-          { fijian: "kemuni", english: "you (plural/polite)" },
-          { fijian: "irato", english: "they (plural)" }
+          { english: "I / me", fijian: "au" },
+          { english: "you (singular)", fijian: "iko" },
+          { english: "he / she / him / her", fijian: "koya" },
+          { english: "we (inclusive)", fijian: "keda" },
+          { english: "we (exclusive)", fijian: "keirau" },
+          { english: "you (plural/polite)", fijian: "kemuni" }
+        ],
+        sources: ["[2]", "[4]", "[5]"]
+      },
+      {
+        type: "matching",
+        id: "unit3-1-b",
+        prompt: "Match the pronoun to its meaning",
+        pairs: [
+          { english: "they (plural)", fijian: "irato" }
         ],
         sources: ["[2]", "[4]", "[5]"]
       },
@@ -204,7 +220,7 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
-        id: "unit4-1",
+        id: "unit4-1-a",
         prompt: "Match the Fijian family word to its English meaning",
         pairs: [
           { english: "family", fijian: "vuvale" },
@@ -212,7 +228,15 @@ const LESSONS = {
           { english: "mother", fijian: "tinaqu" },
           { english: "son", fijian: "luvequ tagane" },
           { english: "daughter", fijian: "luvequ yalewa" },
-          { english: "grandfather", fijian: "tukaqu" },
+          { english: "grandfather", fijian: "tukaqu" }
+        ],
+        sources: ["[6]"]
+      },
+      {
+        type: "matching",
+        id: "unit4-1-b",
+        prompt: "Match the Fijian family word to its English meaning",
+        pairs: [
           { english: "grandmother", fijian: "tubuqu" },
           { english: "brother", fijian: "ganequ" },
           { english: "sister", fijian: "taciqu" },
@@ -265,7 +289,7 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
-        id: "unit5-1",
+        id: "unit5-1-a",
         prompt: "Match the body part to its Fijian word",
         pairs: [
           { english: "head", fijian: "ulu" },
@@ -273,7 +297,15 @@ const LESSONS = {
           { english: "nose", fijian: "ucu" },
           { english: "mouth", fijian: "gusu" },
           { english: "tooth", fijian: "bati" },
-          { english: "tongue", fijian: "yame" },
+          { english: "tongue", fijian: "yame" }
+        ],
+        sources: ["[6]", "[7]", "[11]"]
+      },
+      {
+        type: "matching",
+        id: "unit5-1-b",
+        prompt: "Match the body part to its Fijian word",
+        pairs: [
           { english: "ear", fijian: "daliga" },
           { english: "hand", fijian: "liga" },
           { english: "leg / foot", fijian: "yava" },
@@ -319,7 +351,7 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
-        id: "unit6-1",
+        id: "unit6-1-a",
         prompt: "Match the color to its Fijian word",
         pairs: [
           { english: "white", fijian: "vulavula" },
@@ -327,7 +359,15 @@ const LESSONS = {
           { english: "red", fijian: "damudamu" },
           { english: "blue", fijian: "karakarawa" },
           { english: "green", fijian: "drokadroka" },
-          { english: "yellow", fijian: "dromodromo" },
+          { english: "yellow", fijian: "dromodromo" }
+        ],
+        sources: ["[7]", "[12]"]
+      },
+      {
+        type: "matching",
+        id: "unit6-1-b",
+        prompt: "Match the color to its Fijian word",
+        pairs: [
           { english: "purple", fijian: "lokaloka" },
           { english: "orange", fijian: "seninawanawa" },
           { english: "brown", fijian: "masikuvui" },
@@ -371,22 +411,38 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
-        id: "unit7-1",
+        id: "unit7-1-a",
         prompt: "Match the Fijian food word to its English",
         pairs: [
-          { fijian: "kakana", english: "food / eat" },
-          { fijian: "ika", english: "fish" },
-          { fijian: "lewe", english: "meat" },
-          { fijian: "dalo", english: "taro" },
-          { fijian: "tavioka", english: "cassava" },
-          { fijian: "niu", english: "coconut" },
-          { fijian: "wai", english: "water" },
-          { fijian: "rais", english: "rice" },
-          { fijian: "madrai", english: "bread" },
-          { fijian: "kofi", english: "coffee" },
-          { fijian: "ti", english: "tea" },
-          { fijian: "bia", english: "beer" },
-          { fijian: "bele", english: "greens (Fijian spinach)" }
+          { english: "food / eat", fijian: "kakana" },
+          { english: "fish", fijian: "ika" },
+          { english: "meat", fijian: "lewe" },
+          { english: "taro", fijian: "dalo" },
+          { english: "cassava", fijian: "tavioka" },
+          { english: "coconut", fijian: "niu" }
+        ],
+        sources: ["[1]", "[6]", "[7]", "[8]"]
+      },
+      {
+        type: "matching",
+        id: "unit7-1-b",
+        prompt: "Match the Fijian food word to its English",
+        pairs: [
+          { english: "water", fijian: "wai" },
+          { english: "rice", fijian: "rais" },
+          { english: "bread", fijian: "madrai" },
+          { english: "coffee", fijian: "kofi" },
+          { english: "tea", fijian: "ti" },
+          { english: "beer", fijian: "bia" }
+        ],
+        sources: ["[1]", "[6]", "[7]", "[8]"]
+      },
+      {
+        type: "matching",
+        id: "unit7-1-c",
+        prompt: "Match the Fijian food word to its English",
+        pairs: [
+          { english: "greens (Fijian spinach)", fijian: "bele" }
         ],
         sources: ["[1]", "[6]", "[7]", "[8]"]
       },
@@ -435,16 +491,24 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
-        id: "unit8-1",
+        id: "unit8-1-a",
         prompt: "Match the question word to its meaning",
         pairs: [
-          { fijian: "cava", english: "what" },
-          { fijian: "cei", english: "who" },
-          { fijian: "ko", english: "where / this place" },
-          { fijian: "naica", english: "when" },
-          { fijian: "e vica", english: "how many / how much" },
-          { fijian: "vakacava", english: "how" },
-          { fijian: "sega ni", english: "not" }
+          { english: "what", fijian: "cava" },
+          { english: "who", fijian: "cei" },
+          { english: "where / this place", fijian: "ko" },
+          { english: "when", fijian: "naica" },
+          { english: "how many / how much", fijian: "e vica" },
+          { english: "how", fijian: "vakacava" }
+        ],
+        sources: ["[1]", "[5]", "[8]", "[9]"]
+      },
+      {
+        type: "matching",
+        id: "unit8-1-b",
+        prompt: "Match the question word to its meaning",
+        pairs: [
+          { english: "not", fijian: "sega ni" }
         ],
         sources: ["[1]", "[5]", "[8]", "[9]"]
       },
@@ -493,7 +557,7 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
-        id: "unit9-1",
+        id: "unit9-1-a",
         prompt: "Match the Fijian verb to its English meaning",
         pairs: [
           { english: "eat", fijian: "kana" },
@@ -501,7 +565,15 @@ const LESSONS = {
           { english: "go", fijian: "lako" },
           { english: "come", fijian: "mai" },
           { english: "see", fijian: "rai" },
-          { english: "hear", fijian: "rogo" },
+          { english: "hear", fijian: "rogo" }
+        ],
+        sources: ["[1]", "[5]", "[7]", "[9]"]
+      },
+      {
+        type: "matching",
+        id: "unit9-1-b",
+        prompt: "Match the Fijian verb to its English meaning",
+        pairs: [
           { english: "know", fijian: "kila" },
           { english: "think/remember", fijian: "nanuma" },
           { english: "work/do", fijian: "cakacaka" },
@@ -668,21 +740,29 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
-        id: "unit12-1",
+        id: "unit12-1-a",
         prompt: "Match the Fijian nature word to its English meaning",
         pairs: [
-          { fijian: "siga", english: "sun / day" },
-          { fijian: "vula", english: "moon" },
-          { fijian: "kalokalo", english: "star" },
-          { fijian: "wai", english: "water" },
-          { fijian: "uca", english: "rain" },
-          { fijian: "uciwai", english: "river" },
-          { fijian: "waitui", english: "sea" },
-          { fijian: "ō", english: "cloud" },
-          { fijian: "cagi", english: "wind" },
-          { fijian: "kama", english: "fire" },
-          { fijian: "bogi", english: "night" },
-          { fijian: "yabaki", english: "year" }
+          { english: "sun / day", fijian: "siga" },
+          { english: "moon", fijian: "vula" },
+          { english: "star", fijian: "kalokalo" },
+          { english: "water", fijian: "wai" },
+          { english: "rain", fijian: "uca" },
+          { english: "river", fijian: "uciwai" }
+        ],
+        sources: ["[7]"]
+      },
+      {
+        type: "matching",
+        id: "unit12-1-b",
+        prompt: "Match the Fijian nature word to its English meaning",
+        pairs: [
+          { english: "sea", fijian: "waitui" },
+          { english: "cloud", fijian: "ō" },
+          { english: "wind", fijian: "cagi" },
+          { english: "fire", fijian: "kama" },
+          { english: "night", fijian: "bogi" },
+          { english: "year", fijian: "yabaki" }
         ],
         sources: ["[7]"]
       },
@@ -731,21 +811,29 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
-        id: "unit13-1",
+        id: "unit13-1-a",
         prompt: "Match the Fijian adjective to its English meaning",
         pairs: [
-          { fijian: "levu", english: "big / many" },
-          { fijian: "lailai", english: "small" },
-          { fijian: "balavu", english: "long / tall" },
-          { fijian: "leka", english: "short" },
-          { fijian: "rabalevu", english: "wide" },
-          { fijian: "rabalailai", english: "narrow" },
-          { fijian: "bībī", english: "heavy" },
-          { fijian: "lila", english: "thin (person)" },
-          { fijian: "vinaka", english: "good" },
-          { fijian: "cā", english: "bad" },
-          { fijian: "vou", english: "new" },
-          { fijian: "qase", english: "old (person)" }
+          { english: "big / many", fijian: "levu" },
+          { english: "small", fijian: "lailai" },
+          { english: "long / tall", fijian: "balavu" },
+          { english: "short", fijian: "leka" },
+          { english: "wide", fijian: "rabalevu" },
+          { english: "narrow", fijian: "rabalailai" }
+        ],
+        sources: ["[7]"]
+      },
+      {
+        type: "matching",
+        id: "unit13-1-b",
+        prompt: "Match the Fijian adjective to its English meaning",
+        pairs: [
+          { english: "heavy", fijian: "bībī" },
+          { english: "thin (person)", fijian: "lila" },
+          { english: "good", fijian: "vinaka" },
+          { english: "bad", fijian: "cā" },
+          { english: "new", fijian: "vou" },
+          { english: "old (person)", fijian: "qase" }
         ],
         sources: ["[7]"]
       },
@@ -794,7 +882,7 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
-        id: "unit14-1",
+        id: "unit14-1-a",
         prompt: "Match the Fijian verb phrase to its English meaning",
         pairs: [
           { english: "to swim", fijian: "qalo-va" },
@@ -802,13 +890,29 @@ const LESSONS = {
           { english: "to walk", fijian: "taubale" },
           { english: "to come", fijian: "lako mai" },
           { english: "to sit", fijian: "dabe" },
-          { english: "to stand", fijian: "tū" },
+          { english: "to stand", fijian: "tū" }
+        ],
+        sources: ["[7]", "[10]"]
+      },
+      {
+        type: "matching",
+        id: "unit14-1-b",
+        prompt: "Match the Fijian verb phrase to its English meaning",
+        pairs: [
           { english: "to give", fijian: "soli-a" },
           { english: "to hold", fijian: "taura" },
           { english: "to throw", fijian: "viri-taka" },
           { english: "to sing", fijian: "laga-ta" },
           { english: "to see", fijian: "rai-ca" },
-          { english: "to hear", fijian: "rogo-ca" },
+          { english: "to hear", fijian: "rogo-ca" }
+        ],
+        sources: ["[7]", "[10]"]
+      },
+      {
+        type: "matching",
+        id: "unit14-1-c",
+        prompt: "Match the Fijian verb phrase to its English meaning",
+        pairs: [
           { english: "to know", fijian: "kilā" },
           { english: "to think", fijian: "nanuma" },
           { english: "to fear", fijian: "rere-vaka" }

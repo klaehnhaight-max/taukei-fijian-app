@@ -505,6 +505,23 @@
             // Clean up
             win.localStorage.removeItem('taukei_intro_dismissed');
           }
+        },
+        {
+          name: 'no matching exercise has more than 6 pairs',
+          fn: () => {
+            const LESSONS = win.LESSONS;
+            assert(LESSONS, 'LESSONS should be available from data.js');
+            for (const lessonId of Object.keys(LESSONS)) {
+              const lesson = LESSONS[lessonId];
+              if (!lesson || !lesson.exercises) continue;
+              for (const ex of lesson.exercises) {
+                if (ex.type === 'matching') {
+                  assert(ex.pairs.length <= 6,
+                    `${lessonId}/${ex.id} has ${ex.pairs.length} pairs (max 6 allowed)`);
+                }
+              }
+            }
+          }
         }
       ];
 
