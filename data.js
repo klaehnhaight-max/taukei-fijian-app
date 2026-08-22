@@ -145,7 +145,7 @@ const LESSONS = {
         prompt: "Type the Fijian word for 'three'",
         answer: "tolu",
         sources: ["[1]", "[7]", "[8]"],
-        explanation: 'Toloweru combines tolu (3) and rua (2) to mean 5, showing that Fijian numbers can be compounded.',
+        explanation: 'Tolu is the Fijian word for three, following dua (one) and rua (two) in the counting sequence.',
       },
       {
         type: "sentence_builder",
@@ -347,7 +347,7 @@ const LESSONS = {
         prompt: "Type the Fijian word for 'heart'",
         answer: "uto",
         sources: ["[6]", "[7]"],
-        explanation: 'Uto means heart — it also appears in the Fijian idiom uto-ni-viti, meaning love of country.',
+        explanation: 'Uto means heart, the body part where Fijian speakers feel emotions — traditionally yate (liver) was the seat of feelings, but uto is used in modern speech for love.',
       },
       {
         type: "sentence_builder",

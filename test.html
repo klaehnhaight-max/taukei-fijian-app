@@ -612,6 +612,58 @@
           }
         },
         {
+          name: 'sentence_builder resets and allows retry after a wrong final arrangement',
+          fn: async () => {
+            resetProgress();
+            const ex = { id: '__test_sb_reset__', type: 'sentence_builder', prompt: 'Build the phrase for good morning', answer: 'Ni sa yadra', words: ['Ni', 'sa', 'yadra'], explanation: 'test explanation' };
+            win.App.currentScreen = 'lesson';
+            win.App.currentLesson = { id: '__test_sb_reset_lesson__', xp: 10, exercises: [ex], isReview: false };
+            win.App.currentExerciseIndex = 0;
+            win.App.exerciseResults = [];
+            win.App.reviewMode = false;
+            win.App.render();
+            const doc = win.document;
+
+            // Click tiles in reverse (wrong) order
+            const reverseOrder = [...ex.words].reverse();
+            for (const w of reverseOrder) {
+              const el = Array.from(doc.querySelectorAll('.drag-word'))
+                .find(e => e.textContent === w && e.style.visibility !== 'hidden');
+              assert(el, `could not find drag-word with text "${w}"`);
+              el.click();
+            }
+
+            // Wait for the 700ms reset to fire
+            await new Promise(r => setTimeout(r, 900));
+
+            // After reset: all tiles should be visible again
+            const dragWords = Array.from(doc.querySelectorAll('.drag-word'));
+            assert(dragWords.every(e => e.style.visibility !== 'hidden'), 'all drag-word tiles should be visible again after reset');
+
+            // Target should be empty
+            const target = doc.querySelector('.sentence-target');
+            assert(target, 'sentence-target should exist');
+            assert(target.querySelectorAll('.sentence-word').length === 0, 'target should have no placed words after reset');
+
+            // Should not be marked completed/correct
+            assert(!target.classList.contains('correct'), 'target should not be marked correct after wrong arrangement');
+            assert(!target.querySelector('.feedback'), 'no feedback should appear after wrong arrangement');
+
+            // Now place tiles in CORRECT order and confirm it completes
+            for (const w of ex.words) {
+              const el = Array.from(doc.querySelectorAll('.drag-word'))
+                .find(e => e.textContent === w && e.style.visibility !== 'hidden');
+              assert(el, `could not find drag-word with text "${w}" on retry`);
+              el.click();
+            }
+
+            const card = doc.getElementById('exercise-0');
+            const feedback = card.querySelector('.feedback');
+            assert(feedback, 'feedback should appear after correct arrangement on retry');
+            assert(target.classList.contains('correct'), 'target should be marked correct after correct retry');
+          }
+        },
+        {
           name: 'first-run intro card shows when no progress, hidden after dismiss',
           fn: () => {
             win.localStorage.removeItem('taukei_intro_dismissed');
@@ -725,7 +777,7 @@
       for (const c of cases) {
         try {
           resetProgress();
-          c.fn();
+          await Promise.resolve(c.fn());
           logCase(c.name, true);
           passCount++;
         } catch (err) {

@@ -2313,6 +2313,19 @@
               ? `✓ Correct! (${wrongAttempts} wrong attempt${wrongAttempts > 1 ? 's' : ''} — review recommended) <span class="pronunciation-hint">Answer pronunciation: ${fijianToPhonetic(exercise.answer)}</span>${exercise.explanation ? ' ' + exercise.explanation : ''}`
               : `✓ Correct! <span class="pronunciation-hint">Answer pronunciation: ${fijianToPhonetic(exercise.answer)}</span>`;
             this.showFeedback(card, 'correct', message);
+          } else if (words.length === exercise.words.length) {
+            // All tiles placed but arrangement is wrong — soft-lock recovery
+            wrongAttempts++;
+            target.classList.add('incorrect');
+            target.classList.remove('correct');
+            setTimeout(() => {
+              target.classList.remove('incorrect');
+              target.dataset.used = '';
+              target.innerHTML = '';
+              dragContainer.querySelectorAll('.drag-word').forEach(w => {
+                w.style.visibility = 'visible';
+              });
+            }, 700);
           }
         });
 
