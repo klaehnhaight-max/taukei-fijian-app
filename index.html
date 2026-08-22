@@ -2454,6 +2454,29 @@
         this.render();
       },
 
+      renderExerciseTypeBreakdown() {
+        const results = this.exerciseResults || [];
+        const typeMap = {};
+        const typeLabels = {
+          matching: 'Matching',
+          multiple_choice: 'Multiple Choice',
+          typing: 'Typing',
+          sentence_builder: 'Sentence Building'
+        };
+        for (const r of results) {
+          const type = r.exercise?.type || 'unknown';
+          if (!typeMap[type]) typeMap[type] = { correct: 0, total: 0 };
+          typeMap[type].total++;
+          if (r.correct) typeMap[type].correct++;
+        }
+        const parts = Object.keys(typeMap).map(type => {
+          const counts = typeMap[type];
+          const label = typeLabels[type] || type;
+          return `${label} ${counts.correct}/${counts.total}`;
+        });
+        return parts.join(' · ');
+      },
+
       renderCompletion() {
         const data = this.completionData;
         const div = document.createElement('div');
@@ -2466,6 +2489,9 @@
           <div class="xp-gain">+${data.xpEarned} XP</div>
           <p style="margin-bottom: 8px; color: var(--text-secondary);">
             Accuracy: ${data.accuracy}% (${data.correct}/${data.total} correct)
+          </p>
+          <p class="sources-note" style="font-size: 0.85em; margin-bottom: 12px;">
+            ${this.renderExerciseTypeBreakdown()}
           </p>
           <div class="sources-note">
             ${data.accuracy === 100 ? 'Perfect! All answers correct.' :

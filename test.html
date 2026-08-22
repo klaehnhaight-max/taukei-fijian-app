@@ -509,6 +509,35 @@
           }
         },
         {
+          name: 'completion screen shows per-exercise-type breakdown',
+          fn: () => {
+          // Build a mock lesson with a known mix of exercise types
+          const ex1 = { id: 'test-matching-1', type: 'matching', prompt: 'match', pairs: [] };
+          const ex2 = { id: 'test-matching-2', type: 'matching', prompt: 'match', pairs: [] };
+          const ex3 = { id: 'test-mc-1', type: 'multiple_choice', prompt: 'mc', choices: ['a'], answer: 0 };
+          const ex4 = { id: 'test-typing-1', type: 'typing', prompt: 'type', answer: 'a' };
+          const ex5 = { id: 'test-sentence-1', type: 'sentence_builder', prompt: 'build', words: ['a'], answer: 'a' };
+          win.App.exerciseResults = [
+            { exercise: ex1, correct: true },
+            { exercise: ex2, correct: false },
+            { exercise: ex3, correct: true },
+            { exercise: ex4, correct: true },
+            { exercise: ex5, correct: false },
+          ];
+          win.App.currentScreen = 'completion';
+          win.App.completionData = { accuracy: 60, xp: 50, streak: 0, correct: 3, total: 5 };
+          const rendered = win.App.renderCompletion();
+          const breakdown = win.App.renderExerciseTypeBreakdown();
+          assert(breakdown.includes('Matching 1/2'), 'Matching should show 1/2, got: ' + breakdown);
+          assert(breakdown.includes('Multiple Choice 1/1'), 'Multiple Choice should show 1/1, got: ' + breakdown);
+          assert(breakdown.includes('Typing 1/1'), 'Typing should show 1/1, got: ' + breakdown);
+          assert(breakdown.includes('Sentence Building 0/1'), 'Sentence Building should show 0/1, got: ' + breakdown);
+          // Also verify it appears on the rendered completion screen
+          const breakdownEl = Array.from(rendered.querySelectorAll('.sources-note')).find(el => el.textContent.includes('Matching'));
+          assert(breakdownEl, 'completion screen should contain the breakdown text');
+          },
+        },
+        {
           name: 'first-run intro card shows when no progress, hidden after dismiss',
           fn: () => {
             // Clear ALL localStorage to simulate first run
