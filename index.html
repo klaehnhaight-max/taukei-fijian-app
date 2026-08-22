@@ -2069,9 +2069,6 @@
         rightColumn.className = 'match-column';
         rightColumn.style.order = '2';
 
-        // For mobile: show English first, then Fijian (swap order)
-        container.className = 'matching-container';
-
         // Shuffle pairs independently for each column
         const fijianWords = [...exercise.pairs].map(p => p.fijian || p.english).sort(() => Math.random() - 0.5);
         const englishWords = [...exercise.pairs].map(p => p.english || p.fijian).sort(() => Math.random() - 0.5);
