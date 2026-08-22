@@ -1174,6 +1174,7 @@
     // exercise these functions against the real app instance running in an
     // iframe, without duplicating any of this logic.
     window.DataManager = DataManager;
+    window.SKILL_TREE = SKILL_TREE;
 
     // ─── Firebase Sync (Optional Cloud Sync) ─────────────────────
     // Sign-in is OPTIONAL. The app works fully offline with just localStorage.
@@ -1341,6 +1342,15 @@
     }
     window.normalizeForCompare = normalizeForCompare;
 
+    // Like normalizeForCompare but also strips ALL whitespace and punctuation.
+    // Used by renderSentenceBuilder where placed words are concatenated
+    // without spaces, so word boundaries come from separate tiles, not
+    // from spaces or punctuation in the text content.
+    function normalizeSentence(s) {
+      return normalizeForCompare(s).replace(/[^\w]/g, '');
+    }
+    window.normalizeSentence = normalizeSentence;
+
     // Add inline phonetic guide to exercise prompt
     function addPronunciationHint(promptEl, fijianText) {
       if (!fijianText) return;
@@ -1398,7 +1408,7 @@
               p.completedLessons.includes(prereq)
             );
             skillNode.unlocked = prereqsMet || skillNode.prerequisites.length === 0;
-            skillNode.completed = !!p.lessonMastery[lessonId];
+            skillNode.completed = p.completedLessons.includes(lessonId);
           }
         });
       },
@@ -1612,7 +1622,7 @@
 
         const p = DataManager.progress;
         const dailyGoal = DataManager.getDailyGoal();
-        const dailyXP = p.dailyXP || 0;
+        const dailyXP = DataManager.getDailyXP();
         const goalProgress = Math.min(100, (dailyXP / dailyGoal) * 100);
 
         // Section: Daily Goal
@@ -2153,7 +2163,7 @@
         // Target area
         const target = document.createElement('div');
         target.className = 'sentence-target';
-        target.dataset.answer = exercise.answer.toLowerCase().replace(/\s/g, '');
+        target.dataset.answer = normalizeSentence(exercise.answer);
         div.appendChild(target);
 
         // Drag words
@@ -2237,12 +2247,12 @@
           // Track attempts
           droppedCount++;
           const placedWords = target.querySelectorAll('.sentence-word');
-          const current = Array.from(placedWords).map(w => w.textContent.toLowerCase()).join('');
-          const answer = exercise.answer.toLowerCase().replace(/\s/g, '');
+          const current = Array.from(placedWords).map(w => w.textContent).join('');
+          const answer = normalizeSentence(exercise.answer);
 
           // If we have more words than the answer, it's a wrong attempt
-          if ((current + word.toLowerCase()).replace(/\s/g, '') !== answer &&
-              (current + word.toLowerCase()).replace(/\s/g, '').length > answer.length) {
+          const normalizedTyped = normalizeSentence(current + ' ' + word);
+          if (normalizedTyped !== answer && normalizedTyped.length > answer.length) {
             wrongAttempts++;
           }
 
@@ -2264,10 +2274,10 @@
 
           // Check if correct — recheck with all placed words
           const words = target.querySelectorAll('.sentence-word');
-          const current2 = Array.from(words).map(w => w.textContent.toLowerCase()).join('');
-          const answer2 = exercise.answer.toLowerCase().replace(/\s/g, '');
+          const current2 = Array.from(words).map(w => w.textContent).join('');
+          const answer2 = normalizeSentence(exercise.answer);
 
-          if (current2 === answer2 && current2.length > 0) {
+          if (normalizeSentence(current2) === answer2 && current2.length > 0) {
             completed = true;
             target.classList.add('correct');
             target.classList.remove('incorrect');
@@ -2450,7 +2460,19 @@
           reviewBtn.style.marginTop = '12px';
           reviewBtn.style.marginLeft = '12px';
           reviewBtn.addEventListener('click', () => {
-            App.startReview();
+            // Review this session's mistakes directly, not the scheduled
+            // due-queue (those items have nextReviewAt = now + 1 day and
+            // won't show up via getWrongAnswersForReview()).
+            const sessionMistakes = this.exerciseResults
+              .filter(r => !r.correct)
+              .map(r => r.exercise);
+            this.startReviewWith(sessionMistakes.map(ex => ({
+              type: ex.type, prompt: ex.prompt, answer: ex.answer,
+              exerciseId: ex.id,
+              choices: ex.choices, pairs: ex.pairs, words: ex.words,
+              explanation: ex.explanation, note: ex.note, sources: ex.sources
+            })));
+            this.render();
           });
           div.appendChild(reviewBtn);
         }

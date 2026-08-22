@@ -62,10 +62,10 @@
       return new Promise((resolve, reject) => {
         const start = Date.now();
         (function poll() {
-          if (win && win.DataManager && win.App && win.normalizeForCompare) {
+          if (win && win.DataManager && win.App && win.normalizeForCompare && win.normalizeSentence) {
             resolve(win);
           } else if (Date.now() - start > timeoutMs) {
-            reject(new Error('Timed out waiting for DataManager/App/normalizeForCompare to appear on the iframe window. Is this page being served over HTTP?'));
+            reject(new Error('Timed out waiting for DataManager/App/normalizeForCompare/normalizeSentence to appear on the iframe window. Is this page being served over HTTP?'));
           } else {
             setTimeout(poll, 100);
           }
@@ -139,6 +139,22 @@
           fn: () => {
             assert(win.normalizeForCompare('  O   Iko  ') === win.normalizeForCompare('o iko'),
               'whitespace/case normalization mismatch');
+          }
+        },
+        {
+          name: 'normalizeSentence() strips punctuation so "O cei ko iko?" matches "oceikoiko"',
+          fn: () => {
+            // The sentence-builder drop handler joins placed words without spaces
+            // and compares against normalizeSentence(exercise.answer). The answer
+            // "O cei ko iko?" has a trailing "?" and spaces — neither appears in the
+            // draggable word tiles, so both must be stripped for the match to succeed.
+            assert(win.normalizeSentence('O cei ko iko?') === win.normalizeSentence('o c e i k o i k o'),
+              `normalizeSentence should strip spaces and punctuation: "${win.normalizeSentence('O cei ko iko?')}" !== "${win.normalizeSentence('o c e i k o i k o')}"`);
+            // And the actual unit8-3 scenario:
+            const words = ['o', 'cei', 'ko', 'iko'].map(win.normalizeSentence);
+            const answer = win.normalizeSentence('O cei ko iko?');
+            assert(words.join('') === answer,
+              `words joined "${words.join('')}" should match normalized answer "${answer}"`);
           }
         },
         {
@@ -288,6 +304,9 @@
             ['recordResult', 'showFeedback', 'buildReviewExercises', 'startReviewWith', 'exportProgress', 'importProgressFile']
               .forEach(fnName => assert(typeof win.App[fnName] === 'function', `App.${fnName} is not a function`));
             assert(typeof win.DataManager.importProgress === 'function', 'DataManager.importProgress is not a function');
+            assert(typeof win.DataManager.getMasteredWords === 'function', 'DataManager.getMasteredWords is not a function');
+            assert(typeof win.normalizeSentence === 'function', 'normalizeSentence is not exposed on window');
+            assert(typeof win.normalizeForCompare === 'function', 'normalizeForCompare is not exposed on window');
           }
         },
         {
@@ -326,6 +345,53 @@
             assert(text.includes('Export Progress'), 'settings should have Export Progress button');
             assert(text.includes('Import Progress'), 'settings should have Import Progress button');
             assert(text.includes('Back to Skills'), 'settings should have Back to Skills button');
+          }
+        },
+        {
+          name: 'settings screen shows correct daily XP from DataManager.getDailyXP()',
+          fn: () => {
+            resetProgress();
+            win.DataManager.addDailyXP(30);
+            win.App.currentScreen = 'settings';
+            win.App.render();
+            const container = win.document.getElementById('app-container');
+            const text = container.textContent;
+            assert(text.includes('30'), `expected daily XP 30 in settings, got text: ${text.substring(0, 100)}`);
+            assert(text.includes('50'), `expected daily goal 50 in settings, got text: ${text.substring(0, 100)}`);
+          }
+        },
+        {
+          name: 'completion screen "Review Mistakes" reviews session mistakes immediately',
+          fn: () => {
+            resetProgress();
+            const ex = { id: '__test_review_mistake__', type: 'typing', prompt: 'test', answer: 'a' };
+            // Simulate a wrong answer in the current session
+            win.App.exerciseResults = [{ exercise: ex, correct: false }];
+            win.App.currentScreen = 'completion';
+            win.App.completionData = { accuracy: 0, xp: 50, streak: 0 };
+            win.App.render();
+            // The completion screen should have a Review Mistakes button
+            const doc = win.document;
+            const reviewBtn = Array.from(doc.querySelectorAll('button')).find(b => b.textContent.trim() === 'Review Mistakes');
+            assert(reviewBtn, 'Review Mistakes button should exist on completion screen');
+            reviewBtn.click();
+            // After clicking, App should be in review mode with the exercise
+            assert(win.App.reviewMode === true, 'should be in review mode after clicking Review Mistakes');
+            const reviewExercises = win.App.currentLesson.exercises;
+            assert(reviewExercises.length === 1, `expected 1 review exercise, got ${reviewExercises.length}`);
+            assert(reviewExercises[0].id === '__test_review_mistake__', 'review exercise should be the one that was answered wrong');
+          }
+        },
+        {
+          name: '0%-mastery lesson is marked as completed on skill tree',
+          fn: () => {
+            resetProgress();
+            win.DataManager.completeLesson('unit1', 0);
+            win.App.checkUnlocks();
+            const skillTrees = win.SKILL_TREE;
+            const unit1 = skillTrees.find(s => s.id === 'unit1');
+            assert(unit1, 'unit1 skill tree entry should exist');
+            assert(unit1.completed === true, 'unit1 should be completed even with 0% mastery');
           }
         }
       ];

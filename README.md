@@ -219,6 +219,8 @@ against Glosbe [10]. Specific checks:
 - `manifest.json` — PWA installability metadata
 - `sw.js` — Service worker for offline caching
 - `icons/` — PWA icons (192x192, 512x512, Apple touch icon)
+- `test.html` — Regression test suite (open over HTTP, not file://)
+- `validate-data.js` — Static exercise validator (run `node validate-data.js`)
 - `README.md` — This file
 
 ## License
