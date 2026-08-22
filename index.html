@@ -1155,7 +1155,7 @@
             const cloudProgress = doc.data().progress;
             const cloudTime = doc.data().lastModified || 0;
             const localTime = localProgress.lastModified || 0;
-            // Most-recently-modified wins
+            // Most-recent-modified wins
             if (cloudTime > localTime) {
               // Cloud is newer — use it
               DataManager._progressCache = { ...cloudProgress };
@@ -1181,6 +1181,11 @@
       onSignOut() {
         // Nothing to do — local data stays in localStorage
         App.updateHeader();
+        // If currently on auth screen, redirect to home
+        if (App.currentScreen === 'auth') {
+          App.currentScreen = 'home';
+          App.render();
+        }
       },
 
       async saveToFirestore(progress) {
@@ -2366,7 +2371,7 @@
     });
 
     document.getElementById('sync-btn').addEventListener('click', () => {
-      if (window.FirebaseSync && FirebaseSync.isSignedIn()) {
+      if (typeof FirebaseSync !== 'undefined' && FirebaseSync.isSignedIn()) {
         // If signed in, show sign-out option
         if (confirm('Signed in as ' + FirebaseSync.currentUser.email + '\n\nClick OK to sign out, or Cancel to cancel.')) {
           FirebaseSync.signOut();
@@ -2476,12 +2481,14 @@
         form.appendChild(googleBtn);
         form.appendChild(errorEl);
 
-        // Sign in handler
-        FirebaseSync.auth.onAuthStateChanged(() => {
-          // User signed in — go back to app
-          App.currentScreen = 'home';
-          App.render();
-        });
+        // Sign in handler - listens for auth state changes
+        if (FirebaseSync.auth) {
+          FirebaseSync.auth.onAuthStateChanged(() => {
+            // User signed in — go back to app
+            App.currentScreen = 'home';
+            App.render();
+          });
+        }
 
         const skipBtn = document.createElement('button');
         skipBtn.className = 'auth-btn skip-btn';
