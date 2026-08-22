@@ -538,10 +538,21 @@
           },
         },
         {
+          name: 'loadFirebaseSDK skips Firebase scripts when offline',
+          fn: () => {
+            assert(typeof win.loadFirebaseSDK === 'function', 'loadFirebaseSDK should be exposed on window');
+            const originalOnLine = win.navigator.onLine;
+            Object.defineProperty(win.navigator, 'onLine', { value: false, configurable: true });
+            let callbackFired = false;
+            win.loadFirebaseSDK(() => { callbackFired = true; });
+            assert(callbackFired, 'callback should fire immediately when navigator.onLine is false');
+            Object.defineProperty(win.navigator, 'onLine', { value: originalOnLine, configurable: true });
+            assert(win.FirebaseSync.isSignedIn() === false, 'isSignedIn should be false when no firebase SDK loaded');
+          }
+        },
+        {
           name: 'first-run intro card shows when no progress, hidden after dismiss',
           fn: () => {
-            // Clear ALL localStorage to simulate first run
-            win.localStorage.removeItem('taukei_progress');
             win.localStorage.removeItem('taukei_intro_dismissed');
             win.DataManager._progressCache = null;
 

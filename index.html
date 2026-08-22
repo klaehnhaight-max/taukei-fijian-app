@@ -846,10 +846,7 @@
     }
   </style>
 
-  <!-- Firebase SDK (for optional cloud sync) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <!-- Firebase SDK (for optional cloud sync) — loaded dynamically below when online -->
   <script>
     // Firebase config — replace with your own from console.firebase.google.com
     const firebaseConfig = {
@@ -2852,8 +2849,29 @@
     window.AuthScreen = AuthScreen;
 
     // ─── Initialize ─────────────────────────────────────────────
-    FirebaseSync.init();
-    App.init();
+    function loadFirebaseSDK(callback) {
+      if (!navigator.onLine) { callback(); return; }
+      const urls = [
+        'https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js',
+        'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js',
+        'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js'
+      ];
+      let loaded = 0;
+      let failed = false;
+      urls.forEach(src => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.onload = () => { if (++loaded === urls.length && !failed) callback(); };
+        s.onerror = () => { if (!failed) { failed = true; callback(); } };
+        document.head.appendChild(s);
+      });
+    }
+    window.loadFirebaseSDK = loadFirebaseSDK;
+
+    loadFirebaseSDK(() => {
+      FirebaseSync.init();
+      App.init();
+    });
 
     // ─── PWA Service Worker Registration ─────────────────────────
     if ('serviceWorker' in navigator) {
