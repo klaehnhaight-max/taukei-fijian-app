@@ -11,6 +11,8 @@
  *   3. Every matching exercise: no duplicate English or Fijian values within pairs.
  *   4. Every exercise's `sources` array: each source key exists in `SOURCES`.
  *   5. Every matching exercise: between 2 and 6 pairs (split requirement).
+ *   6. Every sentence_builder exercise: prompt does not contain the answer.
+ *   7. Every matching/typing/sentence_builder exercise: has a non-empty explanation.
  *
  * Exits non-zero and prints offending ids if any check fails.
  */
@@ -203,6 +205,23 @@ for (const unitId of Object.keys(LESSONS)) {
       checked++;
       if (normalizeSentence(ex.prompt).includes(normalizeSentence(ex.answer))) {
         failures.push(`sentence_builder ${ex.id}: prompt leaks answer "${ex.answer}" — prompt text must not contain the Fijian answer`);
+      }
+    }
+  }
+}
+
+// ─── Check 7: matching/typing/sentence_builder exercises have a non-empty explanation ─
+// All non-multiple_choice exercise types must carry an explanation field
+// so the app can render elaborated feedback (the same pattern multiple_choice
+// uses in showFeedback). This is a permanent regression guard.
+for (const unitId of Object.keys(LESSONS)) {
+  const unit = LESSONS[unitId];
+  if (!unit || !unit.exercises) continue;
+  for (const ex of unit.exercises) {
+    if (ex.type === 'matching' || ex.type === 'typing' || ex.type === 'sentence_builder') {
+      checked++;
+      if (!ex.explanation || ex.explanation.trim() === '') {
+        failures.push(`${ex.type} ${ex.id}: missing or empty explanation field`);
       }
     }
   }

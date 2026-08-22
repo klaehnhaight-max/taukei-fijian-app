@@ -700,6 +700,24 @@
               }
             }
           }
+        },
+        {
+          name: 'matching/typing/sentence_builder exercises have non-empty explanations',
+          fn: () => {
+            const LESSONS = win.LESSONS;
+            for (const unitId of Object.keys(LESSONS)) {
+              const unit = LESSONS[unitId];
+              if (!unit || !unit.exercises) continue;
+              for (const ex of unit.exercises) {
+                if (ex.type === 'matching' || ex.type === 'typing' || ex.type === 'sentence_builder') {
+                  assert(
+                    ex.explanation && ex.explanation.trim() !== '',
+                    `${ex.type} ${ex.id}: missing or empty explanation`
+                  );
+                }
+              }
+            }
+          }
         }
       ];
 

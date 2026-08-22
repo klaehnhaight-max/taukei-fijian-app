@@ -2112,7 +2112,7 @@
                 // Record wrong attempts for review, or correct first-try for spaced rep
                 this.recordResult(exercise, wrongCount === 0);
                 const message = wrongCount > 0
-                  ? `✓ All matched! (${wrongCount} incorrect attempt${wrongCount > 1 ? 's' : ''} — review recommended)`
+                  ? `✓ All matched! (${wrongCount} incorrect attempt${wrongCount > 1 ? 's' : ''} — review recommended)${exercise.explanation ? ' ' + exercise.explanation : ''}`
                   : '✓ All matched correctly!';
                 this.showFeedback(card, 'correct', message);
               }
@@ -2310,7 +2310,7 @@
             // Show feedback
             const card = target.closest('.exercise-card');
             const message = wrongAttempts > 0
-              ? `✓ Correct! (${wrongAttempts} wrong attempt${wrongAttempts > 1 ? 's' : ''} — review recommended) <span class="pronunciation-hint">Answer pronunciation: ${fijianToPhonetic(exercise.answer)}</span>`
+              ? `✓ Correct! (${wrongAttempts} wrong attempt${wrongAttempts > 1 ? 's' : ''} — review recommended) <span class="pronunciation-hint">Answer pronunciation: ${fijianToPhonetic(exercise.answer)}</span>${exercise.explanation ? ' ' + exercise.explanation : ''}`
               : `✓ Correct! <span class="pronunciation-hint">Answer pronunciation: ${fijianToPhonetic(exercise.answer)}</span>`;
             this.showFeedback(card, 'correct', message);
           }
@@ -2349,7 +2349,7 @@
           if (isCorrect) {
             this.showFeedback(card, 'correct', `✓ Correct! <span class="pronunciation-hint">Pronunciation: ${fijianToPhonetic(exercise.answer)}</span>`);
           } else {
-            this.showFeedback(card, 'incorrect', `✗ Incorrect. The correct answer is: <span class="correct-answer">${exercise.answer}</span> <span class="pronunciation-hint">Pronunciation: ${fijianToPhonetic(exercise.answer)}</span>`);
+            this.showFeedback(card, 'incorrect', `✗ Incorrect. The correct answer is: <span class="correct-answer">${exercise.answer}</span> <span class="pronunciation-hint">Pronunciation: ${fijianToPhonetic(exercise.answer)}</span>${exercise.explanation ? ' ' + exercise.explanation : ''}`);
           }
 
           input.disabled = true;

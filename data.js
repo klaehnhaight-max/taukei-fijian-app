@@ -45,7 +45,8 @@ const LESSONS = {
           { fijian: "Moce", english: "Goodbye" },
           { fijian: "Sota tale", english: "See you later" }
         ],
-        sources: ["[1]", "[8]", "[9]"]
+        sources: ["[1]", "[8]", "[9]"],
+        explanation: 'Bula means hello but literally means life — the same word is used for both greeting and responding.',
       },
       {
         type: "multiple_choice",
@@ -71,7 +72,8 @@ const LESSONS = {
         prompt: "Build the phrase for 'Good morning'",
         words: ["ni", "sa", "yadra"],
         answer: "Ni sa yadra",
-        sources: ["[1]", "[8]", "[9]"]
+        sources: ["[1]", "[8]", "[9]"],
+        explanation: 'Fijian greeting phrases follow a particle-plus-adjective structure: Ni sa marks a present greeting, followed by the descriptive word.',
       },
       {
         type: "typing",
@@ -79,7 +81,8 @@ const LESSONS = {
         prompt: "Type the Fijian word for 'Goodbye'",
         answer: "moce",
         note: "Remember: C is pronounced 'th', so 'moce' = 'mo-they'",
-        sources: ["[1]", "[8]", "[9]"]
+        sources: ["[1]", "[8]", "[9]"],
+        explanation: 'Moce is the standard Fijian word for goodbye, used when departing or ending a conversation.',
       },
       {
         type: "multiple_choice",
@@ -111,7 +114,8 @@ const LESSONS = {
           { english: "5 (five)", fijian: "lima" },
           { english: "6 (six)", fijian: "ono" }
         ],
-        sources: ["[1]", "[7]", "[8]"]
+        sources: ["[1]", "[7]", "[8]"],
+        explanation: 'Fijian numbers from 1 to 6: dua, rua, tolu, va, lima, ono.',
       },
       {
         type: "matching",
@@ -123,7 +127,8 @@ const LESSONS = {
           { english: "9 (nine)", fijian: "ciwa" },
           { english: "10 (ten)", fijian: "tini" }
         ],
-        sources: ["[1]", "[7]", "[8]"]
+        sources: ["[1]", "[7]", "[8]"],
+        explanation: 'Numbers 7 to 10: vitu, walu, ciwa, tini — walu and ciwa are suppletive forms not derived from the base.',
       },
             {
         type: "multiple_choice",
@@ -139,7 +144,8 @@ const LESSONS = {
         id: "unit2-3",
         prompt: "Type the Fijian word for 'three'",
         answer: "tolu",
-        sources: ["[1]", "[7]", "[8]"]
+        sources: ["[1]", "[7]", "[8]"],
+        explanation: 'Toloweru combines tolu (3) and rua (2) to mean 5, showing that Fijian numbers can be compounded.',
       },
       {
         type: "sentence_builder",
@@ -148,7 +154,8 @@ const LESSONS = {
         words: ["dua", "tini"],
         answer: "tini dua",
         note: "Note: Numbers 11-19 are 'tini ka X' (ten and X). 11 = tini kadua, 12 = tinikarua, 13 = tinitolu, 14 = tiniti, 15 = tinikalima, 16 = tinikavonovono, 17 = tinitavitu, 18 = tinikawalu, 19 = tinikaciwa. 20 = ruasagavulu. [2][7]",
-        sources: ["[2]", "[7]"]
+        sources: ["[2]", "[7]"],
+        explanation: 'Fijian cardinals 11 plus use the pattern tini (10) plus smaller number: tini dua = 11.',
       }
     ]
   },
@@ -170,7 +177,8 @@ const LESSONS = {
           { english: "he / she / him / her", fijian: "koya" },
           { english: "we (inclusive)", fijian: "keda" }
         ],
-        sources: ["[2]", "[4]", "[5]"]
+        sources: ["[2]", "[4]", "[5]"],
+        explanation: 'Subject pronouns encode person and number: au (I), iko (you), koya (he or she), keda (we inclusive).',
       },
       {
         type: "matching",
@@ -181,7 +189,8 @@ const LESSONS = {
           { english: "you (plural/polite)", fijian: "kemuni" },
           { english: "they (plural)", fijian: "irato" }
         ],
-        sources: ["[2]", "[4]", "[5]"]
+        sources: ["[2]", "[4]", "[5]"],
+        explanation: 'The inclusive keda includes the listener, while exclusive keirau excludes them — this distinction is central to Fijian pronouns.',
       },
             {
         type: "multiple_choice",
@@ -199,7 +208,8 @@ const LESSONS = {
         words: ["au", "lako"],
         answer: "Au lako",
         note: "In Fijian, 'I am going' = 'Au lako'. The 'au' is the subject marker for 'I'. [1][9]",
-        sources: ["[1]", "[9]"]
+        sources: ["[1]", "[9]"],
+        explanation: 'Subject pronouns precede the verb directly with no particle: au lako = I go, as noted in the unit grammar description.',
       },
       {
         type: "multiple_choice",
@@ -231,7 +241,8 @@ const LESSONS = {
           { english: "daughter", fijian: "luvequ yalewa" },
           { english: "grandfather", fijian: "tukaqu" }
         ],
-        sources: ["[6]"]
+        sources: ["[6]"],
+        explanation: 'Fijian kinship terms use the possessive suffix -qu attached to a relational noun, with word order: relation plus -qu.',
       },
       {
         type: "matching",
@@ -243,7 +254,8 @@ const LESSONS = {
           { english: "sister", fijian: "taciqu" },
           { english: "grandchild", fijian: "makubuqu" }
         ],
-        sources: ["[6]"]
+        sources: ["[6]"],
+        explanation: 'Grandmother is tubuqu and grandfather is tukaqu; grandchild is makubuqu, a compound meaning child of the ancestor.',
       },
             {
         type: "multiple_choice",
@@ -261,14 +273,16 @@ const LESSONS = {
         words: ["tata", "noqu"],
         answer: "noqu tata",
         note: "Possession in Fijian: use 'noqu' (my) before the noun for general nouns. For family terms, the '-qu' suffix can also be used. [2][4]",
-        sources: ["[2]", "[4]"]
+        sources: ["[2]", "[4]"],
+        explanation: 'Tata plus -qu forms noqu tata (my father) — the possessive marker -qu attaches to the kinship noun to show possession.',
       },
       {
         type: "typing",
         id: "unit4-4",
         prompt: "Type the Fijian word for 'brother'",
         answer: "ganequ",
-        sources: ["[6]"]
+        sources: ["[6]"],
+        explanation: 'Ganequ means brother — from ganes (male) plus the possessive suffix -qu.',
       },
       {
         type: "multiple_choice",
@@ -300,7 +314,8 @@ const LESSONS = {
           { english: "tooth", fijian: "bati" },
           { english: "tongue", fijian: "yame" }
         ],
-        sources: ["[6]", "[7]", "[11]"]
+        sources: ["[6]", "[7]", "[11]"],
+        explanation: 'Upper body parts: ulu (head), mata (eye), ucu (nose), gusu (mouth), bati (tooth), yame (tongue).',
       },
       {
         type: "matching",
@@ -314,7 +329,8 @@ const LESSONS = {
           { english: "knee", fijian: "duru" },
           { english: "throat", fijian: "nona" }
         ],
-        sources: ["[6]", "[7]", "[11]"]
+        sources: ["[6]", "[7]", "[11]"],
+        explanation: 'Other body parts: daliga (ear), liga (hand), yava (leg), uto (heart), duru (knee), nona (throat).',
       },
             {
         type: "multiple_choice",
@@ -330,7 +346,8 @@ const LESSONS = {
         id: "unit5-3",
         prompt: "Type the Fijian word for 'heart'",
         answer: "uto",
-        sources: ["[6]", "[7]"]
+        sources: ["[6]", "[7]"],
+        explanation: 'Uto means heart — it also appears in the Fijian idiom uto-ni-viti, meaning love of country.',
       },
       {
         type: "sentence_builder",
@@ -339,7 +356,8 @@ const LESSONS = {
         words: ["nona", "noqu"],
         answer: "noqu nona",
         note: "'nona' = throat, used with possessive 'noqu' (my). [7][11]",
-        sources: ["[7]", "[11]"]
+        sources: ["[7]", "[11]"],
+        explanation: 'Nona plus -qu forms noqu nona (my throat) — the same noun plus possessive suffix pattern as other body part terms.',
       }
     ]
   },
@@ -362,7 +380,8 @@ const LESSONS = {
           { english: "green", fijian: "drokadroka" },
           { english: "yellow", fijian: "dromodromo" }
         ],
-        sources: ["[7]", "[12]"]
+        sources: ["[7]", "[12]"],
+        explanation: 'Basic colors: vulavula (white), loaloa (black), damudamu (red), karakarawa (blue), drokadroka (green), dromodromo (yellow).',
       },
       {
         type: "matching",
@@ -374,7 +393,8 @@ const LESSONS = {
           { english: "brown", fijian: "masikuvui" },
           { english: "pink", fijian: "piqi" }
         ],
-        sources: ["[7]", "[12]"]
+        sources: ["[7]", "[12]"],
+        explanation: 'Secondary colors: lovaloka (purple), seninawanawa (orange), masikuvui (brown), piqi (pink) — piqi is a loanword from English.',
       },
             {
         type: "multiple_choice",
@@ -390,7 +410,8 @@ const LESSONS = {
         id: "unit6-3",
         prompt: "Type the Fijian word for 'green'",
         answer: "drokadroka",
-        sources: ["[7]", "[12]"]
+        sources: ["[7]", "[12]"],
+        explanation: 'Drokadroka means green; it is related to the root word drokadro, relating to young vegetation or freshness.',
       },
       {
         type: "sentence_builder",
@@ -399,7 +420,8 @@ const LESSONS = {
         words: ["na", "waqa", "damudamu"],
         answer: "Na waqa damudamu",
         note: "In Fijian, color + object: 'Na waqa damudamu' = 'the red car'. [7]",
-        sources: ["[7]"]
+        sources: ["[7]"],
+        explanation: 'Na plus waqa plus damudamu = na waqa damudamu (the red car) — the article na precedes the noun and its color modifier.',
       }
     ]
   },
@@ -421,7 +443,8 @@ const LESSONS = {
           { english: "taro", fijian: "dalo" },
           { english: "cassava", fijian: "tavioka" }
         ],
-        sources: ["[1]", "[6]", "[7]", "[8]"]
+        sources: ["[1]", "[6]", "[7]", "[8]"],
+        explanation: 'Staple foods: kakana (food), ika (fish), lewe (meat), dalo (taro), tavioka (cassava) — dalo is the traditional ceremonial food.',
       },
       {
         type: "matching",
@@ -433,7 +456,8 @@ const LESSONS = {
           { english: "rice", fijian: "rais" },
           { english: "bread", fijian: "madrai" }
         ],
-        sources: ["[1]", "[6]", "[7]", "[8]"]
+        sources: ["[1]", "[6]", "[7]", "[8]"],
+        explanation: 'Derived foods: niu (coconut), wai (water), rais (rice), madrai (bread) — rais and madrai are English loanwords.',
       },
       {
         type: "matching",
@@ -445,7 +469,8 @@ const LESSONS = {
           { english: "beer", fijian: "bia" },
           { english: "greens (Fijian spinach)", fijian: "bele" }
         ],
-        sources: ["[1]", "[6]", "[7]", "[8]"]
+        sources: ["[1]", "[6]", "[7]", "[8]"],
+        explanation: 'Drinks and greens: kofi (coffee), ti (tea), bia (beer), bele (Fijian spinach) — ti and bia are English loanwords.',
       },
                   {
         type: "multiple_choice",
@@ -463,14 +488,16 @@ const LESSONS = {
         words: ["au", "kana"],
         answer: "Au kana",
         note: "'kana' = eat (verb). 'Au kana' = I eat. [1][7]",
-        sources: ["[1]", "[7]"]
+        sources: ["[1]", "[7]"],
+        explanation: 'Au plus kana = au kana (I eat) — the verb follows the subject pronoun directly with no particle.',
       },
       {
         type: "typing",
         id: "unit7-4",
         prompt: "Type the Fijian word for 'water'",
         answer: "wai",
-        sources: ["[1]", "[7]", "[8]"]
+        sources: ["[1]", "[7]", "[8]"],
+        explanation: 'Wai simply means water — a basic noun cognate across most Austronesian languages.',
       },
       {
         type: "multiple_choice",
@@ -500,7 +527,8 @@ const LESSONS = {
           { english: "where / this place", fijian: "ko" },
           { english: "when", fijian: "naica" }
         ],
-        sources: ["[1]", "[5]", "[8]", "[9]"]
+        sources: ["[1]", "[5]", "[8]", "[9]"],
+        explanation: 'Question words: cava (what), cei (who), ko (where), naica (when) — remember C is pronounced TH in Fijian.',
       },
       {
         type: "matching",
@@ -511,7 +539,8 @@ const LESSONS = {
           { english: "how", fijian: "vakacava" },
           { english: "not", fijian: "sega ni" }
         ],
-        sources: ["[1]", "[5]", "[8]", "[9]"]
+        sources: ["[1]", "[5]", "[8]", "[9]"],
+        explanation: 'Question particles: e vica (how many), vakacava (how), se sega ni (not) — these form questions with different structures.',
       },
             {
         type: "multiple_choice",
@@ -529,14 +558,16 @@ const LESSONS = {
         words: ["o", "cei", "ko", "iko"],
         answer: "O cei ko iko?",
         note: "'O' is the subject marker, 'cei' = what/who, 'ko' = is/are, 'iko' = you. [8]",
-        sources: ["[8]"]
+        sources: ["[8]"],
+        explanation: 'O cei ko iko? means What is your name? — literally What (cei) are-you (ko iko), using the question word plus subject pattern.',
       },
       {
         type: "typing",
         id: "unit8-4",
         prompt: "Type the Fijian word for 'how many'",
         answer: "e vica",
-        sources: ["[1]", "[9]"]
+        sources: ["[1]", "[9]"],
+        explanation: 'E vica means how many or how much — it combines the question marker e with vica (what quantity), used for both countable and uncountable nouns.',
       },
       {
         type: "multiple_choice",
@@ -569,7 +600,8 @@ const LESSONS = {
           { english: "see", fijian: "rai" },
           { english: "hear", fijian: "rogo" }
         ],
-        sources: ["[1]", "[5]", "[7]", "[9]"]
+        sources: ["[1]", "[5]", "[7]", "[9]"],
+        explanation: 'Action verbs: kana (eat), gunu (drink), lako (go), mai (come), rai (see), rogo (hear) — all used directly after the subject pronoun.',
       },
       {
         type: "matching",
@@ -582,7 +614,8 @@ const LESSONS = {
           { english: "say/tell", fijian: "vosa" },
           { english: "give", fijian: "tau" }
         ],
-        sources: ["[1]", "[5]", "[7]", "[9]"]
+        sources: ["[1]", "[5]", "[7]", "[9]"],
+        explanation: 'Abstract verbs: kila (know), nanuma (think), cakacaka (work), vosa (say), tau (give) — note c equals th pronunciation.',
       },
             {
         type: "multiple_choice",
@@ -600,14 +633,16 @@ const LESSONS = {
         words: ["au", "lako"],
         answer: "Au lako",
         note: "'Au' is the subject pronoun for 'I'. Verb follows subject. [1]",
-        sources: ["[1]"]
+        sources: ["[1]"],
+        explanation: 'Au plus lako = au lako (I go) — the dictionary-form verb lako follows the subject pronoun au directly.',
       },
       {
         type: "typing",
         id: "unit9-4",
         prompt: "Type the Fijian verb for 'to hear/listen'",
         answer: "rogo",
-        sources: ["[7]"]
+        sources: ["[7]"],
+        explanation: 'Rogoca is the verb to hear — as a standalone dictionary entry it is rogo; in a full sentence it becomes au rogoca (I hear).',
       },
       {
         type: "multiple_choice",
@@ -635,7 +670,8 @@ const LESSONS = {
         words: ["au", "lako", "mai", "niu", "siladi"],
         answer: "Au lako mai Niu Siladi",
         note: "'Au' = I, 'lako mai' = come from, 'Niu Siladi' = New Zealand. [9]",
-        sources: ["[9]"]
+        sources: ["[9]"],
+        explanation: 'Au plus lako mai plus Niu Siladi = I am from New Zealand — the mai particle indicates direction of movement, here coming from.',
       },
       {
         type: "multiple_choice",
@@ -657,14 +693,16 @@ const LESSONS = {
           { fijian: "Au sega ni kila", english: "I don't understand" },
           { fijian: "Sa macala au", english: "I understand" }
         ],
-        sources: ["[1]", "[5]", "[8]", "[9]"]
+        sources: ["[1]", "[5]", "[8]", "[9]"],
+        explanation: 'Sentence patterns: Subject-Verb order with particles like sa (past), e (present habitual), and question markers o or e at the start.',
       },
       {
         type: "typing",
         id: "unit10-4",
         prompt: "Type the Fijian for: 'Where are you from?'",
         answer: "o iko mai vei",
-        sources: ["[1]", "[5]", "[9]"]
+        sources: ["[1]", "[5]", "[9]"],
+        explanation: 'O iko mai vei? means Where are you from? — o marks the question, iko means you, mai vei means from, showing the locational pattern.',
       },
       {
         type: "multiple_choice",
@@ -696,7 +734,8 @@ const LESSONS = {
           { english: "snake", fijian: "gata" },
           { english: "worm", fijian: "baca ni qele" }
         ],
-        sources: ["[7]", "[10]"]
+        sources: ["[7]", "[10]"],
+        explanation: 'Animals: manumanu (animal), ika (fish), manumanuvuka (bird), kolī (dog), gata (snake), baca ni qele (worm).',
       },
       {
         type: "multiple_choice",
@@ -721,7 +760,8 @@ const LESSONS = {
         id: "unit11-4",
         prompt: "Type the Fijian word for 'fish'",
         answer: "ika",
-        sources: ["[7]", "[10]"]
+        sources: ["[7]", "[10]"],
+        explanation: 'Ika means fish — a basic vocabulary word preserved across all Austronesian languages.',
       },
       {
         type: "sentence_builder",
@@ -730,7 +770,8 @@ const LESSONS = {
         words: ["kolī", "levu"],
         answer: "kolī levu",
         note: "In Fijian, adjectives follow nouns: 'kolī levu' = big dog (noun + adjective order, consistent with Units 12-13). [7][10]",
-        sources: ["[7]", "[10]"]
+        sources: ["[7]", "[10]"],
+        explanation: 'Kolī plus levu = kolī levu (big dog) — the adjective follows the noun, the standard Fijian noun phrase word order.',
       }
     ]
   },
@@ -753,7 +794,8 @@ const LESSONS = {
           { english: "rain", fijian: "uca" },
           { english: "river", fijian: "uciwai" }
         ],
-        sources: ["[7]"]
+        sources: ["[7]"],
+        explanation: 'Nature terms (part 1): siga (sun), vula (moon), kalokalo (star), wai (water), uca (rain), uciwai (river).',
       },
       {
         type: "matching",
@@ -767,7 +809,8 @@ const LESSONS = {
           { english: "night", fijian: "bogi" },
           { english: "year", fijian: "yabaki" }
         ],
-        sources: ["[7]"]
+        sources: ["[7]"],
+        explanation: 'Nature terms (part 2): waitui (sea), ō (cloud), cagi (wind), kama (fire), bogi (night), yabaki (year).',
       },
             {
         type: "multiple_choice",
@@ -792,7 +835,8 @@ const LESSONS = {
         id: "unit12-4",
         prompt: "Type the Fijian word for 'rain'",
         answer: "uca",
-        sources: ["[7]"]
+        sources: ["[7]"],
+        explanation: 'Uca means rain — a common Austronesian root also found in related Polynesian languages.',
       },
       {
         type: "sentence_builder",
@@ -801,7 +845,8 @@ const LESSONS = {
         words: ["siga", "levu"],
         answer: "siga levu",
         note: "'Siga levu' = big sun / shining sun. In Fijian, modifiers follow the noun. [7]",
-        sources: ["[7]"]
+        sources: ["[7]"],
+        explanation: 'Siga plus levu = siga levu (big sun) — the adjective follows the noun, as with other Fijian noun phrases.',
       }
     ]
   },
@@ -824,7 +869,8 @@ const LESSONS = {
           { english: "wide", fijian: "rabalevu" },
           { english: "narrow", fijian: "rabalailai" }
         ],
-        sources: ["[7]"]
+        sources: ["[7]"],
+        explanation: 'Adjectives (part 1): levu (big), lailai (small), balavu (long), leka (short), rabalevu (wide), rabalailai (narrow).',
       },
       {
         type: "matching",
@@ -838,7 +884,8 @@ const LESSONS = {
           { english: "new", fijian: "vou" },
           { english: "old (person)", fijian: "qase" }
         ],
-        sources: ["[7]"]
+        sources: ["[7]"],
+        explanation: 'Adjectives (part 2): bībī (heavy), lila (thin), vinaka (good), cā (bad), vou (new), qase (old for people).',
       },
             {
         type: "multiple_choice",
@@ -863,7 +910,8 @@ const LESSONS = {
         id: "unit13-4",
         prompt: "Type the Fijian word for 'good'",
         answer: "vinaka",
-        sources: ["[7]"]
+        sources: ["[7]"],
+        explanation: 'Vinaka means good — it is also the standard greeting thank you, but as an adjective meaning good, it follows the noun.',
       },
       {
         type: "sentence_builder",
@@ -872,7 +920,8 @@ const LESSONS = {
         words: ["wai", "vinaka"],
         answer: "wai vinaka",
         note: "'Wai vinaka' = good water. In Fijian, the modifier follows the noun: '[noun] [adjective]'. [7]",
-        sources: ["[7]"]
+        sources: ["[7]"],
+        explanation: 'Wai plus vinaka = wai vinaka (good water) — the adjective follows the noun, consistent with Fijian noun phrase structure.',
       }
     ]
   },
@@ -894,7 +943,8 @@ const LESSONS = {
           { english: "to come", fijian: "lako mai" },
           { english: "to sit", fijian: "dabe" }
         ],
-        sources: ["[7]", "[10]"]
+        sources: ["[7]", "[10]"],
+        explanation: 'Verb phrases (part 1): qalo-va (to swim), vuka (to fly), taubale (to walk), lako mai (to come), dabe (to sit).',
       },
       {
         type: "matching",
@@ -907,7 +957,8 @@ const LESSONS = {
           { english: "to throw", fijian: "viri-taka" },
           { english: "to sing", fijian: "laga-ta" }
         ],
-        sources: ["[7]", "[10]"]
+        sources: ["[7]", "[10]"],
+        explanation: 'Verb phrases (part 2): tū (to stand), soli-a (to give), taura (to hold), viri-taka (to throw), laga-ta (to sing).',
       },
       {
         type: "matching",
@@ -920,7 +971,8 @@ const LESSONS = {
           { english: "think/remember", fijian: "nanuma" },
           { english: "to fear", fijian: "rere-vaka" }
         ],
-        sources: ["[7]", "[10]"]
+        sources: ["[7]", "[10]"],
+        explanation: 'Verb phrases (part 3): rai-ca (to see), rogo-ca (to hear), kilā (to know), nanuma (think), rere-vaka (to fear).',
       },
                   {
         type: "multiple_choice",
@@ -947,7 +999,8 @@ const LESSONS = {
         answer: "tū",
         altAnswers: ["tūcake"],
         note: "Also accepts 'tūcake' for 'stand up'. [7][10]",
-        sources: ["[7]", "[10]"]
+        sources: ["[7]", "[10]"],
+        explanation: 'Tū means to stand — a monosyllabic verb that can also mean to set up or place depending on context.',
       },
       {
         type: "sentence_builder",
@@ -956,7 +1009,8 @@ const LESSONS = {
         words: ["au", "lako"],
         answer: "Au lako",
         note: "'Au' is the subject pronoun for 'I'. The verb 'lako' means go/come. Combined as 'Au lako' = I am going. [7][10]",
-        sources: ["[7]", "[10]"]
+        sources: ["[7]", "[10]"],
+        explanation: 'Au plus lako = au lako (I am going) — uses the same subject-verb structure as the other sentence_builder exercises in units 3 and 9.',
       }
     ]
   }
