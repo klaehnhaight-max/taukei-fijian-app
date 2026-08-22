@@ -969,6 +969,26 @@
         App.checkUnlocks();
       },
 
+      // Shared by recordWrongAnswer() and recordCorrectAnswer() to build
+      // the "first encounter" tracked-entry object. All fields that are
+      // identical across both branches live here in one place; callers pass
+      // only the fields that differ via extraFields.
+      _buildTrackedEntry(exercise, extraFields) {
+        return {
+          exerciseId: exercise.id || JSON.stringify(exercise),
+          prompt: exercise.prompt,
+          answer: exercise.answer,
+          type: exercise.type,
+          choices: exercise.choices || null,
+          pairs: exercise.pairs || null,
+          words: exercise.words || null,
+          explanation: exercise.explanation || null,
+          note: exercise.note || null,
+          sources: exercise.sources || null,
+          ...extraFields
+        };
+      },
+
       recordWrongAnswer(exercise) {
         const p = this.progress;
         const exerciseId = exercise.id || JSON.stringify(exercise);
@@ -985,22 +1005,12 @@
           existing.correctStreak = 0;
           existing.mastered = false; // un-graduate: a mastered item got wrong again
         } else {
-          p.wrongAnswers.push({
-            exerciseId: exerciseId,
-            prompt: exercise.prompt,
-            answer: exercise.answer,
-            type: exercise.type,
-            choices: exercise.choices || null,
-            pairs: exercise.pairs || null,
-            words: exercise.words || null,
-            explanation: exercise.explanation || null,
-            note: exercise.note || null,
-            sources: exercise.sources || null,
+          p.wrongAnswers.push(this._buildTrackedEntry(exercise, {
             timestamp: now,
             reviewCount: 0,
             nextReviewAt: now + 1 * dayInMs, // first review: 1 day
             intervalIndex: 0
-          });
+          }));
         }
         this.saveProgress();
       },
@@ -1031,23 +1041,13 @@
           }
         } else {
           // Correct answer on first encounter — add to pool with longer delay
-          p.wrongAnswers.push({
-            exerciseId: exerciseId,
-            prompt: exercise.prompt,
-            answer: exercise.answer,
-            type: exercise.type,
-            choices: exercise.choices || null,
-            pairs: exercise.pairs || null,
-            words: exercise.words || null,
-            explanation: exercise.explanation || null,
-            note: exercise.note || null,
-            sources: exercise.sources || null,
+          p.wrongAnswers.push(this._buildTrackedEntry(exercise, {
             timestamp: now,
             reviewCount: 0,
             nextReviewAt: now + 7 * dayInMs, // first review for correct: 7 days
             intervalIndex: 2,
             lastCorrect: now
-          });
+          }));
         }
         this.saveProgress();
       },

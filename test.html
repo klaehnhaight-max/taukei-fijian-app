@@ -222,6 +222,48 @@
           }
         },
         {
+          name: '_buildTrackedEntry produces all expected fields for wrong and correct answers',
+          fn: () => {
+            resetProgress();
+            const ex = {
+              id: '__test_build_entry__', type: 'multiple_choice',
+              prompt: 'What is 2+2?', answer: 3,
+              choices: ['1', '3', '4'],
+              explanation: 'math rules',
+              note: 'easy',
+              sources: ['[1]']
+            };
+            // Wrong answer
+            win.DataManager.recordWrongAnswer(ex);
+            let wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
+            assert(wa !== undefined, 'wrong answer entry not found');
+            ['exerciseId', 'prompt', 'answer', 'type', 'choices', 'pairs', 'words',
+             'explanation', 'note', 'sources', 'timestamp', 'reviewCount', 'nextReviewAt', 'intervalIndex'].forEach(field => {
+              assert(wa[field] !== undefined, `wrong-answer entry missing field: ${field}`);
+            });
+            assert(wa.intervalIndex === 0, 'wrong answer should start at intervalIndex 0');
+
+            // Correct answer (new exercise)
+            resetProgress();
+            const ex2 = {
+              id: '__test_build_entry2__', type: 'matching',
+              prompt: 'Match', answer: 0,
+              pairs: [{ fijian: 'a', english: 'b' }],
+              explanation: 'match it',
+              note: 'note',
+              sources: ['[1]']
+            };
+            win.DataManager.recordCorrectAnswer(ex2);
+            wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex2.id);
+            assert(wa !== undefined, 'correct answer entry not found');
+            ['exerciseId', 'prompt', 'answer', 'type', 'choices', 'pairs', 'words',
+             'explanation', 'note', 'sources', 'timestamp', 'reviewCount', 'nextReviewAt', 'intervalIndex', 'lastCorrect'].forEach(field => {
+              assert(wa[field] !== undefined, `correct-answer entry missing field: ${field}`);
+            });
+            assert(wa.intervalIndex === 2, 'correct answer should start at intervalIndex 2');
+          }
+        },
+        {
           name: 'spaced-repetition item graduates to mastered after 2 consecutive correct at max interval',
           fn: () => {
             resetProgress();
