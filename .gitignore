@@ -13,4 +13,3 @@ verify_temp.js
 *.log
 
 # Build artifacts
-generate_icons.py
