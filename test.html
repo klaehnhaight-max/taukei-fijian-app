@@ -595,10 +595,14 @@
             const card = doc.getElementById('exercise-0');
             assert(card, 'exercise card should exist');
             assert(!card.querySelector('.pronunciation-hint'), 'no pronunciation-hint before sentence_builder answered');
-            // Build the correct sentence by clicking all words
-            const wordSpans = Array.from(doc.querySelectorAll('.drag-word'));
-            assert(wordSpans.length === 3, `expected 3 words, got ${wordSpans.length}`);
-            wordSpans.forEach(w => w.click());
+            // Build the correct sentence by clicking all words in answer order
+            // (app shuffles words on render, so click by text content lookup)
+            for (const w of ex.words) {
+              const el = Array.from(doc.querySelectorAll('.drag-word'))
+                .find(e => e.textContent === w && e.style.visibility !== 'hidden');
+              assert(el, `could not find drag-word with text "${w}"`);
+              el.click();
+            }
             // After clicking all words: pronunciation-hint should appear in feedback
             const feedback = card.querySelector('.feedback');
             assert(feedback, 'feedback element should exist after completing sentence');
