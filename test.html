@@ -435,6 +435,20 @@
             assert(unit1, 'unit1 skill tree entry should exist');
             assert(unit1.completed === true, 'unit1 should be completed even with 0% mastery');
           }
+        },
+        {
+          name: 'showFeedback() sets aria-live="polite" on first creation',
+          fn: () => {
+            const container = document.createElement('div');
+            const feedback = win.App.showFeedback(container, 'correct', '✓ Correct!');
+            assert(feedback.getAttribute('aria-live') === 'polite',
+              'feedback div should have aria-live="polite" when first created');
+            // Calling again should NOT create a second feedback div (reuse)
+            const feedback2 = win.App.showFeedback(container, 'incorrect', '✗ Nope');
+            assert(feedback2 === feedback, 'showFeedback should reuse existing .feedback div');
+            assert(feedback2.getAttribute('aria-live') === 'polite',
+              'aria-live should persist on reuse');
+          }
         }
       ];
 

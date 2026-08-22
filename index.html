@@ -1434,6 +1434,7 @@
         let feedback = container.querySelector('.feedback');
         if (!feedback) {
           feedback = document.createElement('div');
+          feedback.setAttribute('aria-live', 'polite');
           container.appendChild(feedback);
         }
         feedback.className = `feedback ${cssClass}`;
