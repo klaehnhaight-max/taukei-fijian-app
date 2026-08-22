@@ -145,14 +145,42 @@
           name: 'typing accepts altAnswers (e.g. "tucake" matches "tūcake" for "tū")',
           fn: () => {
             resetProgress();
-            const ex = { id: '__test_alt__', type: 'typing', prompt: 'test', answer: 'tū', altAnswers: ['tūcake'] };
-            // Simulate the checkAnswer logic: normalize typed, normalize answer, normalize alts
-            const norm = win.normalizeForCompare;
-            const typed1 = norm('tu');
-            const typed2 = norm('tucake');
-            const answers = [norm(ex.answer), ...(ex.altAnswers || []).map(norm)];
-            assert(answers.includes(typed1), '"tu" should match the answer or altAnswers');
-            assert(answers.includes(typed2), '"tucake" should match the altAnswers');
+            // Render a real typing exercise through App.renderLesson, then
+            // interact with the actual DOM elements — no re-implementation
+            // of the comparison logic. The exercise object matches the real
+            // unit14-4 exercise shape (answer "tū", altAnswers ["tūcake"]).
+            const ex = { id: '__test_alt__', type: 'typing', prompt: 'Type the Fijian verb for to stand', answer: 'tū', altAnswers: ['tūcake'] };
+            win.App.currentScreen = 'lesson';
+            win.App.currentLesson = { id: '__test_lesson_alt__', xp: 10, exercises: [ex], isReview: false };
+            win.App.currentExerciseIndex = 0;
+            win.App.exerciseResults = [];
+            win.App.reviewMode = false;
+            win.App.render();
+
+            const doc = win.document;
+            const input = doc.querySelector('.typing-input');
+            assert(input, 'typing input should exist after renderLesson');
+
+            // Test 1: typing "tu" (plain keyboard, no macron) should be correct
+            input.value = 'tu';
+            const checkBtn = Array.from(doc.querySelectorAll('button')).find(b => b.textContent.trim() === 'Check Answer');
+            assert(checkBtn, 'Check Answer button should exist');
+            checkBtn.click();
+            assert(input.classList.contains('correct'), '"tu" should be marked correct against answer "tū"');
+
+            // Test 2: typing "tucake" (plain keyboard, no macron) should also be correct
+            // via altAnswers. Re-render a fresh exercise to get a clean input.
+            win.App.currentLesson = { id: '__test_lesson_alt2__', xp: 10, exercises: [JSON.parse(JSON.stringify(ex))], isReview: false };
+            win.App.currentExerciseIndex = 0;
+            win.App.exerciseResults = [];
+            win.App.render();
+
+            const input2 = doc.querySelector('.typing-input');
+            assert(input2, 'typing input should exist after re-render');
+            input2.value = 'tucake';
+            const checkBtn2 = Array.from(doc.querySelectorAll('button')).find(b => b.textContent.trim() === 'Check Answer');
+            checkBtn2.click();
+            assert(input2.classList.contains('correct'), '"tucake" should be marked correct via altAnswers ["tūcake"]');
           }
         },
         {
@@ -260,6 +288,44 @@
             ['recordResult', 'showFeedback', 'buildReviewExercises', 'startReviewWith', 'exportProgress', 'importProgressFile']
               .forEach(fnName => assert(typeof win.App[fnName] === 'function', `App.${fnName} is not a function`));
             assert(typeof win.DataManager.importProgress === 'function', 'DataManager.importProgress is not a function');
+          }
+        },
+        {
+          name: 'DataManager.getMasteredWords() returns mastered items only',
+          fn: () => {
+            resetProgress();
+            const p = win.DataManager.progress;
+            p.wrongAnswers = [
+              { exerciseId: 'm1', prompt: 'q1', answer: 'a1', type: 'typing', mastered: true },
+              { exerciseId: 'm2', prompt: 'q2', answer: 'a2', type: 'typing', mastered: false },
+              { exerciseId: 'm3', prompt: 'q3', answer: 'a3', type: 'multiple_choice', mastered: true }
+            ];
+            win.DataManager.saveProgress();
+            const mastered = win.DataManager.getMasteredWords();
+            assert(mastered.length === 2, `expected 2 mastered, got ${mastered.length}`);
+            assert(mastered.every(wa => wa.mastered === true), 'all returned items should be mastered');
+            assert(mastered.some(wa => wa.exerciseId === 'm1'), 'should include m1');
+            assert(mastered.some(wa => wa.exerciseId === 'm3'), 'should include m3');
+            assert(!mastered.some(wa => wa.exerciseId === 'm2'), 'should exclude m2');
+          }
+        },
+        {
+          name: 'settings screen renders with expected sections and buttons',
+          fn: () => {
+            resetProgress();
+            win.App.currentScreen = 'settings';
+            win.App.render();
+            const container = win.document.getElementById('app-container');
+            assert(container, 'app-container should exist');
+            const text = container.textContent;
+            assert(text.includes('Daily Goal'), 'settings should have Daily Goal section');
+            assert(text.includes('Streak Freezes'), 'settings should have Streak Freezes section');
+            assert(text.includes('Account & Sync'), 'settings should have Account & Sync section');
+            assert(text.includes('Backup'), 'settings should have Backup section');
+            assert(text.includes('Mastered Words'), 'settings should have Mastered Words section');
+            assert(text.includes('Export Progress'), 'settings should have Export Progress button');
+            assert(text.includes('Import Progress'), 'settings should have Import Progress button');
+            assert(text.includes('Back to Skills'), 'settings should have Back to Skills button');
           }
         }
       ];

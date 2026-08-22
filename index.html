@@ -880,6 +880,8 @@
         📚 Review</button>
       <button id="sync-btn" class="btn btn-secondary" style="padding: 6px 16px; font-size: 0.85rem;">
         ☁️ Sync</button>
+      <button id="settings-btn" class="btn btn-secondary" style="padding: 6px 16px; font-size: 0.85rem;">
+        ⚙️ Settings</button>
     </div>
   </header>
 
@@ -1160,6 +1162,11 @@
       importProgress(newProgress) {
         this._progressCache = newProgress;
         localStorage.setItem('taukei_progress', JSON.stringify(newProgress));
+      },
+
+      getMasteredWords() {
+        const p = this.progress;
+        return (p.wrongAnswers || []).filter(wa => wa.mastered);
       }
     };
 
@@ -1454,6 +1461,8 @@
           container.appendChild(this.renderSources());
         } else if (this.currentScreen === 'auth') {
           container.appendChild((window.AuthScreen || AuthScreen).render());
+        } else if (this.currentScreen === 'settings') {
+          container.appendChild(this.renderSettings());
         }
       },
 
@@ -1503,39 +1512,6 @@
             <div class="goal-fill" style="width: ${goalProgress}%"></div>
           </div>
         `;
-
-        // Goal adjustment buttons
-        const goalControls = document.createElement('div');
-        goalControls.style.display = 'flex';
-        goalControls.style.justifyContent = 'center';
-        goalControls.style.gap = '8px';
-        goalControls.style.marginTop = '8px';
-
-        const decreaseBtn = document.createElement('button');
-        decreaseBtn.className = 'btn btn-secondary';
-        decreaseBtn.textContent = '−';
-        decreaseBtn.setAttribute('aria-label', 'Decrease daily goal by 10 XP');
-        decreaseBtn.style.padding = '4px 12px';
-        decreaseBtn.style.fontSize = '0.9rem';
-        decreaseBtn.onclick = () => {
-          this.decreaseDailyGoal();
-          this.render();
-        };
-
-        const increaseBtn = document.createElement('button');
-        increaseBtn.className = 'btn btn-secondary';
-        increaseBtn.textContent = '+';
-        increaseBtn.setAttribute('aria-label', 'Increase daily goal by 10 XP');
-        increaseBtn.style.padding = '4px 12px';
-        increaseBtn.style.fontSize = '0.9rem';
-        increaseBtn.onclick = () => {
-          this.increaseDailyGoal();
-          this.render();
-        };
-
-        goalControls.appendChild(decreaseBtn);
-        goalControls.appendChild(increaseBtn);
-        goalContainer.appendChild(goalControls);
 
         div.appendChild(goalContainer);
 
@@ -1617,14 +1593,105 @@
 
         div.appendChild(quickLinks);
 
-        // Backup: local-only users (no cloud sync) have no other way to
-        // recover progress if they clear site data or switch devices, so
-        // let anyone export/import their progress as a plain JSON file.
+        // Pointer to Settings screen
+        const settingsBtn = document.createElement('button');
+        settingsBtn.className = 'btn btn-secondary';
+        settingsBtn.textContent = '⚙️ Settings';
+        settingsBtn.style.marginTop = '12px';
+        settingsBtn.onclick = () => { App.currentScreen = 'settings'; App.render(); };
+        div.appendChild(settingsBtn);
+
+        return div;
+      },
+
+      // Settings screen — consolidates daily goal, streak freezes,
+      // account/sync, backup, and mastered words.
+      renderSettings() {
+        const div = document.createElement('div');
+        div.className = 'home-screen';
+
+        const p = DataManager.progress;
+        const dailyGoal = DataManager.getDailyGoal();
+        const dailyXP = p.dailyXP || 0;
+        const goalProgress = Math.min(100, (dailyXP / dailyGoal) * 100);
+
+        // Section: Daily Goal
+        const goalSection = document.createElement('div');
+        goalSection.className = 'sources-note';
+        goalSection.style.marginBottom = '20px';
+        goalSection.innerHTML = '<strong>Daily Goal: ' + dailyXP + '/' + dailyGoal + ' XP</strong>';
+        div.appendChild(goalSection);
+
+        const goalControls = document.createElement('div');
+        goalControls.style.display = 'flex';
+        goalControls.style.justifyContent = 'flex-start';
+        goalControls.style.gap = '12px';
+
+        const decreaseBtn = document.createElement('button');
+        decreaseBtn.className = 'btn btn-secondary';
+        decreaseBtn.textContent = '−';
+        decreaseBtn.setAttribute('aria-label', 'Decrease daily goal by 10 XP');
+        decreaseBtn.onclick = () => { this.decreaseDailyGoal(); this.render(); };
+        goalControls.appendChild(decreaseBtn);
+
+        const increaseBtn = document.createElement('button');
+        increaseBtn.className = 'btn btn-secondary';
+        increaseBtn.textContent = '+';
+        increaseBtn.setAttribute('aria-label', 'Increase daily goal by 10 XP');
+        increaseBtn.onclick = () => { this.increaseDailyGoal(); this.render(); };
+        goalControls.appendChild(increaseBtn);
+
+        div.appendChild(goalControls);
+
+        // Section: Streak Freezes
+        const freezeSection = document.createElement('div');
+        freezeSection.className = 'sources-note';
+        freezeSection.style.marginBottom = '20px';
+        freezeSection.innerHTML = '<strong>Streak Freezes: ' + p.streakFreezes + '</strong>' +
+          '<br><small style="color:#666">Each freeze covers one missed day so your streak doesn\u0027t reset.</small>';
+        div.appendChild(freezeSection);
+
+        // Section: Account & Sync
+        const accountSection = document.createElement('div');
+        accountSection.className = 'sources-note';
+        accountSection.style.marginBottom = '20px';
+        let accountText;
+        if (window.FirebaseSync && FirebaseSync.isSignedIn()) {
+          const user = FirebaseSync.currentUser;
+          accountText = 'Signed in as ' + (user.displayName || user.email);
+        } else {
+          accountText = 'Not signed in — progress is saved locally only';
+        }
+        accountSection.innerHTML = '<strong>Account & Sync</strong><br><small style="color:#666">' + accountText + '</small>';
+        div.appendChild(accountSection);
+
+        const accountBtn = document.createElement('button');
+        accountBtn.className = 'btn btn-secondary';
+        if (window.FirebaseSync && FirebaseSync.isSignedIn()) {
+          accountBtn.textContent = '🔓 Sign Out';
+          accountBtn.onclick = () => {
+            if (confirm('Sign out? You will stop syncing to the cloud.')) {
+              FirebaseSync.signOut();
+              this.render();
+            }
+          };
+        } else {
+          accountBtn.textContent = '☁️ Sign In / Enable Sync';
+          accountBtn.onclick = () => { App.currentScreen = 'auth'; App.render(); };
+        }
+        div.appendChild(accountBtn);
+
+        // Section: Backup
+        const backupSection = document.createElement('div');
+        backupSection.className = 'sources-note';
+        backupSection.style.marginBottom = '20px';
+        backupSection.innerHTML = '<strong>Backup</strong><br><small style="color:#666">Export or import your progress as a JSON file. Useful for switching devices or making a manual backup.</small>';
+        div.appendChild(backupSection);
+
         const backupRow = document.createElement('div');
         backupRow.style.display = 'flex';
         backupRow.style.flexWrap = 'wrap';
         backupRow.style.gap = '12px';
-        backupRow.style.marginTop = '12px';
 
         const exportBtn = document.createElement('button');
         exportBtn.className = 'btn btn-secondary';
@@ -1642,15 +1709,51 @@
         importInput.style.display = 'none';
         importInput.addEventListener('change', (e) => {
           const file = e.target.files[0];
-          importInput.value = ''; // reset so selecting the same file twice still fires 'change'
+          importInput.value = '';
           if (file) App.importProgressFile(file);
         });
 
         importBtn.onclick = () => importInput.click();
         backupRow.appendChild(importBtn);
         backupRow.appendChild(importInput);
-
         div.appendChild(backupRow);
+
+        // Section: Mastered Words
+        const mastered = DataManager.getMasteredWords();
+        const masteredSection = document.createElement('div');
+        masteredSection.className = 'sources-note';
+        masteredSection.style.marginBottom = '20px';
+        masteredSection.innerHTML = '<strong>Mastered Words (' + mastered.length + ')</strong>';
+        div.appendChild(masteredSection);
+
+        if (mastered.length === 0) {
+          const emptyMsg = document.createElement('div');
+          emptyMsg.style.color = '#666';
+          emptyMsg.textContent = '\u2713 Nothing mastered yet — keep practicing!';
+          div.appendChild(emptyMsg);
+        } else {
+          const list = document.createElement('div');
+          list.style.maxHeight = '200px';
+          list.style.overflowY = 'auto';
+          mastered.forEach(wa => {
+            const item = document.createElement('div');
+            item.style.padding = '6px 0';
+            item.style.borderBottom = '1px solid #e0e0e0';
+            item.innerHTML = '<strong>' + wa.prompt + '</strong>' +
+              (wa.answer ? ' \u2192 ' + wa.answer : '') +
+              (wa.type ? ' <small>(' + wa.type + ')</small>' : '');
+            list.appendChild(item);
+          });
+          div.appendChild(list);
+        }
+
+        // Back button
+        const backBtn = document.createElement('button');
+        backBtn.className = 'btn btn-secondary';
+        backBtn.textContent = '← Back to Skills';
+        backBtn.style.marginTop = '20px';
+        backBtn.onclick = () => { App.currentScreen = 'home'; App.render(); };
+        div.appendChild(backBtn);
 
         return div;
       },
@@ -2532,6 +2635,11 @@
         App.currentScreen = 'auth';
         App.render();
       }
+    });
+
+    document.getElementById('settings-btn').addEventListener('click', () => {
+      App.currentScreen = 'settings';
+      App.render();
     });
 
     // ─── Auth Screen Renderer ───────────────────────────────────
