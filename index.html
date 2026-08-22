@@ -1614,6 +1614,17 @@
         return div;
       },
 
+      // Helper: create a standard note-card div used in settings sections.
+      // Interactive elements (buttons, file inputs) are appended after the
+      // note card, exactly as they are today — only the scaffolding changes.
+      renderNoteCard(html) {
+        const div = document.createElement('div');
+        div.className = 'sources-note';
+        div.style.marginBottom = '20px';
+        div.innerHTML = html;
+        return div;
+      },
+
       // Settings screen — consolidates daily goal, streak freezes,
       // account/sync, backup, and mastered words.
       renderSettings() {
@@ -1626,11 +1637,7 @@
         const goalProgress = Math.min(100, (dailyXP / dailyGoal) * 100);
 
         // Section: Daily Goal
-        const goalSection = document.createElement('div');
-        goalSection.className = 'sources-note';
-        goalSection.style.marginBottom = '20px';
-        goalSection.innerHTML = '<strong>Daily Goal: ' + dailyXP + '/' + dailyGoal + ' XP</strong>';
-        div.appendChild(goalSection);
+        div.appendChild(this.renderNoteCard('<strong>Daily Goal: ' + dailyXP + '/' + dailyGoal + ' XP</strong>'));
 
         const goalControls = document.createElement('div');
         goalControls.style.display = 'flex';
@@ -1654,17 +1661,10 @@
         div.appendChild(goalControls);
 
         // Section: Streak Freezes
-        const freezeSection = document.createElement('div');
-        freezeSection.className = 'sources-note';
-        freezeSection.style.marginBottom = '20px';
-        freezeSection.innerHTML = '<strong>Streak Freezes: ' + p.streakFreezes + '</strong>' +
-          '<br><small style="color:#666">Each freeze covers one missed day so your streak doesn\u0027t reset.</small>';
-        div.appendChild(freezeSection);
+        div.appendChild(this.renderNoteCard('<strong>Streak Freezes: ' + p.streakFreezes + '</strong>' +
+          '<br><small style="color:#666">Each freeze covers one missed day so your streak doesn\u0027t reset.</small>'));
 
         // Section: Account & Sync
-        const accountSection = document.createElement('div');
-        accountSection.className = 'sources-note';
-        accountSection.style.marginBottom = '20px';
         let accountText;
         if (window.FirebaseSync && FirebaseSync.isSignedIn()) {
           const user = FirebaseSync.currentUser;
@@ -1672,8 +1672,7 @@
         } else {
           accountText = 'Not signed in — progress is saved locally only';
         }
-        accountSection.innerHTML = '<strong>Account & Sync</strong><br><small style="color:#666">' + accountText + '</small>';
-        div.appendChild(accountSection);
+        div.appendChild(this.renderNoteCard('<strong>Account & Sync</strong><br><small style="color:#666">' + accountText + '</small>'));
 
         const accountBtn = document.createElement('button');
         accountBtn.className = 'btn btn-secondary';
@@ -1692,11 +1691,7 @@
         div.appendChild(accountBtn);
 
         // Section: Backup
-        const backupSection = document.createElement('div');
-        backupSection.className = 'sources-note';
-        backupSection.style.marginBottom = '20px';
-        backupSection.innerHTML = '<strong>Backup</strong><br><small style="color:#666">Export or import your progress as a JSON file. Useful for switching devices or making a manual backup.</small>';
-        div.appendChild(backupSection);
+        div.appendChild(this.renderNoteCard('<strong>Backup</strong><br><small style="color:#666">Export or import your progress as a JSON file. Useful for switching devices or making a manual backup.</small>'));
 
         const backupRow = document.createElement('div');
         backupRow.style.display = 'flex';
@@ -1730,11 +1725,7 @@
 
         // Section: Mastered Words
         const mastered = DataManager.getMasteredWords();
-        const masteredSection = document.createElement('div');
-        masteredSection.className = 'sources-note';
-        masteredSection.style.marginBottom = '20px';
-        masteredSection.innerHTML = '<strong>Mastered Words (' + mastered.length + ')</strong>';
-        div.appendChild(masteredSection);
+        div.appendChild(this.renderNoteCard('<strong>Mastered Words (' + mastered.length + ')</strong>'));
 
         if (mastered.length === 0) {
           const emptyMsg = document.createElement('div');

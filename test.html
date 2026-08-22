@@ -343,7 +343,7 @@
         {
           name: 'shared helper functions exist (recordResult, showFeedback, buildReviewExercises, startReviewWith)',
           fn: () => {
-            ['recordResult', 'showFeedback', 'buildReviewExercises', 'startReviewWith', 'exportProgress', 'importProgressFile']
+            ['recordResult', 'showFeedback', 'buildReviewExercises', 'startReviewWith', 'exportProgress', 'importProgressFile', 'renderNoteCard']
               .forEach(fnName => assert(typeof win.App[fnName] === 'function', `App.${fnName} is not a function`));
             assert(typeof win.DataManager.importProgress === 'function', 'DataManager.importProgress is not a function');
             assert(typeof win.DataManager.getMasteredWords === 'function', 'DataManager.getMasteredWords is not a function');
