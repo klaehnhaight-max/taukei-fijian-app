@@ -126,9 +126,9 @@ const LESSONS = {
       },
       {
         type: "sentence_builder",
-        prompt: "Build: 'One' (dua) + 'ten' (tini)",
+        prompt: "Build: 'One' (dua) + 'Ten' (tini) — 11 = tini kadua",
         words: ["dua", "tini"],
-        answer: "dutini",
+        answer: "tini dua",
         note: "Note: Numbers 11-19 are 'tini ka X' (ten and X). 11 = tini kadua, 12 = tinikarua, 13 = tinitolu, 14 = tiniti, 15 = tinikalima, 16 = tinikavonovono, 17 = tinitavitu, 18 = tinikawalu, 19 = tinikaciwa. 20 = ruasagavulu. [2][7]",
         sources: ["[2]", "[7]"]
       }
@@ -513,8 +513,8 @@ const LESSONS = {
     exercises: [
       {
         type: "sentence_builder",
-        prompt: "Build: 'I am from New Zealand' (Au mai Niu Siladi)",
-        words: ["au", "mai", "niu", "siladi"],
+        prompt: "Build: 'I am from New Zealand' (Au lako mai Niu Siladi)",
+        words: ["au", "lako", "mai", "niu", "siladi"],
         answer: "Au lako mai Niu Siladi",
         note: "'Au' = I, 'lako mai' = come from, 'Niu Siladi' = New Zealand. [9]",
         sources: ["[9]"]
