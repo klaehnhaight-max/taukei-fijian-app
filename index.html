@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4A90D9">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="iTaukei">
   <title>iTaukei | Na Vosa Vaka-Viti</title>
   <style>
     /* ============================================================
@@ -886,7 +892,14 @@
         }
         const raw = localStorage.getItem('taukei_progress');
         if (raw) {
-          return this._progressCache = JSON.parse(raw);
+          try {
+            return this._progressCache = JSON.parse(raw);
+          } catch(e) {
+            console.warn('Corrupted progress data in localStorage, resetting to defaults', e);
+            localStorage.removeItem('taukei_progress');
+            this._progressCache = this._defaultProgress();
+            return this._progressCache;
+          }
         }
         this._progressCache = this._defaultProgress();
         return this._progressCache;
@@ -1153,7 +1166,7 @@
           const doc = await this.db.collection('users').doc(user.uid).get();
           if (doc.exists) {
             const cloudProgress = doc.data().progress;
-            const cloudTime = doc.data().lastModified || 0;
+            const cloudTime = cloudProgress.lastModified || 0;
             const localTime = localProgress.lastModified || 0;
             // Most-recent-modified wins
             if (cloudTime > localTime) {
@@ -1172,9 +1185,19 @@
             await this.saveToFirestore(localProgress);
           }
           App.updateHeader(); // Refresh header with sync status
+          // Navigate back to home if currently on auth screen
+          if (App.currentScreen === 'auth') {
+            App.currentScreen = 'home';
+            App.render();
+          }
         } catch(e) {
           console.error('Sign-in sync failed:', e);
           // Fall back to local-only mode
+          App.updateHeader();
+          if (App.currentScreen === 'auth') {
+            App.currentScreen = 'home';
+            App.render();
+          }
         }
       },
 
@@ -2481,15 +2504,6 @@
         form.appendChild(googleBtn);
         form.appendChild(errorEl);
 
-        // Sign in handler - listens for auth state changes
-        if (FirebaseSync.auth) {
-          FirebaseSync.auth.onAuthStateChanged(() => {
-            // User signed in — go back to app
-            App.currentScreen = 'home';
-            App.render();
-          });
-        }
-
         const skipBtn = document.createElement('button');
         skipBtn.className = 'auth-btn skip-btn';
         skipBtn.textContent = 'Continue without an account';
@@ -2511,6 +2525,13 @@
     // ─── Initialize ─────────────────────────────────────────────
     FirebaseSync.init();
     App.init();
+
+    // ─── PWA Service Worker Registration ─────────────────────────
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('SW registered:', reg.scope))
+        .catch(err => console.error('SW registration failed:', err));
+    }
   </script>
 </body>
 </html>

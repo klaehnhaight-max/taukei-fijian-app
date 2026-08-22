@@ -601,8 +601,8 @@ const LESSONS = {
         type: "sentence_builder",
         prompt: "Build the phrase: 'a big dog' = kolī + levu",
         words: ["kolī", "levu"],
-        answer: "levu kolī",
-        note: "In Fijian, adjectives follow nouns: 'kolī levu' = big dog. But as an equational phrase, 'levu kolī' is also natural. [7][10]",
+        answer: "kolī levu",
+        note: "In Fijian, adjectives follow nouns: 'kolī levu' = big dog (noun + adjective order, consistent with Units 12-13). [7][10]",
         sources: ["[7]", "[10]"]
       }
     ]
