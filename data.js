@@ -195,7 +195,7 @@ const LESSONS = {
       {
         type: "sentence_builder",
         id: "unit3-3",
-        prompt: "Build the phrase for 'I' + 'am going' (au lako)",
+        prompt: "Build the phrase for: 'I am going' — use subject pronoun + verb for go",
         words: ["au", "lako"],
         answer: "Au lako",
         note: "In Fijian, 'I am going' = 'Au lako'. The 'au' is the subject marker for 'I'. [1][9]",
@@ -395,7 +395,7 @@ const LESSONS = {
       {
         type: "sentence_builder",
         id: "unit6-4",
-        prompt: "Build: 'The red car' (Na waqa damudamu)",
+        prompt: "Build: 'The red car' — use the structure: article + object + color adjective",
         words: ["na", "waqa", "damudamu"],
         answer: "Na waqa damudamu",
         note: "In Fijian, color + object: 'Na waqa damudamu' = 'the red car'. [7]",
@@ -459,7 +459,7 @@ const LESSONS = {
       {
         type: "sentence_builder",
         id: "unit7-3",
-        prompt: "Build: 'I eat' = Au + kana",
+        prompt: "Build: 'I eat' — use subject pronoun + verb",
         words: ["au", "kana"],
         answer: "Au kana",
         note: "'kana' = eat (verb). 'Au kana' = I eat. [1][7]",
@@ -525,7 +525,7 @@ const LESSONS = {
       {
         type: "sentence_builder",
         id: "unit8-3",
-        prompt: "Build: 'What is your name?' (O cei ko iko?)",
+        prompt: "Build the phrase for: 'What is your name?'",
         words: ["o", "cei", "ko", "iko"],
         answer: "O cei ko iko?",
         note: "'O' is the subject marker, 'cei' = what/who, 'ko' = is/are, 'iko' = you. [8]",
@@ -596,7 +596,7 @@ const LESSONS = {
       {
         type: "sentence_builder",
         id: "unit9-3",
-        prompt: "Build: 'I go' = Au + lako",
+        prompt: "Build: 'I go' — use subject pronoun + verb for go",
         words: ["au", "lako"],
         answer: "Au lako",
         note: "'Au' is the subject pronoun for 'I'. Verb follows subject. [1]",
@@ -631,7 +631,7 @@ const LESSONS = {
       {
         type: "sentence_builder",
         id: "unit10-1",
-        prompt: "Build: 'I am from New Zealand' (Au lako mai Niu Siladi)",
+        prompt: "Build: 'I am from New Zealand' — use subject pronoun + come-from verb + place name",
         words: ["au", "lako", "mai", "niu", "siladi"],
         answer: "Au lako mai Niu Siladi",
         note: "'Au' = I, 'lako mai' = come from, 'Niu Siladi' = New Zealand. [9]",
@@ -726,7 +726,7 @@ const LESSONS = {
       {
         type: "sentence_builder",
         id: "unit11-5",
-        prompt: "Build the phrase: 'a big dog' = kolī + levu",
+        prompt: "Build the phrase: 'a big dog' — noun followed by adjective",
         words: ["kolī", "levu"],
         answer: "kolī levu",
         note: "In Fijian, adjectives follow nouns: 'kolī levu' = big dog (noun + adjective order, consistent with Units 12-13). [7][10]",
@@ -797,7 +797,7 @@ const LESSONS = {
       {
         type: "sentence_builder",
         id: "unit12-5",
-        prompt: "Build: 'the big sun' = siga + levu",
+        prompt: "Build: 'the big sun' — noun followed by adjective",
         words: ["siga", "levu"],
         answer: "siga levu",
         note: "'Siga levu' = big sun / shining sun. In Fijian, modifiers follow the noun. [7]",
@@ -868,7 +868,7 @@ const LESSONS = {
       {
         type: "sentence_builder",
         id: "unit13-5",
-        prompt: "Build: 'good water' = wai + vinaka",
+        prompt: "Build: 'good water' — noun followed by adjective",
         words: ["wai", "vinaka"],
         answer: "wai vinaka",
         note: "'Wai vinaka' = good water. In Fijian, the modifier follows the noun: '[noun] [adjective]'. [7]",
@@ -952,7 +952,7 @@ const LESSONS = {
       {
         type: "sentence_builder",
         id: "unit14-5",
-        prompt: "Build: 'I am going' = au + lako",
+        prompt: "Build: 'I am going' — use subject pronoun + verb",
         words: ["au", "lako"],
         answer: "Au lako",
         note: "'Au' is the subject pronoun for 'I'. The verb 'lako' means go/come. Combined as 'Au lako' = I am going. [7][10]",

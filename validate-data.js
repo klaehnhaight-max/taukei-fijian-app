@@ -189,6 +189,25 @@ for (const unitId of Object.keys(LESSONS)) {
   }
 }
 
+// ─── Check 6: sentence_builder prompt does not leak the answer ────────
+// The prompt must not contain a normalized form of the Fijian answer,
+// so the learner must reconstruct the phrase from word tiles rather
+// than reading it off the prompt. Uses normalizeSentence() — the same
+// normalization the app's renderSentenceBuilder uses when comparing
+// placed words against the answer.
+for (const unitId of Object.keys(LESSONS)) {
+  const unit = LESSONS[unitId];
+  if (!unit || !unit.exercises) continue;
+  for (const ex of unit.exercises) {
+    if (ex.type === 'sentence_builder') {
+      checked++;
+      if (normalizeSentence(ex.prompt).includes(normalizeSentence(ex.answer))) {
+        failures.push(`sentence_builder ${ex.id}: prompt leaks answer "${ex.answer}" — prompt text must not contain the Fijian answer`);
+      }
+    }
+  }
+}
+
 // ─── Report ────────────────────────────────────────────────────────
 if (failures.length > 0) {
   console.error('❌ ' + failures.length + ' validation failure(s) found (' + checked + ' checks run):');
