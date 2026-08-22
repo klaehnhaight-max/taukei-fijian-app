@@ -522,6 +522,29 @@
               }
             }
           }
+        },
+        {
+          name: 'unit3 lesson note shows on first exercise, hidden on subsequent',
+          fn: () => {
+            resetProgress();
+            win.App.currentLesson = win.LESSONS.unit3;
+            win.App.currentExerciseIndex = 0;
+            win.App.reviewMode = false;
+            win.App.currentScreen = 'lesson';
+            win.App.render();
+
+            let note = win.document.querySelector('.sources-note');
+            assert(note && note.textContent.includes('Note:') && note.textContent.includes('inclusivity'),
+              'unit3 lesson note should be present at exercise index 0');
+
+            // Advance to exercise index 1
+            win.App.currentExerciseIndex = 1;
+            win.App.render();
+
+            note = win.document.querySelector('.sources-note');
+            assert(!note || !note.textContent.includes('inclusivity'),
+              'unit3 lesson note should be absent at exercise index 1');
+          }
         }
       ];
 

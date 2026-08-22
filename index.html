@@ -1926,6 +1926,14 @@
         `;
         div.appendChild(header);
 
+        // Lesson-level intro note (grammar-heavy units only, first exercise)
+        if (lesson.note && this.currentExerciseIndex === 0) {
+          const note = document.createElement('div');
+          note.className = 'sources-note';
+          note.innerHTML = `<strong>Note:</strong> ${lesson.note}`;
+          div.appendChild(note);
+        }
+
         // Exercise
         const exerciseDiv = this.renderExercise(exercise);
         div.appendChild(exerciseDiv);

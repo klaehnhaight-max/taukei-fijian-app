@@ -158,6 +158,7 @@ const LESSONS = {
     description: "Learn who is speaking — I, you, he, she, we, they",
     xp: 100,
     skills: [4],
+    note: "Fijian pronouns encode person (I, you, he/she), number (singular, plural), and inclusivity (whether 'we' includes the listener). Subject pronouns are set words — 'au' means 'I', 'iko' means 'you', 'koya' means 'he/she'. The exclusive 'keirau' means 'we (not you)' while inclusive 'keda' means 'we (including you)'. Verbs follow the subject directly with no particle in between.",
     exercises: [
       {
         type: "matching",
@@ -554,6 +555,7 @@ const LESSONS = {
     description: "Learn common verbs — eat, drink, go, come, see, know, and more",
     xp: 130,
     skills: [7, 9, 10],
+    note: "Fijian verbs (like 'kana' = eat, 'lako' = go, 'mai' = come) follow the subject pronoun directly — 'Au lako' means 'I go' with no particle between. The verb form is the dictionary form; tense is shown through markers like 'sa' (past) and 'e' (present habitual). For example, 'Au lako mai' means 'I am coming from' and 'Sa macala au' means 'I understood'.",
     exercises: [
       {
         type: "matching",
@@ -624,6 +626,7 @@ const LESSONS = {
     description: "Build simple sentences using pronouns, verbs, and nouns",
     xp: 140,
     skills: [8, 9, 10, 11],
+    note: "Fijian simple sentences follow a Subject-Verb structure. Pronouns like 'Au' (I), 'Iko' (you), and 'O koya' (he/she) come first, followed by the verb. For example, 'Au lako mai Niu Siladi' means 'I am from New Zealand' and 'O koya na qasenivuli' means 'He is a teacher' — here 'O' marks the proper subject, 'na' is the article 'the', and 'qasenivuli' is 'teacher'. Questions add 'e' or 'o' at the start, like 'E vica na isau?' (How much?) and 'O iko mai vei?' (Where are you from?).",
     exercises: [
       {
         type: "sentence_builder",
