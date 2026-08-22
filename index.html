@@ -966,6 +966,7 @@
           existing.timestamp = now;
           existing.reviewCount = 0;
           existing.nextReviewAt = now + 1 * dayInMs; // review again in 1 day
+          existing.correctStreak = 0;
         } else {
           p.wrongAnswers.push({
             exerciseId: exerciseId,
@@ -999,6 +1000,15 @@
           existing.intervalIndex = Math.min(existing.intervalIndex + 1, intervals.length - 1);
           existing.nextReviewAt = now + intervals[existing.intervalIndex] * dayInMs;
           existing.lastCorrect = now;
+          // Graduation: after 2 consecutive correct at max interval, mark mastered
+          if (existing.intervalIndex >= intervals.length - 1) {
+            existing.correctStreak = (existing.correctStreak || 0) + 1;
+            if (existing.correctStreak >= 2) {
+              existing.mastered = true;
+            }
+          } else {
+            existing.correctStreak = 0;
+          }
         } else {
           // Correct answer on first encounter — add to pool with longer delay
           p.wrongAnswers.push({
@@ -1068,7 +1078,7 @@
       getWrongAnswersForReview() {
         const now = Date.now();
         return this.progress.wrongAnswers.filter(wa =>
-          wa.nextReviewAt && wa.nextReviewAt <= now
+          !wa.mastered && wa.nextReviewAt && wa.nextReviewAt <= now
         );
       },
 
@@ -1423,7 +1433,7 @@
         decreaseBtn.style.fontSize = '0.9rem';
         decreaseBtn.onclick = () => {
           const current = DataManager.getDailyGoal();
-          DataManager.setDailyGoal(Math.max(100, current - 10));
+          DataManager.setDailyGoal(Math.max(10, current - 10));
           App.render();
         };
 
@@ -2036,8 +2046,9 @@
 
         const checkAnswer = () => {
           if (input.disabled) return;
-          const typed = input.value.trim().toLowerCase().replace(/\s+/g, ' ');
-          const answer = exercise.answer.toLowerCase().trim().replace(/\s+/g, ' ');
+          const normalize = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          const typed = normalize(input.value.trim().toLowerCase().replace(/\s+/g, ' '));
+          const answer = normalize(exercise.answer.toLowerCase().trim().replace(/\s+/g, ' '));
 
           if (typed === answer) {
             input.classList.add('correct');
@@ -2111,7 +2122,7 @@
 
         // Calculate XP based on accuracy
         const correct = this.exerciseResults.filter(r => r.correct).length;
-        const total = this.exerciseResults.length;
+        const total = lesson.exercises.length;
         const accuracy = total > 0 ? correct / total : 0;
 
         if (accuracy > 0) {
