@@ -551,6 +551,63 @@
           }
         },
         {
+          name: 'pronunciation hint does not leak answer before typing exercise is answered',
+          fn: () => {
+            resetProgress();
+            const ex = { id: '__test_no_hint__', type: 'typing', prompt: 'Type the word for thank you', answer: 'vinaka' };
+            win.App.currentScreen = 'lesson';
+            win.App.currentLesson = { id: '__test_lesson__', xp: 10, exercises: [ex], isReview: false };
+            win.App.currentExerciseIndex = 0;
+            win.App.exerciseResults = [];
+            win.App.reviewMode = false;
+            win.App.render();
+            const doc = win.document;
+            // Before answering: no pronunciation-hint should exist anywhere in the exercise card
+            const card = doc.getElementById('exercise-0');
+            assert(card, 'exercise card should exist');
+            assert(!card.querySelector('.pronunciation-hint'), 'no pronunciation-hint before answer submitted');
+            // Submit a correct answer
+            const input = doc.querySelector('.typing-input');
+            input.value = 'vinaka';
+            const checkBtn = Array.from(doc.querySelectorAll('button')).find(b => b.textContent.trim() === 'Check Answer');
+            checkBtn.click();
+            // After answering: pronunciation-hint should appear inside the feedback element
+            const feedback = card.querySelector('.feedback');
+            assert(feedback, 'feedback element should exist after answering');
+            const hint = feedback.querySelector('.pronunciation-hint');
+            assert(hint, 'pronunciation-hint should appear inside feedback after answering');
+            assert(hint.textContent.includes('Pronunciation'), 'hint text should include Pronunciation label');
+          }
+        },
+        {
+          name: 'pronunciation hint does not leak answer before sentence_builder is answered',
+          fn: () => {
+            resetProgress();
+            const ex = { id: '__test_sb_hint__', type: 'sentence_builder', prompt: 'Build the phrase for good morning', answer: 'Ni sa yadra', words: ['Ni', 'sa', 'yadra'] };
+            win.App.currentScreen = 'lesson';
+            win.App.currentLesson = { id: '__test_sb_lesson__', xp: 10, exercises: [ex], isReview: false };
+            win.App.currentExerciseIndex = 0;
+            win.App.exerciseResults = [];
+            win.App.reviewMode = false;
+            win.App.render();
+            const doc = win.document;
+            // Before answering: no pronunciation-hint should exist
+            const card = doc.getElementById('exercise-0');
+            assert(card, 'exercise card should exist');
+            assert(!card.querySelector('.pronunciation-hint'), 'no pronunciation-hint before sentence_builder answered');
+            // Build the correct sentence by clicking all words
+            const wordSpans = Array.from(doc.querySelectorAll('.drag-word'));
+            assert(wordSpans.length === 3, `expected 3 words, got ${wordSpans.length}`);
+            wordSpans.forEach(w => w.click());
+            // After clicking all words: pronunciation-hint should appear in feedback
+            const feedback = card.querySelector('.feedback');
+            assert(feedback, 'feedback element should exist after completing sentence');
+            const hint = feedback.querySelector('.pronunciation-hint');
+            assert(hint, 'pronunciation-hint should appear inside feedback after sentence_builder completed');
+            assert(hint.textContent.includes('Answer pronunciation'), 'hint text should include Answer pronunciation label');
+          }
+        },
+        {
           name: 'first-run intro card shows when no progress, hidden after dismiss',
           fn: () => {
             win.localStorage.removeItem('taukei_intro_dismissed');

@@ -1978,20 +1978,6 @@
         const promptEl = document.createElement('div');
         promptEl.className = 'exercise-prompt';
         promptEl.textContent = exercise.prompt;
-
-        // Add inline pronunciation hint for exercises with Fijian content
-        if (exercise.type === 'typing' && exercise.answer) {
-          const hint = document.createElement('div');
-          hint.className = 'pronunciation-hint';
-          hint.textContent = `Pronunciation: ${fijianToPhonetic(exercise.answer)}`;
-          promptEl.appendChild(hint);
-        } else if (exercise.type === 'sentence_builder' && exercise.answer) {
-          const hint = document.createElement('div');
-          hint.className = 'pronunciation-hint';
-          hint.textContent = `Answer pronunciation: ${fijianToPhonetic(exercise.answer)}`;
-          promptEl.appendChild(hint);
-        }
-
         card.appendChild(promptEl);
 
         switch (exercise.type) {
@@ -2324,8 +2310,8 @@
             // Show feedback
             const card = target.closest('.exercise-card');
             const message = wrongAttempts > 0
-              ? `✓ Correct! (${wrongAttempts} wrong attempt${wrongAttempts > 1 ? 's' : ''} — review recommended)`
-              : '✓ Correct!';
+              ? `✓ Correct! (${wrongAttempts} wrong attempt${wrongAttempts > 1 ? 's' : ''} — review recommended) <span class="pronunciation-hint">Answer pronunciation: ${fijianToPhonetic(exercise.answer)}</span>`
+              : `✓ Correct! <span class="pronunciation-hint">Answer pronunciation: ${fijianToPhonetic(exercise.answer)}</span>`;
             this.showFeedback(card, 'correct', message);
           }
         });
@@ -2361,9 +2347,9 @@
           const card = document.getElementById(`exercise-${this.currentExerciseIndex}`);
 
           if (isCorrect) {
-            this.showFeedback(card, 'correct', '✓ Correct!');
+            this.showFeedback(card, 'correct', `✓ Correct! <span class="pronunciation-hint">Pronunciation: ${fijianToPhonetic(exercise.answer)}</span>`);
           } else {
-            this.showFeedback(card, 'incorrect', `✗ Incorrect. The correct answer is: <span class="correct-answer">${exercise.answer}</span>`);
+            this.showFeedback(card, 'incorrect', `✗ Incorrect. The correct answer is: <span class="correct-answer">${exercise.answer}</span> <span class="pronunciation-hint">Pronunciation: ${fijianToPhonetic(exercise.answer)}</span>`);
           }
 
           input.disabled = true;
