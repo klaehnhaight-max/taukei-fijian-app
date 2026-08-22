@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>iTaukei App — Regression Tests</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 780px; margin: 32px auto; padding: 0 16px; color: #222; }
+  h1 { font-size: 1.4rem; }
+  .note { color: #666; font-size: 0.9rem; margin-bottom: 20px; }
+  .warn { background: #fff3cd; border: 1px solid #ffe08a; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; }
+  #summary { font-weight: bold; font-size: 1.1rem; margin: 16px 0; }
+  .case { padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.88rem; white-space: pre-wrap; }
+  .pass { background: #e6f7ec; color: #14532d; }
+  .fail { background: #fdecec; color: #7f1d1d; }
+  .pending { color: #666; }
+  iframe { display: none; }
+</style>
+</head>
+<body>
+  <h1>iTaukei App — Regression Tests</h1>
+  <p class="note">
+    Exercises the real <code>DataManager</code>/<code>App</code> code from <code>index.html</code>
+    (loaded in a hidden iframe) — not a re-implementation. No build step: just open this page.
+    Your saved progress is backed up before tests run and restored afterward, whether the tests
+    pass or fail.
+  </p>
+  <div id="protocol-warning" class="warn" style="display:none">
+    This page was opened directly from disk (<code>file://</code>). Browsers block cross-frame
+    script access for local files, so the tests below can't reach the app. Serve this folder over
+    HTTP instead, e.g. <code>python3 -m http.server 8765</code>, then open
+    <code>http://localhost:8765/test.html</code>.
+  </div>
+  <div id="summary" class="pending">Loading app…</div>
+  <div id="results"></div>
+
+  <iframe id="app-frame" src="index.html"></iframe>
+
+  <script>
+    const resultsEl = document.getElementById('results');
+    const summaryEl = document.getElementById('summary');
+    const warningEl = document.getElementById('protocol-warning');
+
+    if (location.protocol === 'file:') {
+      warningEl.style.display = 'block';
+      summaryEl.textContent = 'Cannot run — see warning above.';
+      summaryEl.className = '';
+    }
+
+    function logCase(name, pass, detail) {
+      const div = document.createElement('div');
+      div.className = 'case ' + (pass ? 'pass' : 'fail');
+      div.textContent = (pass ? '✓ ' : '✗ ') + name + (detail ? '\n  ' + detail : '');
+      resultsEl.appendChild(div);
+    }
+
+    function assert(condition, message) {
+      if (!condition) throw new Error(message || 'assertion failed');
+    }
+
+    // Waits for the iframe's app scripts to finish setting up window.DataManager/App.
+    function waitForApp(win, timeoutMs = 8000) {
+      return new Promise((resolve, reject) => {
+        const start = Date.now();
+        (function poll() {
+          if (win && win.DataManager && win.App && win.normalizeForCompare) {
+            resolve(win);
+          } else if (Date.now() - start > timeoutMs) {
+            reject(new Error('Timed out waiting for DataManager/App/normalizeForCompare to appear on the iframe window. Is this page being served over HTTP?'));
+          } else {
+            setTimeout(poll, 100);
+          }
+        })();
+      });
+    }
+
+    async function run() {
+      if (location.protocol === 'file:') return;
+
+      const frame = document.getElementById('app-frame');
+      const win = await new Promise((resolve, reject) => {
+        frame.addEventListener('load', () => resolve(frame.contentWindow));
+        frame.addEventListener('error', () => reject(new Error('iframe failed to load index.html')));
+      });
+      await waitForApp(win);
+
+      const ORIGINAL_PROGRESS = localStorage.getItem('taukei_progress');
+
+      function resetProgress() {
+        localStorage.removeItem('taukei_progress');
+        win.DataManager._progressCache = null;
+      }
+
+      const cases = [
+        {
+          name: 'getDailyGoal() default is 50 XP',
+          fn: () => {
+            resetProgress();
+            assert(win.DataManager.getDailyGoal() === 50, `expected 50, got ${win.DataManager.getDailyGoal()}`);
+          }
+        },
+        {
+          name: 'decreaseDailyGoal() from the 50 XP default decreases (does not jump to 100)',
+          fn: () => {
+            resetProgress();
+            win.App.decreaseDailyGoal();
+            const goal = win.DataManager.getDailyGoal();
+            assert(goal === 40, `expected 40, got ${goal}`);
+          }
+        },
+        {
+          name: 'decreaseDailyGoal() floors at 10 and does not undershoot',
+          fn: () => {
+            resetProgress();
+            win.DataManager.setDailyGoal(15);
+            win.App.decreaseDailyGoal();
+            assert(win.DataManager.getDailyGoal() === 10, `expected 10, got ${win.DataManager.getDailyGoal()}`);
+            win.App.decreaseDailyGoal(); // clicking again at the floor should stay at 10
+            assert(win.DataManager.getDailyGoal() === 10, `expected to stay at 10, got ${win.DataManager.getDailyGoal()}`);
+          }
+        },
+        {
+          name: 'increaseDailyGoal() adds 10',
+          fn: () => {
+            resetProgress();
+            win.DataManager.setDailyGoal(50);
+            win.App.increaseDailyGoal();
+            assert(win.DataManager.getDailyGoal() === 60, `expected 60, got ${win.DataManager.getDailyGoal()}`);
+          }
+        },
+        {
+          name: 'normalizeForCompare() strips diacritics so plain "tu" matches "tū"',
+          fn: () => {
+            assert(win.normalizeForCompare('tū') === win.normalizeForCompare('tu'),
+              `"${win.normalizeForCompare('tū')}" !== "${win.normalizeForCompare('tu')}"`);
+          }
+        },
+        {
+          name: 'normalizeForCompare() collapses whitespace and case',
+          fn: () => {
+            assert(win.normalizeForCompare('  O   Iko  ') === win.normalizeForCompare('o iko'),
+              'whitespace/case normalization mismatch');
+          }
+        },
+        {
+          name: 'completeLesson() stores a real 0% mastery, not treated as missing',
+          fn: () => {
+            resetProgress();
+            win.DataManager.completeLesson('__test_lesson__', 0);
+            const mastery = win.DataManager.progress.lessonMastery['__test_lesson__'];
+            assert(mastery === 0, `expected 0, got ${mastery}`);
+          }
+        },
+        {
+          name: 'recordCorrectAnswer() advances the spaced-repetition interval',
+          fn: () => {
+            resetProgress();
+            const ex = { id: '__test_ex_interval__', type: 'typing', prompt: 'p', answer: 'a' };
+            win.DataManager.recordCorrectAnswer(ex);
+            let wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
+            assert(wa && wa.intervalIndex === 2, `expected intervalIndex 2 after first correct, got ${wa && wa.intervalIndex}`);
+            win.DataManager.recordCorrectAnswer(ex);
+            wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
+            assert(wa.intervalIndex === 3, `expected intervalIndex 3 after second correct, got ${wa.intervalIndex}`);
+          }
+        },
+        {
+          name: 'spaced-repetition item graduates to mastered after 2 consecutive correct at max interval',
+          fn: () => {
+            resetProgress();
+            const ex = { id: '__test_ex_graduate__', type: 'typing', prompt: 'p', answer: 'a' };
+            for (let i = 0; i < 4; i++) win.DataManager.recordCorrectAnswer(ex);
+            let wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
+            assert(!wa.mastered, `should not be mastered yet after 4 correct answers (got mastered=${wa.mastered})`);
+            win.DataManager.recordCorrectAnswer(ex); // 5th correct: 2nd in a row at max interval
+            wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
+            assert(wa.mastered === true, `expected mastered=true after 5 correct answers, got ${wa.mastered}`);
+          }
+        },
+        {
+          name: 'mastered items are excluded from review, and un-graduate if answered wrong again',
+          fn: () => {
+            resetProgress();
+            const ex = { id: '__test_ex_ungraduate__', type: 'typing', prompt: 'p', answer: 'a' };
+            for (let i = 0; i < 5; i++) win.DataManager.recordCorrectAnswer(ex);
+            let wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
+            assert(wa.mastered === true, 'setup failed: item should be mastered before this check');
+
+            wa.nextReviewAt = Date.now() - 1000; // force "due"
+            let due = win.DataManager.getWrongAnswersForReview().map(w => w.exerciseId);
+            assert(!due.includes(ex.id), 'a mastered item should NOT show up for review even if nextReviewAt is due');
+
+            win.DataManager.recordWrongAnswer(ex);
+            wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
+            assert(wa.mastered === false, `getting a mastered item wrong should un-graduate it, got mastered=${wa.mastered}`);
+
+            wa.nextReviewAt = Date.now() - 1000; // force "due" again
+            due = win.DataManager.getWrongAnswersForReview().map(w => w.exerciseId);
+            assert(due.includes(ex.id), 'an un-graduated item that is due should show up for review again');
+          }
+        },
+        {
+          name: 'buildReviewExercises() restores explanation/choices/sources, not just prompt+answer',
+          fn: () => {
+            resetProgress();
+            const ex = {
+              id: '__test_ex_fidelity__', type: 'multiple_choice', prompt: 'p', answer: 1,
+              choices: ['a', 'b'], explanation: 'because reasons', sources: ['[1]']
+            };
+            win.DataManager.recordWrongAnswer(ex);
+            const wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
+            wa.nextReviewAt = Date.now() - 1000; // force "due" — recordWrongAnswer schedules it a day out
+            const due = win.DataManager.getWrongAnswersForReview();
+            const rebuilt = win.App.buildReviewExercises(due);
+            const found = rebuilt.find(r => r.id === ex.id);
+            assert(found, 'rebuilt exercise not found');
+            assert(found.explanation === 'because reasons', `explanation not restored, got "${found.explanation}"`);
+            assert(Array.isArray(found.choices) && found.choices.join(',') === 'a,b', 'choices not restored');
+          }
+        },
+        {
+          name: 'finishLesson() counts a skipped exercise against accuracy (not just answered ones)',
+          fn: () => {
+            resetProgress();
+            win.App.currentLesson = { id: '__test_lesson_skip__', xp: 90, exercises: [{}, {}, {}], isReview: false };
+            win.App.exerciseResults = [{ exercise: {}, correct: true }]; // only 1 of 3 exercises answered
+            win.App.finishLesson();
+            const acc = win.App.completionData.accuracy;
+            assert(acc === 33, `expected 33% (1 correct / 3 total exercises), got ${acc}%`);
+          }
+        },
+        {
+          name: 'exportProgress()/importProgress() round-trip preserves data',
+          fn: () => {
+            resetProgress();
+            win.DataManager.addXP(37);
+            const snapshot = JSON.parse(JSON.stringify(win.DataManager.progress));
+            resetProgress();
+            assert(win.DataManager.progress.xp === 0, 'reset did not clear xp');
+            win.DataManager.importProgress(snapshot);
+            assert(win.DataManager.progress.xp === 37, `expected imported xp 37, got ${win.DataManager.progress.xp}`);
+          }
+        },
+        {
+          name: 'shared helper functions exist (recordResult, showFeedback, buildReviewExercises, startReviewWith)',
+          fn: () => {
+            ['recordResult', 'showFeedback', 'buildReviewExercises', 'startReviewWith', 'exportProgress', 'importProgressFile']
+              .forEach(fnName => assert(typeof win.App[fnName] === 'function', `App.${fnName} is not a function`));
+            assert(typeof win.DataManager.importProgress === 'function', 'DataManager.importProgress is not a function');
+          }
+        }
+      ];
+
+      let passCount = 0;
+      for (const c of cases) {
+        try {
+          resetProgress();
+          c.fn();
+          logCase(c.name, true);
+          passCount++;
+        } catch (err) {
+          logCase(c.name, false, err.message);
+        }
+      }
+
+      // Always restore whatever progress existed before the tests ran.
+      if (ORIGINAL_PROGRESS === null) {
+        localStorage.removeItem('taukei_progress');
+      } else {
+        localStorage.setItem('taukei_progress', ORIGINAL_PROGRESS);
+      }
+
+      const allPass = passCount === cases.length;
+      summaryEl.textContent = `${passCount}/${cases.length} passed`;
+      summaryEl.style.color = allPass ? '#14532d' : '#7f1d1d';
+    }
+
+    run().catch(err => {
+      summaryEl.textContent = 'Error running tests: ' + err.message;
+      summaryEl.style.color = '#7f1d1d';
+    });
+  </script>
+</body>
+</html>

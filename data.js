@@ -35,6 +35,7 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
+        id: "unit1-1",
         prompt: "Match the Fijian greeting to its English meaning",
         pairs: [
           { fijian: "Bula", english: "Hello / Life" },
@@ -48,6 +49,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit1-2",
         prompt: "Which word means 'thank you'?",
         choices: ["Io", "Sega", "Vinaka", "Kerekere"],
         answer: 2,
@@ -56,6 +58,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit1-3",
         prompt: "Which word means 'no'?",
         choices: ["Io", "Sega", "Kerekere", "Moce"],
         answer: 1,
@@ -64,6 +67,7 @@ const LESSONS = {
       },
       {
         type: "sentence_builder",
+        id: "unit1-4",
         prompt: "Build the phrase for 'Good morning'",
         words: ["ni", "sa", "yadra"],
         answer: "Ni sa yadra",
@@ -71,6 +75,7 @@ const LESSONS = {
       },
       {
         type: "typing",
+        id: "unit1-5",
         prompt: "Type the Fijian word for 'Goodbye'",
         answer: "moce",
         note: "Remember: C is pronounced 'th', so 'moce' = 'mo-they'",
@@ -78,6 +83,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit1-6",
         prompt: "How do you say 'Nice to meet you'?",
         choices: ["Au sega ni kila", "Au marau sara", "O cei ko iko?", "Sota tale"],
         answer: 1,
@@ -95,6 +101,7 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
+        id: "unit2-1",
         prompt: "Match the number to its Fijian word",
         pairs: [
           { english: "1 (one)", fijian: "dua" },
@@ -112,6 +119,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit2-2",
         prompt: "What is the number 5 in Fijian?",
         choices: ["ono", "lima", "tini", "ciwa"],
         answer: 1,
@@ -120,12 +128,14 @@ const LESSONS = {
       },
       {
         type: "typing",
+        id: "unit2-3",
         prompt: "Type the Fijian word for 'three'",
         answer: "tolu",
         sources: ["[1]", "[7]", "[8]"]
       },
       {
         type: "sentence_builder",
+        id: "unit2-4",
         prompt: "Build: 'One' (dua) + 'Ten' (tini) — 11 = tini kadua",
         words: ["dua", "tini"],
         answer: "tini dua",
@@ -143,6 +153,7 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
+        id: "unit3-1",
         prompt: "Match the pronoun to its meaning",
         pairs: [
           { fijian: "au", english: "I / me" },
@@ -157,6 +168,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit3-2",
         prompt: "What does 'keirau' mean?",
         choices: ["we (inclusive)", "we (exclusive)", "they", "you (plural)"],
         answer: 1,
@@ -165,6 +177,7 @@ const LESSONS = {
       },
       {
         type: "sentence_builder",
+        id: "unit3-3",
         prompt: "Build the phrase for 'I' + 'am going' (au lako)",
         words: ["au", "lako"],
         answer: "Au lako",
@@ -173,6 +186,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit3-4",
         prompt: "How do you say 'we (inclusive)' in Fijian?",
         choices: ["keirau", "irato", "keda", "koyamada"],
         answer: 2,
@@ -190,6 +204,7 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
+        id: "unit4-1",
         prompt: "Match the Fijian family word to its English meaning",
         pairs: [
           { english: "family", fijian: "vuvale" },
@@ -207,6 +222,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit4-2",
         prompt: "What is 'tinaqu' in English?",
         choices: ["father", "mother", "grandmother", "sister"],
         answer: 1,
@@ -215,6 +231,7 @@ const LESSONS = {
       },
       {
         type: "sentence_builder",
+        id: "unit4-3",
         prompt: "Build the sentence: 'My father' = Tata + -qu",
         words: ["tata", "noqu"],
         answer: "noqu tata",
@@ -223,12 +240,14 @@ const LESSONS = {
       },
       {
         type: "typing",
+        id: "unit4-4",
         prompt: "Type the Fijian word for 'brother'",
         answer: "ganequ",
         sources: ["[6]"]
       },
       {
         type: "multiple_choice",
+        id: "unit4-5",
         prompt: "How do you say 'grandchild' in Fijian?",
         choices: ["tukaqu", "tubuqu", "makubuqu", "ganequ"],
         answer: 2,
@@ -246,6 +265,7 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
+        id: "unit5-1",
         prompt: "Match the body part to its Fijian word",
         pairs: [
           { english: "head", fijian: "ulu" },
@@ -265,6 +285,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit5-2",
         prompt: "What does 'mata' mean?",
         choices: ["mouth", "eye", "ear", "head"],
         answer: 1,
@@ -273,12 +294,14 @@ const LESSONS = {
       },
       {
         type: "typing",
+        id: "unit5-3",
         prompt: "Type the Fijian word for 'heart'",
         answer: "uto",
         sources: ["[6]", "[7]"]
       },
       {
         type: "sentence_builder",
+        id: "unit5-4",
         prompt: "Build: 'My throat' = Nona + -qu",
         words: ["nona", "noqu"],
         answer: "noqu nona",
@@ -296,6 +319,7 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
+        id: "unit6-1",
         prompt: "Match the color to its Fijian word",
         pairs: [
           { english: "white", fijian: "vulavula" },
@@ -313,6 +337,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit6-2",
         prompt: "Which word means 'red'?",
         choices: ["loaloa", "damudamu", "karakarawa", "drokadroka"],
         answer: 1,
@@ -321,12 +346,14 @@ const LESSONS = {
       },
       {
         type: "typing",
+        id: "unit6-3",
         prompt: "Type the Fijian word for 'green'",
         answer: "drokadroka",
         sources: ["[7]", "[12]"]
       },
       {
         type: "sentence_builder",
+        id: "unit6-4",
         prompt: "Build: 'The red car' (Na waqa damudamu)",
         words: ["na", "waqa", "damudamu"],
         answer: "Na waqa damudamu",
@@ -344,6 +371,7 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
+        id: "unit7-1",
         prompt: "Match the Fijian food word to its English",
         pairs: [
           { fijian: "kakana", english: "food / eat" },
@@ -364,6 +392,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit7-2",
         prompt: "What does 'dalo' mean?",
         choices: ["cassava", "taro", "breadfruit", "coconut"],
         answer: 1,
@@ -372,6 +401,7 @@ const LESSONS = {
       },
       {
         type: "sentence_builder",
+        id: "unit7-3",
         prompt: "Build: 'I eat' = Au + kana",
         words: ["au", "kana"],
         answer: "Au kana",
@@ -380,12 +410,14 @@ const LESSONS = {
       },
       {
         type: "typing",
+        id: "unit7-4",
         prompt: "Type the Fijian word for 'water'",
         answer: "wai",
         sources: ["[1]", "[7]", "[8]"]
       },
       {
         type: "multiple_choice",
+        id: "unit7-5",
         prompt: "How do you say 'I am hungry'?",
         choices: ["Au viakana", "Au viainu", "Au kana", "Au gunu"],
         answer: 0,
@@ -403,6 +435,7 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
+        id: "unit8-1",
         prompt: "Match the question word to its meaning",
         pairs: [
           { fijian: "cava", english: "what" },
@@ -417,6 +450,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit8-2",
         prompt: "Which word means 'what'?",
         choices: ["cei", "cava", "naica", "vakacava"],
         answer: 1,
@@ -425,6 +459,7 @@ const LESSONS = {
       },
       {
         type: "sentence_builder",
+        id: "unit8-3",
         prompt: "Build: 'What is your name?' (O cei ko iko?)",
         words: ["o", "cei", "ko", "iko"],
         answer: "O cei ko iko?",
@@ -433,12 +468,14 @@ const LESSONS = {
       },
       {
         type: "typing",
+        id: "unit8-4",
         prompt: "Type the Fijian word for 'how many'",
         answer: "e vica",
         sources: ["[1]", "[9]"]
       },
       {
         type: "multiple_choice",
+        id: "unit8-5",
         prompt: "How do you say 'Where are you from?'?",
         choices: ["O ni lako mai vei?", "O iko mai vei?", "Cei sa mai?", "Ko iko mai vei?"],
         answer: 0,
@@ -456,6 +493,7 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
+        id: "unit9-1",
         prompt: "Match the Fijian verb to its English meaning",
         pairs: [
           { english: "eat", fijian: "kana" },
@@ -474,6 +512,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit9-2",
         prompt: "Which verb means 'go'?",
         choices: ["mai", "lako", "kana", "rai"],
         answer: 1,
@@ -482,6 +521,7 @@ const LESSONS = {
       },
       {
         type: "sentence_builder",
+        id: "unit9-3",
         prompt: "Build: 'I go' = Au + lako",
         words: ["au", "lako"],
         answer: "Au lako",
@@ -490,12 +530,14 @@ const LESSONS = {
       },
       {
         type: "typing",
+        id: "unit9-4",
         prompt: "Type the Fijian verb for 'to hear/listen'",
         answer: "rogo",
         sources: ["[7]"]
       },
       {
         type: "multiple_choice",
+        id: "unit9-5",
         prompt: "How do you say 'Can you speak English?'",
         choices: ["E donu me o vosa Vavalagi?", "Au sega ni kila", "O sa bula?", "Kerekere vosa"],
         answer: 0,
@@ -513,6 +555,7 @@ const LESSONS = {
     exercises: [
       {
         type: "sentence_builder",
+        id: "unit10-1",
         prompt: "Build: 'I am from New Zealand' (Au lako mai Niu Siladi)",
         words: ["au", "lako", "mai", "niu", "siladi"],
         answer: "Au lako mai Niu Siladi",
@@ -521,6 +564,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit10-2",
         prompt: "Which is the correct sentence for 'He is a teacher'?",
         choices: ["Au na qasenivuli", "O koya na qasenivuli", "O koya qasenivuli", "E koya na qasenivuli"],
         answer: 1,
@@ -529,6 +573,7 @@ const LESSONS = {
       },
       {
         type: "matching",
+        id: "unit10-3",
         prompt: "Match the Fijian sentence pattern to its English meaning",
         pairs: [
           { fijian: "Au lako mai ...", english: "I am from ..." },
@@ -541,12 +586,14 @@ const LESSONS = {
       },
       {
         type: "typing",
+        id: "unit10-4",
         prompt: "Type the Fijian for: 'Where are you from?'",
         answer: "o iko mai vei",
         sources: ["[1]", "[5]", "[9]"]
       },
       {
         type: "multiple_choice",
+        id: "unit10-5",
         prompt: "What does 'Au sega ni kila' mean?",
         choices: ["I understand", "I don't understand", "I am from", "I am hungry"],
         answer: 1,
@@ -564,6 +611,7 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
+        id: "unit11-1",
         prompt: "Match the Fijian animal to its English meaning",
         pairs: [
           { english: "animal", fijian: "manumanu" },
@@ -577,6 +625,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit11-2",
         prompt: "What does 'kolī' mean?",
         choices: ["snake", "dog", "bird", "fish"],
         answer: 1,
@@ -585,6 +634,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit11-3",
         prompt: "Which animal is 'gata'?",
         choices: ["dog", "snake", "bird", "fish"],
         answer: 1,
@@ -593,12 +643,14 @@ const LESSONS = {
       },
       {
         type: "typing",
+        id: "unit11-4",
         prompt: "Type the Fijian word for 'fish'",
         answer: "ika",
         sources: ["[7]", "[10]"]
       },
       {
         type: "sentence_builder",
+        id: "unit11-5",
         prompt: "Build the phrase: 'a big dog' = kolī + levu",
         words: ["kolī", "levu"],
         answer: "kolī levu",
@@ -616,6 +668,7 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
+        id: "unit12-1",
         prompt: "Match the Fijian nature word to its English meaning",
         pairs: [
           { fijian: "siga", english: "sun / day" },
@@ -635,6 +688,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit12-2",
         prompt: "Which word means both 'sun' and 'day'?",
         choices: ["vula", "siga", "kalokalo", "bogi"],
         answer: 1,
@@ -643,6 +697,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit12-3",
         prompt: "What is 'vula' in English?",
         choices: ["sun", "moon", "star", "cloud"],
         answer: 1,
@@ -651,12 +706,14 @@ const LESSONS = {
       },
       {
         type: "typing",
+        id: "unit12-4",
         prompt: "Type the Fijian word for 'rain'",
         answer: "uca",
         sources: ["[7]"]
       },
       {
         type: "sentence_builder",
+        id: "unit12-5",
         prompt: "Build: 'the big sun' = siga + levu",
         words: ["siga", "levu"],
         answer: "siga levu",
@@ -674,6 +731,7 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
+        id: "unit13-1",
         prompt: "Match the Fijian adjective to its English meaning",
         pairs: [
           { fijian: "levu", english: "big / many" },
@@ -693,6 +751,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit13-2",
         prompt: "Which word means 'big'?",
         choices: ["lailai", "levu", "balavu", "leka"],
         answer: 1,
@@ -701,6 +760,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit13-3",
         prompt: "How do you say 'new' in Fijian?",
         choices: ["vou", "qase", "makawa", "vinaka"],
         answer: 0,
@@ -709,12 +769,14 @@ const LESSONS = {
       },
       {
         type: "typing",
+        id: "unit13-4",
         prompt: "Type the Fijian word for 'good'",
         answer: "vinaka",
         sources: ["[7]"]
       },
       {
         type: "sentence_builder",
+        id: "unit13-5",
         prompt: "Build: 'good water' = wai + vinaka",
         words: ["wai", "vinaka"],
         answer: "wai vinaka",
@@ -732,6 +794,7 @@ const LESSONS = {
     exercises: [
       {
         type: "matching",
+        id: "unit14-1",
         prompt: "Match the Fijian verb phrase to its English meaning",
         pairs: [
           { english: "to swim", fijian: "qalo-va" },
@@ -754,6 +817,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit14-2",
         prompt: "Which verb means 'to swim'?",
         choices: ["dabe", "qalo-va", "taubale", "vuka"],
         answer: 1,
@@ -762,6 +826,7 @@ const LESSONS = {
       },
       {
         type: "multiple_choice",
+        id: "unit14-3",
         prompt: "How do you say 'to come' in Fijian?",
         choices: ["lako", "mai", "lako mai", "vuka"],
         answer: 2,
@@ -770,6 +835,7 @@ const LESSONS = {
       },
       {
         type: "typing",
+        id: "unit14-4",
         prompt: "Type the Fijian verb for 'to stand'",
         answer: "tū",
         note: "Also accepts 'tūcake' for 'stand up'. [7][10]",
@@ -777,6 +843,7 @@ const LESSONS = {
       },
       {
         type: "sentence_builder",
+        id: "unit14-5",
         prompt: "Build: 'I am going' = au + lako",
         words: ["au", "lako"],
         answer: "Au lako",

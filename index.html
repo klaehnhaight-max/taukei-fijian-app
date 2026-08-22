@@ -967,6 +967,7 @@
           existing.reviewCount = 0;
           existing.nextReviewAt = now + 1 * dayInMs; // review again in 1 day
           existing.correctStreak = 0;
+          existing.mastered = false; // un-graduate: a mastered item got wrong again
         } else {
           p.wrongAnswers.push({
             exerciseId: exerciseId,
@@ -976,6 +977,9 @@
             choices: exercise.choices || null,
             pairs: exercise.pairs || null,
             words: exercise.words || null,
+            explanation: exercise.explanation || null,
+            note: exercise.note || null,
+            sources: exercise.sources || null,
             timestamp: now,
             reviewCount: 0,
             nextReviewAt: now + 1 * dayInMs, // first review: 1 day
@@ -1019,6 +1023,9 @@
             choices: exercise.choices || null,
             pairs: exercise.pairs || null,
             words: exercise.words || null,
+            explanation: exercise.explanation || null,
+            note: exercise.note || null,
+            sources: exercise.sources || null,
             timestamp: now,
             reviewCount: 0,
             nextReviewAt: now + 7 * dayInMs, // first review for correct: 7 days
@@ -1131,8 +1138,21 @@
         const p = this.progress;
         p.dailyGoal = goal;
         this.saveProgress();
+      },
+
+      // Overwrite all progress with an imported object (see Export/Import
+      // Progress in the home screen). Caller is responsible for confirming
+      // with the user first, since this clobbers whatever's here now.
+      importProgress(newProgress) {
+        this._progressCache = newProgress;
+        localStorage.setItem('taukei_progress', JSON.stringify(newProgress));
       }
     };
+
+    // Exposed on window so the standalone regression harness (test.html) can
+    // exercise these functions against the real app instance running in an
+    // iframe, without duplicating any of this logic.
+    window.DataManager = DataManager;
 
     // ─── Firebase Sync (Optional Cloud Sync) ─────────────────────
     // Sign-in is OPTIONAL. The app works fully offline with just localStorage.
@@ -1288,6 +1308,18 @@
       return result;
     }
 
+    // Normalize text for answer-comparison: lowercase, collapse whitespace,
+    // and strip diacritics (e.g. macrons like "ū") via Unicode NFD
+    // decomposition so answers typed on a plain keyboard ("tu") still match
+    // an answer key that uses the correct diacritic ("tū"). Exposed on
+    // window so the regression harness (test.html) can exercise the exact
+    // comparison logic the typing exercise uses, not a re-implementation.
+    function normalizeForCompare(s) {
+      return s.trim().toLowerCase().replace(/\s+/g, ' ')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+    window.normalizeForCompare = normalizeForCompare;
+
     // Add inline phonetic guide to exercise prompt
     function addPronunciationHint(promptEl, fijianText) {
       if (!fijianText) return;
@@ -1318,7 +1350,7 @@
         document.getElementById('streak-count').className = p.streak > 0 ? 'streak-active' : '';
         document.getElementById('xp-count').textContent = p.xp;
         document.getElementById('review-btn').style.display =
-          (p.wrongAnswers && p.wrongAnswers.length > 0) ? 'inline-block' : 'none';
+          DataManager.getReviewCount() > 0 ? 'inline-block' : 'none';
 
         // Update sync button label based on auth state
         const syncBtn = document.getElementById('sync-btn');
@@ -1348,6 +1380,46 @@
             skillNode.completed = !!p.lessonMastery[lessonId];
           }
         });
+      },
+
+      // Shared by every exercise type (multiple choice, matching, sentence
+      // builder, typing): record the outcome into exerciseResults + the
+      // spaced-repetition pool. Kept in one place so a fix here applies
+      // everywhere instead of needing to be repeated per exercise type.
+      recordResult(exercise, isCorrect) {
+        this.exerciseResults.push({ exercise, correct: isCorrect });
+        if (isCorrect) {
+          DataManager.recordCorrectAnswer(exercise); // Feed into spaced repetition
+        } else {
+          DataManager.recordWrongAnswer(exercise);
+        }
+      },
+
+      // Shared feedback renderer. `cssClass` is passed explicitly (rather than
+      // derived from a single correct/incorrect flag) because some exercise
+      // types intentionally show a "correct" style even when there were wrong
+      // attempts along the way (e.g. matching, sentence builder).
+      showFeedback(container, cssClass, html) {
+        let feedback = container.querySelector('.feedback');
+        if (!feedback) {
+          feedback = document.createElement('div');
+          container.appendChild(feedback);
+        }
+        feedback.className = `feedback ${cssClass}`;
+        feedback.innerHTML = html;
+        return feedback;
+      },
+
+      // Extracted so the floor/step logic is a plain, testable function
+      // rather than living only inside a button's onclick handler.
+      decreaseDailyGoal() {
+        const current = DataManager.getDailyGoal();
+        DataManager.setDailyGoal(Math.max(10, current - 10));
+      },
+
+      increaseDailyGoal() {
+        const current = DataManager.getDailyGoal();
+        DataManager.setDailyGoal(current + 10);
       },
 
       render() {
@@ -1432,9 +1504,8 @@
         decreaseBtn.style.padding = '4px 12px';
         decreaseBtn.style.fontSize = '0.9rem';
         decreaseBtn.onclick = () => {
-          const current = DataManager.getDailyGoal();
-          DataManager.setDailyGoal(Math.max(10, current - 10));
-          App.render();
+          this.decreaseDailyGoal();
+          this.render();
         };
 
         const increaseBtn = document.createElement('button');
@@ -1444,9 +1515,8 @@
         increaseBtn.style.padding = '4px 12px';
         increaseBtn.style.fontSize = '0.9rem';
         increaseBtn.onclick = () => {
-          const current = DataManager.getDailyGoal();
-          DataManager.setDailyGoal(current + 10);
-          App.render();
+          this.increaseDailyGoal();
+          this.render();
         };
 
         goalControls.appendChild(decreaseBtn);
@@ -1498,6 +1568,7 @@
         // Quick links
         const quickLinks = document.createElement('div');
         quickLinks.style.display = 'flex';
+        quickLinks.style.flexWrap = 'wrap';
         quickLinks.style.gap = '12px';
         quickLinks.style.marginTop = '16px';
 
@@ -1532,7 +1603,93 @@
 
         div.appendChild(quickLinks);
 
+        // Backup: local-only users (no cloud sync) have no other way to
+        // recover progress if they clear site data or switch devices, so
+        // let anyone export/import their progress as a plain JSON file.
+        const backupRow = document.createElement('div');
+        backupRow.style.display = 'flex';
+        backupRow.style.flexWrap = 'wrap';
+        backupRow.style.gap = '12px';
+        backupRow.style.marginTop = '12px';
+
+        const exportBtn = document.createElement('button');
+        exportBtn.className = 'btn btn-secondary';
+        exportBtn.textContent = '⬇️ Export Progress';
+        exportBtn.onclick = () => { App.exportProgress(); };
+        backupRow.appendChild(exportBtn);
+
+        const importBtn = document.createElement('button');
+        importBtn.className = 'btn btn-secondary';
+        importBtn.textContent = '⬆️ Import Progress';
+
+        const importInput = document.createElement('input');
+        importInput.type = 'file';
+        importInput.accept = 'application/json';
+        importInput.style.display = 'none';
+        importInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          importInput.value = ''; // reset so selecting the same file twice still fires 'change'
+          if (file) App.importProgressFile(file);
+        });
+
+        importBtn.onclick = () => importInput.click();
+        backupRow.appendChild(importBtn);
+        backupRow.appendChild(importInput);
+
+        div.appendChild(backupRow);
+
         return div;
+      },
+
+      // Downloads the current progress object as a timestamped JSON file.
+      exportProgress() {
+        const data = JSON.stringify(DataManager.progress, null, 2);
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const dateStamp = new Date().toISOString().slice(0, 10);
+        a.download = `taukei-progress-${dateStamp}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      },
+
+      // Reads a user-selected JSON file, does a light sanity check that it
+      // looks like a progress export, confirms with the user (this
+      // overwrites current progress), then hands it to DataManager.
+      importProgressFile(file) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          let parsed;
+          try {
+            parsed = JSON.parse(evt.target.result);
+          } catch (err) {
+            alert("That file isn't valid JSON — import cancelled.");
+            return;
+          }
+          const looksValid = parsed && typeof parsed === 'object' &&
+            typeof parsed.xp === 'number' && Array.isArray(parsed.completedLessons);
+          if (!looksValid) {
+            alert("That file doesn't look like a taukei progress export — import cancelled.");
+            return;
+          }
+          const ok = confirm(
+            'Importing will replace your current progress (XP, streak, completed lessons, review queue) ' +
+            'with the contents of this file. This cannot be undone. Continue?'
+          );
+          if (!ok) return;
+          DataManager.importProgress(parsed);
+          this.checkUnlocks();
+          this.updateHeader();
+          this.render();
+          alert('Progress imported successfully.');
+        };
+        reader.onerror = () => {
+          alert('Could not read that file — import cancelled.');
+        };
+        reader.readAsText(file);
       },
 
       startLesson(lessonId) {
@@ -1545,39 +1702,52 @@
         this.render();
       },
 
-      startReview() {
-        const wrong = DataManager.getWrongAnswersForReview();
-        if (wrong.length === 0) return;
-
-        // Build exercises from wrong answers
-        const reviewExercises = wrong.map(wa => {
-          try {
-            const exercise = JSON.parse(wa.exerciseId);
-            return { ...exercise, id: wa.exerciseId };
-          } catch(e) {
-            // Fallback: treat the stored object as an exercise
-            return {
-              type: 'multiple_choice',
-              prompt: wa.prompt || 'Review this answer',
-              choices: [wa.answer],
-              answer: 0,
-              id: wa.exerciseId
-            };
-          }
+      // Reconstruct exercise objects from stored wrongAnswers entries, so a
+      // review session shows the same prompt/choices/explanation as the
+      // original lesson. Shared by both entry points into review mode
+      // (the header/skill-tree "Review" button and the review screen itself)
+      // so there's exactly one place that knows how to rebuild an exercise
+      // from a wrongAnswers record.
+      buildReviewExercises(wrongAnswers) {
+        return wrongAnswers.map(wa => {
+          const exercise = {
+            type: wa.type,
+            prompt: wa.prompt,
+            answer: wa.answer,
+            id: wa.exerciseId
+          };
+          if (wa.choices) exercise.choices = wa.choices;
+          if (wa.pairs) exercise.pairs = wa.pairs;
+          if (wa.words) exercise.words = wa.words;
+          if (wa.explanation) exercise.explanation = wa.explanation;
+          if (wa.note) exercise.note = wa.note;
+          if (wa.sources) exercise.sources = wa.sources;
+          return exercise;
         });
+      },
 
+      // Set up App state for a review session from a list of due
+      // wrongAnswers entries. Does not render — callers render afterward
+      // in whichever way fits their context (see startReview/renderReview).
+      startReviewWith(wrongAnswers) {
         this.currentLesson = {
           title: 'Review',
           description: 'Practice answers you got wrong',
           xp: 50,
-          exercises: reviewExercises,
-          isReview: true
+          exercises: this.buildReviewExercises(wrongAnswers),
+          isReview: true,
+          id: 'review'
         };
-        this.currentLesson.id = 'review';
         this.currentExerciseIndex = 0;
         this.exerciseResults = [];
         this.reviewMode = true;
         this.currentScreen = 'lesson';
+      },
+
+      startReview() {
+        const wrong = DataManager.getWrongAnswersForReview();
+        if (wrong.length === 0) return;
+        this.startReviewWith(wrong);
         this.render();
       },
 
@@ -1714,29 +1884,19 @@
 
         if (isCorrect) {
           selected.classList.add('correct');
-          this.exerciseResults.push({ exercise, correct: true });
-          DataManager.recordCorrectAnswer(exercise); // Feed into spaced repetition
         } else {
           selected.classList.add('incorrect');
           buttons[exercise.answer].classList.add('correct');
-          this.exerciseResults.push({ exercise, correct: false });
-          DataManager.recordWrongAnswer(exercise);
         }
+        this.recordResult(exercise, isCorrect);
 
         // Show feedback
         const card = document.getElementById(`exercise-${this.currentExerciseIndex}`);
-        let feedback = document.createElement('div');
-        feedback.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
-
-        if (isCorrect) {
-          feedback.textContent = '✓ Correct!';
-        } else {
-          feedback.innerHTML = `✗ Incorrect. ${exercise.explanation || ''}`;
-          if (exercise.explanation) {
-            feedback.innerHTML += ` <br><strong>Correct answer:</strong> ${exercise.choices[exercise.answer]}`;
-          }
+        let message = isCorrect ? '✓ Correct!' : `✗ Incorrect. ${exercise.explanation || ''}`;
+        if (!isCorrect && exercise.explanation) {
+          message += ` <br><strong>Correct answer:</strong> ${exercise.choices[exercise.answer]}`;
         }
-        card.appendChild(feedback);
+        this.showFeedback(card, isCorrect ? 'correct' : 'incorrect', message);
       },
 
       renderMatching(exercise) {
@@ -1803,23 +1963,12 @@
               if (allMatched) {
                 completed = true;
                 const card = document.getElementById(`exercise-${this.currentExerciseIndex}`);
-                let feedback = card.querySelector('.feedback');
-                if (!feedback) {
-                  feedback = document.createElement('div');
-                  feedback.className = 'feedback correct';
-                  card.appendChild(feedback);
-                }
                 // Record wrong attempts for review, or correct first-try for spaced rep
-                if (wrongCount > 0) {
-                  this.exerciseResults.push({ exercise, correct: false });
-                  DataManager.recordWrongAnswer(exercise);
-                } else {
-                  this.exerciseResults.push({ exercise, correct: true });
-                  DataManager.recordCorrectAnswer(exercise);
-                }
-                feedback.textContent = wrongCount > 0
+                this.recordResult(exercise, wrongCount === 0);
+                const message = wrongCount > 0
                   ? `✓ All matched! (${wrongCount} incorrect attempt${wrongCount > 1 ? 's' : ''} — review recommended)`
                   : '✓ All matched correctly!';
+                this.showFeedback(card, 'correct', message);
               }
             } else {
               wrongCount++;
@@ -2009,26 +2158,15 @@
             if (!resultPushed) {
               resultPushed = true;
               // Record wrong attempts for review, or correct first-try for spaced rep
-              if (wrongAttempts > 0) {
-                this.exerciseResults.push({ exercise, correct: false });
-                DataManager.recordWrongAnswer(exercise);
-              } else {
-                this.exerciseResults.push({ exercise, correct: true });
-                DataManager.recordCorrectAnswer(exercise);
-              }
+              this.recordResult(exercise, wrongAttempts === 0);
             }
 
             // Show feedback
             const card = target.closest('.exercise-card');
-            let feedback = card.querySelector('.feedback');
-            if (!feedback) {
-              feedback = document.createElement('div');
-              feedback.className = 'feedback correct';
-              card.appendChild(feedback);
-            }
-            feedback.textContent = wrongAttempts > 0
+            const message = wrongAttempts > 0
               ? `✓ Correct! (${wrongAttempts} wrong attempt${wrongAttempts > 1 ? 's' : ''} — review recommended)`
               : '✓ Correct!';
+            this.showFeedback(card, 'correct', message);
           }
         });
 
@@ -2046,37 +2184,26 @@
 
         const checkAnswer = () => {
           if (input.disabled) return;
-          const normalize = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-          const typed = normalize(input.value.trim().toLowerCase().replace(/\s+/g, ' '));
-          const answer = normalize(exercise.answer.toLowerCase().trim().replace(/\s+/g, ' '));
+          const typed = normalizeForCompare(input.value);
+          const answer = normalizeForCompare(exercise.answer);
 
-          if (typed === answer) {
+          const isCorrect = typed === answer;
+          if (isCorrect) {
             input.classList.add('correct');
             input.classList.remove('incorrect');
-            this.exerciseResults.push({ exercise, correct: true });
-            DataManager.recordCorrectAnswer(exercise); // Feed into spaced repetition
           } else {
             input.classList.add('incorrect');
             input.classList.remove('correct');
-            this.exerciseResults.push({ exercise, correct: false });
-            DataManager.recordWrongAnswer(exercise);
           }
+          this.recordResult(exercise, isCorrect);
 
           // Show feedback
           const card = document.getElementById(`exercise-${this.currentExerciseIndex}`);
-          let feedback = card.querySelector('.feedback');
-          if (!feedback) {
-            feedback = document.createElement('div');
-            feedback.className = 'feedback';
-            card.appendChild(feedback);
-          }
 
-          if (typed === answer) {
-            feedback.className = 'feedback correct';
-            feedback.textContent = '✓ Correct!';
+          if (isCorrect) {
+            this.showFeedback(card, 'correct', '✓ Correct!');
           } else {
-            feedback.className = 'feedback incorrect';
-            feedback.innerHTML = `✗ Incorrect. The correct answer is: <span class="correct-answer">${exercise.answer}</span>`;
+            this.showFeedback(card, 'incorrect', `✗ Incorrect. The correct answer is: <span class="correct-answer">${exercise.answer}</span>`);
           }
 
           input.disabled = true;
@@ -2234,44 +2361,7 @@
           return div;
         }
 
-        // Build exercises from stored wrong answers
-        const reviewExercises = due.map(wa => {
-          // Try to parse stored exercise data
-          if (wa.type) {
-            // New format: exercise type and answer stored directly
-            const exercise = {
-              type: wa.type,
-              prompt: wa.prompt,
-              answer: wa.answer,
-              id: wa.exerciseId
-            };
-            // Restore exercise-specific fields
-            if (wa.choices) exercise.choices = wa.choices;
-            if (wa.pairs) exercise.pairs = wa.pairs;
-            if (wa.words) exercise.words = wa.words;
-            return exercise;
-          }
-          try {
-            const exercise = JSON.parse(wa.exerciseId);
-            return { ...exercise, id: wa.exerciseId };
-          } catch(e) {
-            return wa;
-          }
-        });
-
-        // Render the lesson screen with review exercises
-        this.currentLesson = {
-          title: 'Review',
-          description: 'Practice answers you got wrong',
-          xp: 50,
-          exercises: reviewExercises,
-          isReview: true,
-          id: 'review'
-        };
-        this.currentExerciseIndex = 0;
-        this.exerciseResults = [];
-        this.reviewMode = true;
-        this.currentScreen = 'lesson';
+        this.startReviewWith(due);
         return this.renderLesson();
       },
 
@@ -2395,6 +2485,10 @@
         return div;
       }
     };
+
+    // Exposed on window for the same reason as DataManager above — lets
+    // test.html drive App's methods against the real running app.
+    window.App = App;
 
     // ─── Event Listeners ─────────────────────────────────────────
     document.getElementById('review-btn').addEventListener('click', () => {
