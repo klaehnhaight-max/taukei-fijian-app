@@ -555,7 +555,7 @@ const LESSONS = {
     description: "Learn common verbs — eat, drink, go, come, see, know, and more",
     xp: 130,
     skills: [7, 9, 10],
-    note: "Fijian verbs (like 'kana' = eat, 'lako' = go, 'mai' = come) follow the subject pronoun directly — 'Au lako' means 'I go' with no particle between. The verb form is the dictionary form; tense is shown through markers like 'sa' (past) and 'e' (present habitual). For example, 'Au lako mai' means 'I am coming from' and 'Sa macala au' means 'I understood'.",
+    note: "Fijian verbs (like 'kana' = eat, 'lako' = go, 'mai' = come) follow the subject pronoun directly — 'Au lako' means 'I go' with no particle between. The verb form is the dictionary form; tense and aspect are shown through markers like 'sa' (which marks a completed or realized action) and 'e' (present habitual). For example, 'Au lako mai' means 'I am coming from' and 'Sa macala au' means 'I understand'.",
     exercises: [
       {
         type: "matching",
