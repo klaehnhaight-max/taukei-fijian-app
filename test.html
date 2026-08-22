@@ -33,7 +33,7 @@
   <div id="summary" class="pending">Loading app…</div>
   <div id="results"></div>
 
-  <iframe id="app-frame" src="index.html"></iframe>
+  <iframe id="app-frame" src="index.html?cb=20260822"></iframe>
 
   <script>
     const resultsEl = document.getElementById('results');
@@ -326,6 +326,38 @@
             win.App.finishLesson();
             const acc = win.App.completionData.accuracy;
             assert(acc === 33, `expected 33% (1 correct / 3 total exercises), got ${acc}%`);
+          }
+        },
+        {
+          name: 'finishLesson() gives full XP (100 accuracy, not 90%)',
+          fn: () => {
+            resetProgress();
+            win.App.currentLesson = { id: '__test_lesson_perfect__', xp: 100, exercises: [{}, {}, {}], isReview: false };
+            win.App.exerciseResults = [
+              { exercise: {}, correct: true },
+              { exercise: {}, correct: true },
+              { exercise: {}, correct: true }
+            ];
+            win.App.finishLesson();
+            assert(win.App.completionData.xpEarned === 100,
+              `expected full XP 100 at 100% accuracy, got ${win.App.completionData.xpEarned}`);
+          }
+        },
+        {
+          name: 'finishLesson() gives 90% XP at 80% accuracy (not 100%)',
+          fn: () => {
+            resetProgress();
+            win.App.currentLesson = { id: '__test_lesson_80__', xp: 100, exercises: [{}, {}, {}, {}, {}], isReview: false };
+            win.App.exerciseResults = [
+              { exercise: {}, correct: true },
+              { exercise: {}, correct: true },
+              { exercise: {}, correct: true },
+              { exercise: {}, correct: true },
+              { exercise: {}, correct: false }
+            ];
+            win.App.finishLesson();
+            assert(win.App.completionData.xpEarned === 90,
+              `expected 90 XP at 80% accuracy, got ${win.App.completionData.xpEarned}`);
           }
         },
         {

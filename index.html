@@ -2410,11 +2410,13 @@
         const total = lesson.exercises.length;
         const accuracy = total > 0 ? correct / total : 0;
 
-        if (accuracy > 0) {
+        if (accuracy >= 1) {
           // XP based on mastery (full XP at 100%, proportional otherwise)
+          totalXP = lesson.xp;
+        } else if (accuracy >= 0.8) {
+          totalXP = Math.round(lesson.xp * 0.9);
+        } else if (accuracy > 0) {
           totalXP = Math.round(lesson.xp * accuracy);
-          if (accuracy === 1) totalXP = lesson.xp;
-          if (accuracy >= 0.8) totalXP = Math.round(lesson.xp * 0.9);
         }
 
         DataManager.addXP(totalXP);
