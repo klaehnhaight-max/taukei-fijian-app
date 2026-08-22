@@ -539,7 +539,7 @@
           }
         },
         {
-          name: 'no matching exercise has more than 6 pairs',
+          name: 'matching exercises have between 2 and 6 pairs',
           fn: () => {
             const LESSONS = win.LESSONS;
             assert(LESSONS, 'LESSONS should be available from data.js');
@@ -550,6 +550,8 @@
                 if (ex.type === 'matching') {
                   assert(ex.pairs.length <= 6,
                     `${lessonId}/${ex.id} has ${ex.pairs.length} pairs (max 6 allowed)`);
+                  assert(ex.pairs.length >= 2,
+                    `${lessonId}/${ex.id} has ${ex.pairs.length} pairs (min 2 required)`);
                 }
               }
             }

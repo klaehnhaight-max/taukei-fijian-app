@@ -10,7 +10,7 @@
  *   2. Every multiple_choice exercise: the `answer` index is within bounds of `choices`.
  *   3. Every matching exercise: no duplicate English or Fijian values within pairs.
  *   4. Every exercise's `sources` array: each source key exists in `SOURCES`.
- *   5. Every matching exercise: at most 6 pairs (split requirement).
+ *   5. Every matching exercise: between 2 and 6 pairs (split requirement).
  *
  * Exits non-zero and prints offending ids if any check fails.
  */
@@ -171,7 +171,7 @@ for (const unitId of Object.keys(LESSONS)) {
   }
 }
 
-// ─── Check 5: no matching exercise has more than 6 pairs ──────────
+// ─── Check 5: matching exercise pair count constraints ────────────
 for (const unitId of Object.keys(LESSONS)) {
   const unit = LESSONS[unitId];
   if (!unit || !unit.exercises) continue;
@@ -181,6 +181,9 @@ for (const unitId of Object.keys(LESSONS)) {
       const pairs = ex.pairs || [];
       if (pairs.length > 6) {
         failures.push(`matching ${ex.id}: has ${pairs.length} pairs (max 6 allowed)`);
+      }
+      if (pairs.length < 2) {
+        failures.push(`matching ${ex.id}: has ${pairs.length} pairs (min 2 required)`);
       }
     }
   }

@@ -99,10 +99,10 @@ const LESSONS = {
     xp: 100,
     skills: [2],
     exercises: [
-      {
+            {
         type: "matching",
         id: "unit2-1-a",
-        prompt: "Match the number to its Fijian word",
+        prompt: "Match the number to its Fijian word (Part 1 of 2)",
         pairs: [
           { english: "1 (one)", fijian: "dua" },
           { english: "2 (two)", fijian: "rua" },
@@ -116,7 +116,7 @@ const LESSONS = {
       {
         type: "matching",
         id: "unit2-1-b",
-        prompt: "Match the number to its Fijian word",
+        prompt: "Match the number to its Fijian word (Part 2 of 2)",
         pairs: [
           { english: "7 (seven)", fijian: "vitu" },
           { english: "8 (eight)", fijian: "walu" },
@@ -125,7 +125,7 @@ const LESSONS = {
         ],
         sources: ["[1]", "[7]", "[8]"]
       },
-      {
+            {
         type: "multiple_choice",
         id: "unit2-2",
         prompt: "What is the number 5 in Fijian?",
@@ -160,30 +160,30 @@ const LESSONS = {
     skills: [4],
     note: "Fijian pronouns encode person (I, you, he/she), number (singular, plural), and inclusivity (whether 'we' includes the listener). Subject pronouns are set words — 'au' means 'I', 'iko' means 'you', 'koya' means 'he/she'. The exclusive 'keirau' means 'we (not you)' while inclusive 'keda' means 'we (including you)'. Verbs follow the subject directly with no particle in between.",
     exercises: [
-      {
+            {
         type: "matching",
         id: "unit3-1-a",
-        prompt: "Match the pronoun to its meaning",
+        prompt: "Match the pronoun to its meaning (Part 1 of 2)",
         pairs: [
           { english: "I / me", fijian: "au" },
           { english: "you (singular)", fijian: "iko" },
           { english: "he / she / him / her", fijian: "koya" },
-          { english: "we (inclusive)", fijian: "keda" },
-          { english: "we (exclusive)", fijian: "keirau" },
-          { english: "you (plural/polite)", fijian: "kemuni" }
+          { english: "we (inclusive)", fijian: "keda" }
         ],
         sources: ["[2]", "[4]", "[5]"]
       },
       {
         type: "matching",
         id: "unit3-1-b",
-        prompt: "Match the pronoun to its meaning",
+        prompt: "Match the pronoun to its meaning (Part 2 of 2)",
         pairs: [
+          { english: "we (exclusive)", fijian: "keirau" },
+          { english: "you (plural/polite)", fijian: "kemuni" },
           { english: "they (plural)", fijian: "irato" }
         ],
         sources: ["[2]", "[4]", "[5]"]
       },
-      {
+            {
         type: "multiple_choice",
         id: "unit3-2",
         prompt: "What does 'keirau' mean?",
@@ -219,10 +219,10 @@ const LESSONS = {
     xp: 120,
     skills: [1, 2, 5, 6],
     exercises: [
-      {
+            {
         type: "matching",
         id: "unit4-1-a",
-        prompt: "Match the Fijian family word to its English meaning",
+        prompt: "Match the Fijian family word to its English meaning (Part 1 of 2)",
         pairs: [
           { english: "family", fijian: "vuvale" },
           { english: "father", fijian: "tamaqu" },
@@ -236,7 +236,7 @@ const LESSONS = {
       {
         type: "matching",
         id: "unit4-1-b",
-        prompt: "Match the Fijian family word to its English meaning",
+        prompt: "Match the Fijian family word to its English meaning (Part 2 of 2)",
         pairs: [
           { english: "grandmother", fijian: "tubuqu" },
           { english: "brother", fijian: "ganequ" },
@@ -245,7 +245,7 @@ const LESSONS = {
         ],
         sources: ["[6]"]
       },
-      {
+            {
         type: "multiple_choice",
         id: "unit4-2",
         prompt: "What is 'tinaqu' in English?",
@@ -288,10 +288,10 @@ const LESSONS = {
     xp: 110,
     skills: [2],
     exercises: [
-      {
+            {
         type: "matching",
         id: "unit5-1-a",
-        prompt: "Match the body part to its Fijian word",
+        prompt: "Match the body part to its Fijian word (Part 1 of 2)",
         pairs: [
           { english: "head", fijian: "ulu" },
           { english: "eye", fijian: "mata" },
@@ -305,7 +305,7 @@ const LESSONS = {
       {
         type: "matching",
         id: "unit5-1-b",
-        prompt: "Match the body part to its Fijian word",
+        prompt: "Match the body part to its Fijian word (Part 2 of 2)",
         pairs: [
           { english: "ear", fijian: "daliga" },
           { english: "hand", fijian: "liga" },
@@ -316,7 +316,7 @@ const LESSONS = {
         ],
         sources: ["[6]", "[7]", "[11]"]
       },
-      {
+            {
         type: "multiple_choice",
         id: "unit5-2",
         prompt: "What does 'mata' mean?",
@@ -350,10 +350,10 @@ const LESSONS = {
     xp: 110,
     skills: [2],
     exercises: [
-      {
+            {
         type: "matching",
         id: "unit6-1-a",
-        prompt: "Match the color to its Fijian word",
+        prompt: "Match the color to its Fijian word (Part 1 of 2)",
         pairs: [
           { english: "white", fijian: "vulavula" },
           { english: "black", fijian: "loaloa" },
@@ -367,7 +367,7 @@ const LESSONS = {
       {
         type: "matching",
         id: "unit6-1-b",
-        prompt: "Match the color to its Fijian word",
+        prompt: "Match the color to its Fijian word (Part 2 of 2)",
         pairs: [
           { english: "purple", fijian: "lokaloka" },
           { english: "orange", fijian: "seninawanawa" },
@@ -376,7 +376,7 @@ const LESSONS = {
         ],
         sources: ["[7]", "[12]"]
       },
-      {
+            {
         type: "multiple_choice",
         id: "unit6-2",
         prompt: "Which word means 'red'?",
@@ -410,44 +410,44 @@ const LESSONS = {
     xp: 120,
     skills: [1, 4],
     exercises: [
-      {
+            {
         type: "matching",
         id: "unit7-1-a",
-        prompt: "Match the Fijian food word to its English",
+        prompt: "Match the Fijian food word to its English (Part 1 of 3)",
         pairs: [
           { english: "food / eat", fijian: "kakana" },
           { english: "fish", fijian: "ika" },
           { english: "meat", fijian: "lewe" },
           { english: "taro", fijian: "dalo" },
-          { english: "cassava", fijian: "tavioka" },
-          { english: "coconut", fijian: "niu" }
+          { english: "cassava", fijian: "tavioka" }
         ],
         sources: ["[1]", "[6]", "[7]", "[8]"]
       },
       {
         type: "matching",
         id: "unit7-1-b",
-        prompt: "Match the Fijian food word to its English",
+        prompt: "Match the Fijian food word to its English (Part 2 of 3)",
         pairs: [
+          { english: "coconut", fijian: "niu" },
           { english: "water", fijian: "wai" },
           { english: "rice", fijian: "rais" },
-          { english: "bread", fijian: "madrai" },
-          { english: "coffee", fijian: "kofi" },
-          { english: "tea", fijian: "ti" },
-          { english: "beer", fijian: "bia" }
+          { english: "bread", fijian: "madrai" }
         ],
         sources: ["[1]", "[6]", "[7]", "[8]"]
       },
       {
         type: "matching",
         id: "unit7-1-c",
-        prompt: "Match the Fijian food word to its English",
+        prompt: "Match the Fijian food word to its English (Part 3 of 3)",
         pairs: [
+          { english: "coffee", fijian: "kofi" },
+          { english: "tea", fijian: "ti" },
+          { english: "beer", fijian: "bia" },
           { english: "greens (Fijian spinach)", fijian: "bele" }
         ],
         sources: ["[1]", "[6]", "[7]", "[8]"]
       },
-      {
+                  {
         type: "multiple_choice",
         id: "unit7-2",
         prompt: "What does 'dalo' mean?",
@@ -490,30 +490,30 @@ const LESSONS = {
     xp: 110,
     skills: [3, 4],
     exercises: [
-      {
+            {
         type: "matching",
         id: "unit8-1-a",
-        prompt: "Match the question word to its meaning",
+        prompt: "Match the question word to its meaning (Part 1 of 2)",
         pairs: [
           { english: "what", fijian: "cava" },
           { english: "who", fijian: "cei" },
           { english: "where / this place", fijian: "ko" },
-          { english: "when", fijian: "naica" },
-          { english: "how many / how much", fijian: "e vica" },
-          { english: "how", fijian: "vakacava" }
+          { english: "when", fijian: "naica" }
         ],
         sources: ["[1]", "[5]", "[8]", "[9]"]
       },
       {
         type: "matching",
         id: "unit8-1-b",
-        prompt: "Match the question word to its meaning",
+        prompt: "Match the question word to its meaning (Part 2 of 2)",
         pairs: [
+          { english: "how many / how much", fijian: "e vica" },
+          { english: "how", fijian: "vakacava" },
           { english: "not", fijian: "sega ni" }
         ],
         sources: ["[1]", "[5]", "[8]", "[9]"]
       },
-      {
+            {
         type: "multiple_choice",
         id: "unit8-2",
         prompt: "Which word means 'what'?",
@@ -557,10 +557,10 @@ const LESSONS = {
     skills: [7, 9, 10],
     note: "Fijian verbs (like 'kana' = eat, 'lako' = go, 'mai' = come) follow the subject pronoun directly — 'Au lako' means 'I go' with no particle between. The verb form is the dictionary form; tense and aspect are shown through markers like 'sa' (which marks a completed or realized action) and 'e' (present habitual). For example, 'Au lako mai' means 'I am coming from' and 'Sa macala au' means 'I understand'.",
     exercises: [
-      {
+            {
         type: "matching",
         id: "unit9-1-a",
-        prompt: "Match the Fijian verb to its English meaning",
+        prompt: "Match the Fijian verb to its English meaning (Part 1 of 2)",
         pairs: [
           { english: "eat", fijian: "kana" },
           { english: "drink", fijian: "gunu" },
@@ -574,7 +574,7 @@ const LESSONS = {
       {
         type: "matching",
         id: "unit9-1-b",
-        prompt: "Match the Fijian verb to its English meaning",
+        prompt: "Match the Fijian verb to its English meaning (Part 2 of 2)",
         pairs: [
           { english: "know", fijian: "kila" },
           { english: "think/remember", fijian: "nanuma" },
@@ -584,7 +584,7 @@ const LESSONS = {
         ],
         sources: ["[1]", "[5]", "[7]", "[9]"]
       },
-      {
+            {
         type: "multiple_choice",
         id: "unit9-2",
         prompt: "Which verb means 'go'?",
@@ -741,10 +741,10 @@ const LESSONS = {
     xp: 120,
     skills: [12],
     exercises: [
-      {
+            {
         type: "matching",
         id: "unit12-1-a",
-        prompt: "Match the Fijian nature word to its English meaning",
+        prompt: "Match the Fijian nature word to its English meaning (Part 1 of 2)",
         pairs: [
           { english: "sun / day", fijian: "siga" },
           { english: "moon", fijian: "vula" },
@@ -758,7 +758,7 @@ const LESSONS = {
       {
         type: "matching",
         id: "unit12-1-b",
-        prompt: "Match the Fijian nature word to its English meaning",
+        prompt: "Match the Fijian nature word to its English meaning (Part 2 of 2)",
         pairs: [
           { english: "sea", fijian: "waitui" },
           { english: "cloud", fijian: "ō" },
@@ -769,7 +769,7 @@ const LESSONS = {
         ],
         sources: ["[7]"]
       },
-      {
+            {
         type: "multiple_choice",
         id: "unit12-2",
         prompt: "Which word means both 'sun' and 'day'?",
@@ -812,10 +812,10 @@ const LESSONS = {
     xp: 120,
     skills: [13],
     exercises: [
-      {
+            {
         type: "matching",
         id: "unit13-1-a",
-        prompt: "Match the Fijian adjective to its English meaning",
+        prompt: "Match the Fijian adjective to its English meaning (Part 1 of 2)",
         pairs: [
           { english: "big / many", fijian: "levu" },
           { english: "small", fijian: "lailai" },
@@ -829,7 +829,7 @@ const LESSONS = {
       {
         type: "matching",
         id: "unit13-1-b",
-        prompt: "Match the Fijian adjective to its English meaning",
+        prompt: "Match the Fijian adjective to its English meaning (Part 2 of 2)",
         pairs: [
           { english: "heavy", fijian: "bībī" },
           { english: "thin (person)", fijian: "lila" },
@@ -840,7 +840,7 @@ const LESSONS = {
         ],
         sources: ["[7]"]
       },
-      {
+            {
         type: "multiple_choice",
         id: "unit13-2",
         prompt: "Which word means 'big'?",
@@ -883,46 +883,46 @@ const LESSONS = {
     xp: 130,
     skills: [14],
     exercises: [
-      {
+            {
         type: "matching",
         id: "unit14-1-a",
-        prompt: "Match the Fijian verb phrase to its English meaning",
+        prompt: "Match the Fijian verb phrase to its English meaning (Part 1 of 3)",
         pairs: [
           { english: "to swim", fijian: "qalo-va" },
           { english: "to fly", fijian: "vuka" },
           { english: "to walk", fijian: "taubale" },
           { english: "to come", fijian: "lako mai" },
-          { english: "to sit", fijian: "dabe" },
-          { english: "to stand", fijian: "tū" }
+          { english: "to sit", fijian: "dabe" }
         ],
         sources: ["[7]", "[10]"]
       },
       {
         type: "matching",
         id: "unit14-1-b",
-        prompt: "Match the Fijian verb phrase to its English meaning",
+        prompt: "Match the Fijian verb phrase to its English meaning (Part 2 of 3)",
         pairs: [
+          { english: "to stand", fijian: "tū" },
           { english: "to give", fijian: "soli-a" },
           { english: "to hold", fijian: "taura" },
           { english: "to throw", fijian: "viri-taka" },
-          { english: "to sing", fijian: "laga-ta" },
-          { english: "to see", fijian: "rai-ca" },
-          { english: "to hear", fijian: "rogo-ca" }
+          { english: "to sing", fijian: "laga-ta" }
         ],
         sources: ["[7]", "[10]"]
       },
       {
         type: "matching",
         id: "unit14-1-c",
-        prompt: "Match the Fijian verb phrase to its English meaning",
+        prompt: "Match the Fijian verb phrase to its English meaning (Part 3 of 3)",
         pairs: [
+          { english: "to see", fijian: "rai-ca" },
+          { english: "to hear", fijian: "rogo-ca" },
           { english: "to know", fijian: "kilā" },
           { english: "think/remember", fijian: "nanuma" },
           { english: "to fear", fijian: "rere-vaka" }
         ],
         sources: ["[7]", "[10]"]
       },
-      {
+                  {
         type: "multiple_choice",
         id: "unit14-2",
         prompt: "Which verb means 'to swim'?",
