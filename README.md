@@ -3,7 +3,25 @@
 A local, browser-based language-learning app modeled on Duolingo, for the iTaukei
 (Na Vosa Vaka-Viti / Fijian) language — the indigenous language of Fiji.
 
-## Running the App
+## Try It Online (Recommended)
+
+**The app is hosted on GitHub Pages and works in any modern browser — no installation
+required.**
+
+👉 **https://klaehnhaight-max.github.io/taukei-fijian-app/**
+
+Open the link above, sign in (optional) with email/password or Google for cloud sync,
+and start learning. You can also install it as a PWA (see below).
+
+### Install as an App (PWA)
+
+The app is a Progressive Web App. On mobile, tap the **Share** button and select
+"Add to Home Screen." On desktop (Chrome/Edge), look for the **Install** button in
+the address bar or the "App available" banner at the bottom of the screen. Once
+installed, the app opens in a standalone window (no browser chrome) and works offline
+for all exercises and progress tracking.
+
+## Running Locally (for development)
 
 ```bash
 cd /Users/calebklaehnhaight/.local/share/dev/fijian-app
@@ -12,9 +30,53 @@ python3 -m http.server PORT
 
 Then open `http://localhost:PORT` in your browser.
 
-No external accounts, no paid services, no API keys required. All progress is
-saved locally in your browser's `localStorage`. Optionally sign in with a
-Firebase account for cloud sync across devices.
+> **Note:** Firebase cloud sync is optional. The app works fully offline with just
+> localStorage. Sign-in is only needed if you want to sync progress across devices.
+
+## Structure
+
+- `index.html` — Single self-contained HTML app (all HTML, CSS, JS in one file)
+- `data.js` — All lesson content, skill tree, sources, pronunciation guide
+- `manifest.json` — PWA installability metadata
+- `sw.js` — Service worker for offline caching
+- `icons/` — PWA icons (192x192, 512x512, Apple touch icon)
+- `README.md` — This file
+- `sources.md` — Full bibliography of verified sources used for vocabulary
+
+## Units
+
+1. Greetings & Basic Phrases
+2. Numbers 1-20
+3. Personal Pronouns & Basic Grammar
+4. Family Terms
+5. Body Parts
+6. Colors
+7. Food & Drink
+8. Question Words & Simple Questions
+9. Basic Verbs
+10. Simple Sentence Construction
+11. Animals
+12. Nature & Weather
+13. Descriptive Adjectives
+14. Expanded Verbs
+
+## Exercise Types
+
+- Multiple Choice
+- Word Bank Sentence Building
+- Translation Typing
+- Matching Pairs
+
+## Progress Tracking
+
+- XP (10 per correct answer in learning, 15 per correct in review)
+- Daily streak counter
+- Per-lesson mastery percentage
+- Wrong-answer tracking for review mode
+
+All progress is saved in browser localStorage — no accounts or external services
+required. Optionally sign in with a Google or email/password Firebase account for
+cloud sync across devices.
 
 ## Syncing Across Devices (Optional)
 
@@ -22,8 +84,8 @@ Sign in with Email/Password or Google to sync your progress across devices.
 This is entirely optional — the app works fully offline without any account.
 
 ### How it works
-- **Sign-in is opt-in**: Click the ☁️ Sync button in the header to open the
-  auth screen. Choose "Continue without an account" to skip forever.
+- **Sign-in is opt-in**: Click the ☁️ Sync button in the header to open
+  the auth screen. Choose "Continue without an account" to skip forever.
 - **Most-recent-wins merge**: When you sign in, your local progress and cloud
   progress are compared by timestamp. The newer one wins and is propagated to
   the other.
@@ -91,6 +153,8 @@ limits.
   visible Check button for touch devices
 - **Accessibility**: Basic aria-labels and keyboard handlers for matching and
   sentence-builder exercises
+- **PWA**: Installable on phones, tablets, and desktops. Works offline for all
+  exercises and progress tracking (cloud sync requires network).
 
 ## Source Verification
 
@@ -152,6 +216,9 @@ against Glosbe [10]. Specific checks:
 
 - `index.html` — Complete self-contained web app (HTML + CSS + JS)
 - `data.js` — All lesson content, skill tree, sources, pronunciation guide
+- `manifest.json` — PWA installability metadata
+- `sw.js` — Service worker for offline caching
+- `icons/` — PWA icons (192x192, 512x512, Apple touch icon)
 - `README.md` — This file
 
 ## License
