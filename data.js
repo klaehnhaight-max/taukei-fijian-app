@@ -92,8 +92,17 @@ const LESSONS = {
         answer: 1,
         explanation: "'Au marau sara' means 'Nice to meet you'. 'Au' = I, 'marau' relates to gladness/rejoicing, 'sara' = good. Literally 'I rejoice'. [8]",
         sources: ["[8]"]
+      },
+      {
+        type: "cloze",
+        id: "unit1-6b",
+        prompt: "Ni sa ___",
+        translation: "Good ___",
+        answer: "yadra",
+        explanation: "'Yadra' means morning — as in 'Ni sa yadra' (good morning), a standard greeting taught alongside 'Ni sa bula' (good day). [1][8][9]",
+        sources: ["[1]", "[8]", "[9]"]
       }
-    ]
+    ],
   },
 
   "unit2": {
@@ -156,8 +165,17 @@ const LESSONS = {
         note: "Note: Numbers 11-19 are 'tini ka X' (ten and X). 11 = tini kadua, 12 = tinikarua, 13 = tinitolu, 14 = tiniti, 15 = tinikalima, 16 = tinikavonovono, 17 = tinitavitu, 18 = tinikawalu, 19 = tinikaciwa. 20 = ruasagavulu. [2][7]",
         sources: ["[2]", "[7]"],
         explanation: 'Fijian cardinals 11 plus use the pattern tini (10) plus smaller number: tini dua = 11.',
+      },
+      {
+        type: "cloze",
+        id: "unit2-5",
+        prompt: "___ dua",
+        translation: "___ one",
+        answer: "tini",
+        explanation: "Tini is the Fijian word for ten; combined with dua (one) it forms tini dua, following the number compounding pattern shown in this unit's sentence_builder. [2][7]",
+        sources: ["[2]", "[7]"]
       }
-    ]
+    ],
   },
 
   "unit3": {
@@ -219,8 +237,17 @@ const LESSONS = {
         answer: 2,
         explanation: "'keda' = we inclusive (including the person we're speaking to). 'keirau' is exclusive (not including them). [2][4][5]",
         sources: ["[2]", "[4]", "[5]"]
+      },
+      {
+        type: "cloze",
+        id: "unit3-5",
+        prompt: "___ lako",
+        translation: "I go",
+        answer: "Au",
+        explanation: "Au is the Fijian first-person singular pronoun meaning 'I' — it attaches directly to the verb with no space in spoken Fijian, but is written separately, as in 'Au lako' (I go). [2][5]",
+        sources: ["[2]", "[5]"]
       }
-    ]
+    ],
   },
 
   "unit4": {
@@ -507,8 +534,17 @@ const LESSONS = {
         answer: 0,
         explanation: "'Au viakana' = I am hungry. 'viakana' comes from 'kana' (eat). [8]",
         sources: ["[8]"]
+      },
+      {
+        type: "cloze",
+        id: "unit7-6",
+        prompt: "Au ___ na dalo",
+        translation: "I ___ the taro",
+        answer: "kana",
+        explanation: "Kana means 'eat' — as in 'Au kana' (I eat). The structure is subject (Au) + verb (kana) + article (na) + object (dalo = taro). [1][6][7][8]",
+        sources: ["[1]", "[6]", "[7]", "[8]"]
       }
-    ]
+    ],
   },
 
   "unit8": {
@@ -712,8 +748,17 @@ const LESSONS = {
         answer: 1,
         explanation: "'Au sega ni kila' = I don't understand. 'sega' = not, 'kila' = know/understand. [8]",
         sources: ["[8]"]
+      },
+      {
+        type: "cloze",
+        id: "unit10-6",
+        prompt: "Au lako ___ Niu Siladi",
+        translation: "I am from New Zealand",
+        answer: "mai",
+        explanation: "Mai is the Fijian verb for 'come' used in 'lako mai' (come from). 'Au lako mai Niu Siladi' means 'I come from New Zealand,' following the subject-verb-place pattern. [9][1][8]",
+        sources: ["[9]", "[1]", "[8]"]
       }
-    ]
+    ],
   },
 
   "unit11": {

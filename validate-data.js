@@ -13,6 +13,7 @@
  *   5. Every matching exercise: between 2 and 6 pairs (split requirement).
  *   6. Every sentence_builder exercise: prompt does not contain the answer.
  *   7. Every matching/typing/sentence_builder exercise: has a non-empty explanation.
+ *   8. Every cloze exercise: has explanation, translation, blank marker, and prompt does not leak answer.
  *
  * Exits non-zero and prints offending ids if any check fails.
  */
@@ -210,6 +211,33 @@ for (const unitId of Object.keys(LESSONS)) {
   }
 }
 
+// ─── Check 8: cloze exercises have explanation, translation, blank, and do not leak answer ─
+for (const unitId of Object.keys(LESSONS)) {
+  const unit = LESSONS[unitId];
+  if (!unit || !unit.exercises) continue;
+  for (const ex of unit.exercises) {
+    if (ex.type === 'cloze') {
+      checked++;
+      if (!ex.explanation || ex.explanation.trim() === '') {
+        failures.push(`cloze ${ex.id}: missing or empty explanation field`);
+      }
+      checked++;
+      if (!ex.translation || ex.translation.trim() === '') {
+        failures.push(`cloze ${ex.id}: missing translation field`);
+      }
+      checked++;
+      if (!ex.prompt.includes('___')) {
+        failures.push(`cloze ${ex.id}: prompt must contain '___' blank marker`);
+      }
+      checked++;
+      // The prompt (minus the blank) should not contain the answer text,
+      // so the learner must recall the word, not read it from context.
+      if (normalizeSentence(ex.prompt.replace(/___/g, '')).includes(normalizeSentence(ex.answer))) {
+        failures.push(`cloze ${ex.id}: prompt leaks answer "${ex.answer}" — the blanked sentence must not contain the answer word`);
+      }
+    }
+  }
+}
 // ─── Check 7: matching/typing/sentence_builder exercises have a non-empty explanation ─
 // All non-multiple_choice exercise types must carry an explanation field
 // so the app can render elaborated feedback (the same pattern multiple_choice

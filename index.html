@@ -980,6 +980,8 @@
           choices: exercise.choices || null,
           pairs: exercise.pairs || null,
           words: exercise.words || null,
+          translation: exercise.translation || null,
+          altAnswers: exercise.altAnswers || null,
           explanation: exercise.explanation || null,
           note: exercise.note || null,
           sources: exercise.sources || null,
@@ -1874,6 +1876,8 @@
           if (wa.choices) exercise.choices = wa.choices;
           if (wa.pairs) exercise.pairs = wa.pairs;
           if (wa.words) exercise.words = wa.words;
+          if (wa.translation) exercise.translation = wa.translation;
+          if (wa.altAnswers) exercise.altAnswers = wa.altAnswers;
           if (wa.explanation) exercise.explanation = wa.explanation;
           if (wa.note) exercise.note = wa.note;
           if (wa.sources) exercise.sources = wa.sources;
@@ -1978,6 +1982,13 @@
         const promptEl = document.createElement('div');
         promptEl.className = 'exercise-prompt';
         promptEl.textContent = exercise.prompt;
+        // Cloze exercises show both the Fijian sentence (with blank) and an
+        // English translation line so the learner has meaning context without
+        // the blank becoming a translation exercise.
+        if (exercise.type === 'cloze' && exercise.translation) {
+          promptEl.style.whiteSpace = 'pre-line';
+          promptEl.textContent = exercise.prompt + '\n' + exercise.translation;
+        }
         card.appendChild(promptEl);
 
         switch (exercise.type) {
@@ -1993,6 +2004,9 @@
           case 'typing':
             card.appendChild(this.renderTyping(exercise));
             break;
+          case 'cloze':
+            card.appendChild(this.renderCloze(exercise));
+            break;
         }
 
         // Sources
@@ -2004,6 +2018,15 @@
         }
 
         return card;
+      },
+
+      // Shared text-answer comparison logic for typing and cloze exercises.
+      // Returns true if the typed value matches the answer or any altAnswer.
+      checkTextAnswer(exercise, typedValue) {
+        const typed = normalizeForCompare(typedValue);
+        const answer = normalizeForCompare(exercise.answer);
+        const altAnswers = (exercise.altAnswers || []).map(a => normalizeForCompare(a));
+        return typed === answer || altAnswers.some(a => typed === a);
       },
 
       renderMultipleChoice(exercise) {
@@ -2343,10 +2366,7 @@
 
         const checkAnswer = () => {
           if (input.disabled) return;
-          const typed = normalizeForCompare(input.value);
-          const answer = normalizeForCompare(exercise.answer);
-          const altAnswers = (exercise.altAnswers || []).map(a => normalizeForCompare(a));
-          const isCorrect = typed === answer || altAnswers.some(a => typed === a);
+          const isCorrect = this.checkTextAnswer(exercise, input.value);
           if (isCorrect) {
             input.classList.add('correct');
             input.classList.remove('incorrect');
@@ -2363,6 +2383,66 @@
             this.showFeedback(card, 'correct', `✓ Correct! <span class="pronunciation-hint">Pronunciation: ${fijianToPhonetic(exercise.answer)}</span>`);
           } else {
             this.showFeedback(card, 'incorrect', `✗ Incorrect. The correct answer is: <span class="correct-answer">${exercise.answer}</span> <span class="pronunciation-hint">Pronunciation: ${fijianToPhonetic(exercise.answer)}</span>${exercise.explanation ? ' ' + exercise.explanation : ''}`);
+          }
+
+          input.disabled = true;
+        };
+
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            checkAnswer();
+          }
+        });
+
+        div.appendChild(input);
+
+        // Add Check button as a redundant submit path for touch devices
+        const checkBtn = document.createElement('button');
+        checkBtn.className = 'btn btn-secondary btn-block';
+        checkBtn.textContent = 'Check Answer';
+        checkBtn.style.marginTop = '12px';
+        checkBtn.addEventListener('click', checkAnswer);
+        div.appendChild(checkBtn);
+
+        if (exercise.note) {
+          const note = document.createElement('div');
+          note.className = 'sources-note';
+          note.innerHTML = `<strong>💡 Note:</strong> ${exercise.note}`;
+          div.appendChild(note);
+        }
+
+        return div;
+      },
+
+      renderCloze(exercise) {
+        const div = document.createElement('div');
+        div.className = 'typing-container';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'typing-input';
+        input.placeholder = 'Type your answer here...';
+
+        const checkAnswer = () => {
+          if (input.disabled) return;
+          const isCorrect = this.checkTextAnswer(exercise, input.value);
+          if (isCorrect) {
+            input.classList.add('correct');
+            input.classList.remove('incorrect');
+          } else {
+            input.classList.add('incorrect');
+            input.classList.remove('correct');
+          }
+          this.recordResult(exercise, isCorrect);
+
+          // Show feedback
+          const card = document.getElementById(`exercise-${this.currentExerciseIndex}`);
+
+          if (isCorrect) {
+            this.showFeedback(card, 'correct', `✓ Correct! <span class=\"pronunciation-hint\">Pronunciation: ${fijianToPhonetic(exercise.answer)}</span>`);
+          } else {
+            this.showFeedback(card, 'incorrect', `✗ Incorrect. The correct answer is: <span class=\"correct-answer\">${exercise.answer}</span> <span class=\"pronunciation-hint\">Pronunciation: ${fijianToPhonetic(exercise.answer)}</span>${exercise.explanation ? ' ' + exercise.explanation : ''}`);
           }
 
           input.disabled = true;
@@ -2465,7 +2545,8 @@
           matching: 'Matching',
           multiple_choice: 'Multiple Choice',
           typing: 'Typing',
-          sentence_builder: 'Sentence Building'
+          sentence_builder: 'Sentence Building',
+          cloze: 'Cloze'
         };
         for (const r of results) {
           const type = r.exercise?.type || 'unknown';

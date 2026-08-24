@@ -754,14 +754,169 @@
           }
         },
         {
-          name: 'matching/typing/sentence_builder exercises have non-empty explanations',
+          name: 'cloze: correct answer shows feedback with explanation',
+          fn: () => {
+            resetProgress();
+            const ex = { id: '__test_cloze_correct__', type: 'cloze', prompt: 'Au ___ na dalo', translation: 'I ___ the taro', answer: 'kana', explanation: 'Kana means eat.' };
+            win.App.currentScreen = 'lesson';
+            win.App.currentLesson = { id: '__test_cloze_lesson__', xp: 10, exercises: [ex], isReview: false };
+            win.App.currentExerciseIndex = 0;
+            win.App.exerciseResults = [];
+            win.App.reviewMode = false;
+            win.App.render();
+            const doc = win.document;
+
+            // Verify the two-line prompt is rendered
+            const promptEl = doc.querySelector('.exercise-prompt');
+            assert(promptEl, 'exercise-prompt should exist');
+            assert(promptEl.textContent.includes('Au'), 'Fijian prompt line should be rendered');
+            assert(promptEl.textContent.includes('taro'), 'English translation line should be rendered');
+
+            // Submit correct answer via Check button
+            const input = doc.querySelector('.typing-input');
+            assert(input, 'typing-input should exist for cloze');
+            input.value = 'kana';
+            const checkBtn = Array.from(doc.querySelectorAll('button')).find(b => b.textContent.trim() === 'Check Answer');
+            assert(checkBtn, 'Check Answer button should exist for cloze');
+            checkBtn.click();
+
+            assert(input.classList.contains('correct'), 'input should be marked correct');
+            const card = doc.getElementById('exercise-0');
+            const feedback = card.querySelector('.feedback');
+            assert(feedback, 'feedback should appear after correct answer');
+            assert(feedback.textContent.includes('Correct'), 'feedback should say Correct');
+            assert(feedback.textContent.includes('Pronunciation'), 'feedback should include pronunciation hint');
+          }
+        },
+        {
+          name: 'cloze: incorrect answer shows correct answer + explanation',
+          fn: () => {
+            resetProgress();
+            const ex = { id: '__test_cloze_wrong__', type: 'cloze', prompt: 'Ni sa ___', translation: 'Good ___', answer: 'yadra', explanation: 'Yadra means morning.' };
+            win.App.currentScreen = 'lesson';
+            win.App.currentLesson = { id: '__test_cloze_wrong_lesson__', xp: 10, exercises: [ex], isReview: false };
+            win.App.currentExerciseIndex = 0;
+            win.App.exerciseResults = [];
+            win.App.reviewMode = false;
+            win.App.render();
+            const doc = win.document;
+
+            // Submit wrong answer via Check button
+            const input = doc.querySelector('.typing-input');
+            assert(input, 'typing-input should exist for cloze');
+            input.value = 'bogi'; // evening — a real Fijian word but wrong here
+            const checkBtn = Array.from(doc.querySelectorAll('button')).find(b => b.textContent.trim() === 'Check Answer');
+            assert(checkBtn, 'Check Answer button should exist for cloze');
+            checkBtn.click();
+
+            assert(input.classList.contains('incorrect'), 'input should be marked incorrect');
+            const card = doc.getElementById('exercise-0');
+            const feedback = card.querySelector('.feedback');
+            assert(feedback, 'feedback should appear after incorrect answer');
+            assert(feedback.textContent.includes('Incorrect'), 'feedback should say Incorrect');
+            assert(feedback.textContent.includes('yadra'), 'correct answer should be shown in feedback');
+            assert(feedback.textContent.includes('Yadra means morning'), 'explanation should appear in feedback');
+          }
+        },
+        {
+          name: 'cloze: altAnswer variant is accepted',
+          fn: () => {
+            resetProgress();
+            const ex = { id: '__test_cloze_alt__', type: 'cloze', prompt: 'Au lako ___ Niu Siladi', translation: 'I am from New Zealand', answer: 'mai', altAnswers: ['maikina'], explanation: 'Mai means come.' };
+            win.App.currentScreen = 'lesson';
+            win.App.currentLesson = { id: '__test_cloze_alt_lesson__', xp: 10, exercises: [ex], isReview: false };
+            win.App.currentExerciseIndex = 0;
+            win.App.exerciseResults = [];
+            win.App.reviewMode = false;
+            win.App.render();
+            const doc = win.document;
+
+            // Submit the altAnswer variant via Check button
+            const input = doc.querySelector('.typing-input');
+            assert(input, 'typing-input should exist for cloze');
+            input.value = 'maikina';
+            const checkBtn = Array.from(doc.querySelectorAll('button')).find(b => b.textContent.trim() === 'Check Answer');
+            assert(checkBtn, 'Check Answer button should exist for cloze');
+            checkBtn.click();
+
+            assert(input.classList.contains('correct'), 'input should be marked correct for altAnswer');
+            const card = doc.getElementById('exercise-0');
+            const feedback = card.querySelector('.feedback');
+            assert(feedback, 'feedback should appear after correct altAnswer');
+            assert(feedback.textContent.includes('Correct'), 'altAnswer should be accepted as correct');
+          }
+        },
+        {
+          name: 'cloze: correct answer enters spaced repetition pool',
+          fn: () => {
+            resetProgress();
+            const ex = { id: '__test_cloze_sr__', type: 'cloze', prompt: '___ dua', translation: '___ one', answer: 'tini', explanation: 'Tini is ten.' };
+            win.App.currentScreen = 'lesson';
+            win.App.currentLesson = { id: '__test_cloze_sr_lesson__', xp: 10, exercises: [ex], isReview: false };
+            win.App.currentExerciseIndex = 0;
+            win.App.exerciseResults = [];
+            win.App.reviewMode = false;
+            win.App.render();
+            const doc = win.document;
+
+            // Submit correct answer via Check button
+            const input = doc.querySelector('.typing-input');
+            assert(input, 'typing-input should exist for cloze');
+            input.value = 'tini';
+            const checkBtn = Array.from(doc.querySelectorAll('button')).find(b => b.textContent.trim() === 'Check Answer');
+            assert(checkBtn, 'Check Answer button should exist for cloze');
+            checkBtn.click();
+
+            assert(input.classList.contains('correct'), 'input should be marked correct');
+
+            const progress = JSON.parse(win.localStorage.getItem('taukei_progress') || '{}');
+            const wrongAnswers = progress.wrongAnswers || [];
+            const tracked = wrongAnswers.find(wa => wa.exerciseId === '__test_cloze_sr__');
+            assert(tracked, 'cloze exercise should be tracked in spaced repetition after correct answer');
+            assert(tracked.type === 'cloze', 'tracked type should be cloze');
+            assert(tracked.translation === '___ one', 'translation should be preserved in tracked entry');
+          }
+        },
+        {
+          name: 'cloze: buildReviewExercises reconstructs cloze from wrongAnswers record',
+          fn: () => {
+            // Create a cloze exercise, get it tracked as wrong, then verify
+            // buildReviewExercises restores it with all cloze-specific fields.
+            resetProgress();
+            const ex = { id: '__test_cloze_review__', type: 'cloze', prompt: '___ dua', translation: '___ one', answer: 'tini', explanation: 'Tini is ten.', sources: ['[2]'] };
+
+            // Simulate a wrong answer being recorded
+            win.DataManager.recordWrongAnswer(ex);
+
+            // Retrieve from progress and reconstruct
+            const progress = JSON.parse(win.localStorage.getItem('taukei_progress') || '{}');
+            const wrongAnswers = progress.wrongAnswers;
+            const tracked = wrongAnswers.find(wa => wa.exerciseId === '__test_cloze_review__');
+            assert(tracked, 'wrong answer should be tracked for cloze');
+            assert(tracked.translation === '___ one', 'translation should be stored in wrongAnswers entry');
+            assert(tracked.type === 'cloze', 'type should be stored as cloze');
+            assert(tracked.answer === 'tini', 'answer should be stored');
+
+            // Now verify buildReviewExercises reconstructs the full exercise
+            const reconstructed = win.App.buildReviewExercises(wrongAnswers);
+            const cloze = reconstructed.find(r => r.id === '__test_cloze_review__');
+            assert(cloze, 'buildReviewExercises should reconstruct cloze exercise');
+            assert(cloze.type === 'cloze', 'reconstructed type should be cloze');
+            assert(cloze.prompt === '___ dua', 'reconstructed prompt should match');
+            assert(cloze.translation === '___ one', 'reconstructed translation should match');
+            assert(cloze.answer === 'tini', 'reconstructed answer should match');
+            assert(cloze.explanation === 'Tini is ten.', 'reconstructed explanation should match');
+          }
+        },
+        {
+          name: 'matching/typing/sentence_builder/cloze exercises have non-empty explanations',
           fn: () => {
             const LESSONS = win.LESSONS;
             for (const unitId of Object.keys(LESSONS)) {
               const unit = LESSONS[unitId];
               if (!unit || !unit.exercises) continue;
               for (const ex of unit.exercises) {
-                if (ex.type === 'matching' || ex.type === 'typing' || ex.type === 'sentence_builder') {
+                if (ex.type === 'matching' || ex.type === 'typing' || ex.type === 'sentence_builder' || ex.type === 'cloze') {
                   assert(
                     ex.explanation && ex.explanation.trim() !== '',
                     `${ex.type} ${ex.id}: missing or empty explanation`
