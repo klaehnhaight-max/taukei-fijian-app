@@ -19,7 +19,7 @@
     :root {
       --primary: #1976D2;      /* Darkened: 4.65:1 on white, 4.53:1 on primary button */
       --primary-dark: #1565C0;
-      --secondary: #F57C00;    /* Darkened orange: 4.52:1 on white */
+      --secondary: #A85400;    /* Dark orange: 5.34:1 on white, 4.76:1 on --bg */
       --accent: #2EE59D;
       --bg: #F0F2F5;
       --surface: #FFFFFF;
@@ -27,7 +27,7 @@
       --text: #1A1A1A;
       --text-secondary: #333333;  /* Darker for better contrast on light backgrounds */
       --border: #E5E7EB;
-      --correct: #158a65;        /* Darker green for 4.5+ contrast on light bg */
+      --correct: #0F6B4E;        /* Darker green for 5.36:1 on correct tint bg*/
       --incorrect: #C62828;      /* Darker red for 4.5+ contrast on light bg */
       --shadow: 0 2px 8px rgba(0,0,0,0.08);
       --shadow-lg: 0 4px 20px rgba(0,0,0,0.12);
@@ -444,7 +444,7 @@
     }
 
     .feedback.correct {
-      background: rgba(16, 185, 135, 0.15);
+      background: rgba(21, 138, 101, 0.15);
       color: var(--correct);
       border: 1px solid var(--correct);
     }
@@ -1540,6 +1540,7 @@
         if (!feedback) {
           feedback = document.createElement('div');
           feedback.setAttribute('aria-live', 'polite');
+          feedback.setAttribute('tabindex', '-1');
           container.appendChild(feedback);
         }
         feedback.className = `feedback ${cssClass}`;
@@ -1585,7 +1586,7 @@
       renderIntroCard() {
         const card = this.renderNoteCard(
           '<strong>Welcome to iTaukei!</strong><br>' +
-          '<small style="color:#666">' +
+          '<small style="color:var(--text-secondary)">' +
           'Tap a lesson to start. Wrong answers come back later for review. ' +
           'Progress saves automatically on this device — signing in is ' +
           'optional, only needed for cross-device sync.' +
@@ -1812,7 +1813,7 @@
 
         // Section: Streak Freezes
         div.appendChild(this.renderNoteCard('<strong>Streak Freezes: ' + p.streakFreezes + '</strong>' +
-          '<br><small style="color:#666">Each freeze covers one missed day so your streak doesn\u0027t reset.</small>'));
+          '<br><small style="color:var(--text-secondary)">Each freeze covers one missed day so your streak doesn\u0027t reset.</small>'));
 
         // Section: Account & Sync
         let accountText;
@@ -1822,7 +1823,7 @@
         } else {
           accountText = 'Not signed in — progress is saved locally only';
         }
-        div.appendChild(this.renderNoteCard('<strong>Account & Sync</strong><br><small style="color:#666">' + accountText + '</small>'));
+        div.appendChild(this.renderNoteCard('<strong>Account & Sync</strong><br><small style="color:var(--text-secondary)">' + accountText + '</small>'));
 
         const accountBtn = document.createElement('button');
         accountBtn.className = 'btn btn-secondary';
@@ -1841,7 +1842,7 @@
         div.appendChild(accountBtn);
 
         // Section: Backup
-        div.appendChild(this.renderNoteCard('<strong>Backup</strong><br><small style="color:#666">Export or import your progress as a JSON file. Useful for switching devices or making a manual backup.</small>'));
+        div.appendChild(this.renderNoteCard('<strong>Backup</strong><br><small style="color:var(--text-secondary)">Export or import your progress as a JSON file. Useful for switching devices or making a manual backup.</small>'));
 
         const backupRow = document.createElement('div');
         backupRow.style.display = 'flex';
@@ -1879,7 +1880,7 @@
 
         if (mastered.length === 0) {
           const emptyMsg = document.createElement('div');
-          emptyMsg.style.color = '#666';
+          emptyMsg.style.color = 'var(--text-secondary)';
           emptyMsg.textContent = '\u2713 Nothing mastered yet — keep practicing!';
           div.appendChild(emptyMsg);
         } else {
