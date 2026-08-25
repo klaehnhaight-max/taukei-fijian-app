@@ -17,18 +17,18 @@
        ============================================================ */
 
     :root {
-      --primary: #4A90D9;
-      --primary-dark: #3A7BC8;
-      --secondary: #FF9F1C;
+      --primary: #1976D2;      /* Darkened: 4.65:1 on white, 4.53:1 on primary button */
+      --primary-dark: #1565C0;
+      --secondary: #F57C00;    /* Darkened orange: 4.52:1 on white */
       --accent: #2EE59D;
       --bg: #F0F2F5;
       --surface: #FFFFFF;
       --surface-alt: #F8F9FA;
       --text: #1A1A1A;
-      --text-secondary: #6B7280;
+      --text-secondary: #333333;  /* Darker for better contrast on light backgrounds */
       --border: #E5E7EB;
-      --correct: #10B981;
-      --incorrect: #EF4444;
+      --correct: #158a65;        /* Darker green for 4.5+ contrast on light bg */
+      --incorrect: #C62828;      /* Darker red for 4.5+ contrast on light bg */
       --shadow: 0 2px 8px rgba(0,0,0,0.08);
       --shadow-lg: 0 4px 20px rgba(0,0,0,0.12);
     }
@@ -67,12 +67,17 @@
       border-radius: 8px;
       padding: 2px 6px;
       margin: -2px -6px;
+      /* Removed outline: none to allow visible focus ring */
     }
 
     header h1#home-logo:hover,
     header h1#home-logo:focus-visible {
       background: var(--surface-alt);
-      outline: none;
+    }
+
+    header h1#home-logo:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
     }
 
     .header-stats {
@@ -613,6 +618,18 @@
         --border: #33353A;
         --shadow: 0 2px 8px rgba(0,0,0,0.2);
         --shadow-lg: 0 4px 20px rgba(0,0,0,0.3);
+      }
+    }
+
+    /* Reduced motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      .streak-active {
+        animation: none;
+      }
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
       }
     }
 
@@ -1709,9 +1726,23 @@
           `;
 
           if (skill.unlocked) {
-            node.addEventListener('click', () => {
+            // Make keyboard-accessible: role, tabindex, and key handler
+            node.setAttribute('role', 'button');
+            node.setAttribute('tabindex', '0');
+            node.setAttribute('aria-label', `Start lesson: ${skill.title}`);
+            const startNode = () => {
               App.startLesson(skill.id);
+              App.render();
+            };
+            node.addEventListener('click', startNode);
+            node.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                startNode();
+              }
             });
+          } else {
+            node.setAttribute('aria-disabled', 'true');
           }
           tree.appendChild(node);
         });
@@ -2106,6 +2137,7 @@
 
         const promptEl = document.createElement('div');
         promptEl.className = 'exercise-prompt';
+        promptEl.id = `exercise-prompt-${this.currentExerciseIndex}`;
         promptEl.textContent = exercise.prompt;
         // Cloze exercises show both the Fijian sentence (with blank) and an
         // English translation line so the learner has meaning context without
@@ -2187,13 +2219,14 @@
         }
         this.recordResult(exercise, isCorrect);
 
-        // Show feedback
+        // Show feedback and restore focus to the feedback region
         const card = document.getElementById(`exercise-${this.currentExerciseIndex}`);
         let message = isCorrect ? '✓ Correct!' : `✗ Incorrect. ${exercise.explanation || ''}`;
         if (!isCorrect && exercise.explanation) {
           message += ` <br><strong>Correct answer:</strong> ${exercise.choices[exercise.answer]}`;
         }
-        this.showFeedback(card, isCorrect ? 'correct' : 'incorrect', message);
+        const feedback = this.showFeedback(card, isCorrect ? 'correct' : 'incorrect', message);
+        feedback.focus();
       },
 
       renderMatching(exercise) {
@@ -2485,7 +2518,8 @@
             const message = wrongAttempts > 0
               ? `✓ Correct! (${wrongAttempts} wrong attempt${wrongAttempts > 1 ? 's' : ''} — review recommended) <span class="pronunciation-hint">Answer pronunciation: ${fijianToPhonetic(exercise.answer)}</span>${exercise.explanation ? ' ' + exercise.explanation : ''}`
               : `✓ Correct! <span class="pronunciation-hint">Answer pronunciation: ${fijianToPhonetic(exercise.answer)}</span>`;
-            this.showFeedback(card, 'correct', message);
+            const feedback = this.showFeedback(card, 'correct', message);
+            feedback.focus();
           } else if (words.length === exercise.words.length) {
             // All tiles placed but arrangement is wrong — soft-lock recovery
             wrongAttempts++;
@@ -2498,6 +2532,9 @@
               dragContainer.querySelectorAll('.drag-word').forEach(w => {
                 w.style.visibility = 'visible';
               });
+              // Restore focus to first draggable word after reset
+              const firstDraggable = dragContainer.querySelector('.drag-word');
+              if (firstDraggable) firstDraggable.focus();
             }, 700);
           }
         });
@@ -2509,10 +2546,13 @@
         const div = document.createElement('div');
         div.className = 'typing-container';
 
+        const promptId = `exercise-prompt-${this.currentExerciseIndex}`;
+        
         const input = document.createElement('input');
         input.type = 'text';
         input.className = 'typing-input';
         input.placeholder = 'Type your answer here...';
+        input.setAttribute('aria-labelledby', promptId);
 
         const checkAnswer = () => {
           if (input.disabled) return;
@@ -2526,7 +2566,7 @@
           }
           this.recordResult(exercise, isCorrect);
 
-          // Show feedback
+          // Show feedback and restore focus
           const card = document.getElementById(`exercise-${this.currentExerciseIndex}`);
 
           if (isCorrect) {
@@ -2536,6 +2576,8 @@
           }
 
           input.disabled = true;
+          // Focus the Check button as a convenient next step
+          checkBtn.focus();
         };
 
         input.addEventListener('keypress', (e) => {
@@ -2569,10 +2611,13 @@
         const div = document.createElement('div');
         div.className = 'typing-container';
 
+        const promptId = `exercise-prompt-${this.currentExerciseIndex}`;
+        
         const input = document.createElement('input');
         input.type = 'text';
         input.className = 'typing-input';
         input.placeholder = 'Type your answer here...';
+        input.setAttribute('aria-labelledby', promptId);
 
         const checkAnswer = () => {
           if (input.disabled) return;
@@ -2586,16 +2631,18 @@
           }
           this.recordResult(exercise, isCorrect);
 
-          // Show feedback
+          // Show feedback and restore focus
           const card = document.getElementById(`exercise-${this.currentExerciseIndex}`);
 
           if (isCorrect) {
-            this.showFeedback(card, 'correct', `✓ Correct! <span class=\"pronunciation-hint\">Pronunciation: ${fijianToPhonetic(exercise.answer)}</span>`);
+            this.showFeedback(card, 'correct', `✓ Correct! <span class="pronunciation-hint">Pronunciation: ${fijianToPhonetic(exercise.answer)}</span>`);
           } else {
-            this.showFeedback(card, 'incorrect', `✗ Incorrect. The correct answer is: <span class=\"correct-answer\">${exercise.answer}</span> <span class=\"pronunciation-hint\">Pronunciation: ${fijianToPhonetic(exercise.answer)}</span>${exercise.explanation ? ' ' + exercise.explanation : ''}`);
+            this.showFeedback(card, 'incorrect', `✗ Incorrect. The correct answer is: <span class="correct-answer">${exercise.answer}</span> <span class="pronunciation-hint">Pronunciation: ${fijianToPhonetic(exercise.answer)}</span>${exercise.explanation ? ' ' + exercise.explanation : ''}`);
           }
 
           input.disabled = true;
+          // Focus the Check button as a convenient next step
+          checkBtn.focus();
         };
 
         input.addEventListener('keypress', (e) => {
