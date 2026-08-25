@@ -299,10 +299,6 @@
       background: rgba(239, 68, 68, 0.1);
     }
 
-    .match-item.hidden {
-      visibility: hidden;
-    }
-
     /* Multiple Choice */
     .choice-list {
       display: flex;
@@ -563,15 +559,6 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
-    }
-
-    .bounce {
-      animation: bounce 0.6s ease;
-    }
-
     /* Streak flame */
     .streak-active {
       color: var(--secondary);
@@ -674,37 +661,7 @@
     }
 
     /* Modal */
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 200;
-    }
-
-    .modal-content {
-      background: var(--surface);
-      border-radius: 20px;
-      padding: 32px;
-      max-width: 400px;
-      width: 90%;
-      text-align: center;
-    }
-
-    .modal h3 {
-      font-size: 1.3rem;
-      margin-bottom: 16px;
-    }
-
-    .modal p {
-      color: var(--text-secondary);
-      margin-bottom: 24px;
-    }
+    /* Modal styles have been removed - app uses confirm()/alert() instead */
 
     /* Responsive */
     @media (max-width: 480px) {
@@ -1222,16 +1179,6 @@
         return this.getWrongAnswersForReview().length;
       },
 
-      useStreakFreeze() {
-        const p = this.progress;
-        if (p.streakFreezes > 0) {
-          p.streakFreezes -= 1;
-          this.saveProgress();
-          return true;
-        }
-        return false;
-      },
-
       addStreakFreeze(count = 1) {
         // Can be called as a reward for completing lessons
         const p = this.progress;
@@ -1484,16 +1431,6 @@
       return normalizeForCompare(s).replace(/[^\w]/g, '');
     }
     window.normalizeSentence = normalizeSentence;
-
-    // Add inline phonetic guide to exercise prompt
-    function addPronunciationHint(promptEl, fijianText) {
-      if (!fijianText) return;
-      const phonetic = fijianToPhonetic(fijianText);
-      const hint = document.createElement('div');
-      hint.className = 'pronunciation-hint';
-      hint.innerHTML = `<small>(${phonetic})</small>`;
-      promptEl.appendChild(hint);
-    }
 
     // ─── App Router ────────────────────────────────────────────
     const App = {
@@ -2180,10 +2117,8 @@
             card.appendChild(this.renderSentenceBuilder(exercise));
             break;
           case 'typing':
-            card.appendChild(this.renderTyping(exercise));
-            break;
           case 'cloze':
-            card.appendChild(this.renderCloze(exercise));
+            card.appendChild(this.renderTyping(exercise));
             break;
         }
 
@@ -2279,7 +2214,6 @@
         let matches = {};
         let completed = false;
         let wrongCount = 0;
-        let correctCount = 0;
         // Track wrong attempts per pair for individual spaced-repetition tracking
         const wrongPerPair = {};
         // Track which pairs are matched (to disable their tiles)
@@ -2314,7 +2248,6 @@
               selectedLeft = null;
               matches[pairKey] = true;
               matchedPairs.add(pairKey);
-              correctCount++;
 
               // Record this pair result for spaced repetition
               const pairIndex = parseInt(pairKey);
@@ -2415,7 +2348,6 @@
         let completed = false;
         let resultPushed = false;
         let wrongAttempts = 0;
-        let droppedCount = 0;
 
         // Shuffle words
         const shuffledWords = [...exercise.words].sort(() => Math.random() - 0.5);
@@ -2491,7 +2423,6 @@
           }
 
           // Track attempts
-          droppedCount++;
           const placedWords = target.querySelectorAll('.sentence-word');
           const current = Array.from(placedWords).map(w => w.textContent).join('');
           const answer = normalizeSentence(exercise.answer);
@@ -2564,77 +2495,6 @@
       },
 
       renderTyping(exercise) {
-        const div = document.createElement('div');
-        div.className = 'typing-container';
-
-        const promptId = `exercise-prompt-${this.currentExerciseIndex}`;
-        
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.className = 'typing-input';
-        input.placeholder = 'Type your answer here...';
-        input.setAttribute('aria-labelledby', promptId);
-
-        const checkAnswer = () => {
-          if (input.disabled) return;
-          const trimmed = input.value.trim();
-          if (!trimmed) {
-            // Empty submission — do nothing
-            input.focus();
-            return;
-          }
-          const isCorrect = this.checkTextAnswer(exercise, input.value);
-          if (isCorrect) {
-            input.classList.add('correct');
-            input.classList.remove('incorrect');
-          } else {
-            input.classList.add('incorrect');
-            input.classList.remove('correct');
-          }
-          this.recordResult(exercise, isCorrect);
-
-          // Show feedback and restore focus
-          const card = document.getElementById(`exercise-${this.currentExerciseIndex}`);
-
-          if (isCorrect) {
-            this.showFeedback(card, 'correct', `✓ Correct! <span class="pronunciation-hint">Pronunciation: ${fijianToPhonetic(exercise.answer)}</span>`);
-          } else {
-            this.showFeedback(card, 'incorrect', `✗ Incorrect. The correct answer is: <span class="correct-answer">${exercise.answer}</span> <span class="pronunciation-hint">Pronunciation: ${fijianToPhonetic(exercise.answer)}</span>${exercise.explanation ? ' ' + exercise.explanation : ''}`);
-          }
-
-          input.disabled = true;
-          // Focus the Check button as a convenient next step
-          checkBtn.focus();
-        };
-
-        input.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            checkAnswer();
-          }
-        });
-
-        div.appendChild(input);
-
-        // Add Check button as a redundant submit path for touch devices
-        const checkBtn = document.createElement('button');
-        checkBtn.className = 'btn btn-secondary btn-block';
-        checkBtn.textContent = 'Check Answer';
-        checkBtn.style.marginTop = '12px';
-        checkBtn.addEventListener('click', checkAnswer);
-        div.appendChild(checkBtn);
-
-        if (exercise.note) {
-          const note = document.createElement('div');
-          note.className = 'sources-note';
-          note.innerHTML = `<strong>💡 Note:</strong> ${exercise.note}`;
-          div.appendChild(note);
-        }
-
-        return div;
-      },
-
-      renderCloze(exercise) {
         const div = document.createElement('div');
         div.className = 'typing-container';
 
