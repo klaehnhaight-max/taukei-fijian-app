@@ -260,7 +260,7 @@ const LESSONS = {
         type: "multiple_choice",
         id: "unit3-4",
         prompt: "How do you say 'we (inclusive)' in Fijian?",
-        choices: ["keirau", "irato", "keda", "koyamada"],
+        choices: ["keirau", "irato", "keda", "au"],
         answer: 2,
         explanation: "'keda' = we inclusive (including the person we're speaking to). 'keirau' is exclusive (not including them). [2][4][5]",
         sources: ["[2]", "[4]", "[5]"]
