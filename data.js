@@ -385,8 +385,16 @@ const LESSONS = {
         note: "'nona' = throat, used with possessive 'noqu' (my). [7][11]",
         sources: ["[7]", "[11]"],
         explanation: 'Nona plus -qu forms noqu nona (my throat) — the same noun plus possessive suffix pattern as other body part terms.',
+      },
+      {
+        type: "typing",
+        id: "unit5-5",
+        prompt: "What is 'ulu' in English?",
+        answer: "head",
+        explanation: "'Ulu' means head — a basic body part taught alongside mata (eye), ucu (nose), and the other words in unit5-1's matching exercise. [6][7][11]",
+        sources: ["[6]", "[7]", "[11]"]
       }
-    ]
+    ],
   },
 
   "unit6": {
@@ -449,8 +457,16 @@ const LESSONS = {
         note: "In Fijian, color + object: 'Na waqa damudamu' = 'the red car'. [7]",
         sources: ["[7]"],
         explanation: 'Na plus waqa plus damudamu = na waqa damudamu (the red car) — the article na precedes the noun and its color modifier.',
+      },
+      {
+        type: "typing",
+        id: "unit6-5",
+        prompt: "Type the Fijian word for 'red'",
+        answer: "damudamu",
+        explanation: "Damudamu means red — one of the six basic colors taught in unit6-1's matching exercise, and it appears in the sentence 'Na waqa damudamu' (the red car). [7][12]",
+        sources: ["[7]", "[12]"]
       }
-    ]
+    ],
   },
 
   "unit7": {
@@ -543,6 +559,14 @@ const LESSONS = {
         answer: "kana",
         explanation: "Kana means 'eat' — as in 'Au kana' (I eat). The structure is subject (Au) + verb (kana) + article (na) + object (dalo = taro). [1][6][7][8]",
         sources: ["[1]", "[6]", "[7]", "[8]"]
+      },
+      {
+        type: "typing",
+        id: "unit7-7",
+        prompt: "What is 'dalo' in English?",
+        answer: "taro",
+        explanation: "'Dalo' means taro — a staple food taught in unit7-1-a's matching exercise alongside ika (fish), lewe (meat), and other food words. [1][6][7]",
+        sources: ["[1]", "[6]", "[7]"]
       }
     ],
   },
@@ -613,8 +637,16 @@ const LESSONS = {
         answer: 0,
         explanation: "'O ni lako mai vei?' = Where are you from? 'ni lako mai' = coming/going. [9]",
         sources: ["[9]"]
+      },
+      {
+        type: "typing",
+        id: "unit8-6",
+        prompt: "Type the Fijian word for 'what'",
+        answer: "cava",
+        explanation: "'Cava' means what — the basic question word taught in unit8-1-a's matching exercise alongside cei (who), ko (where), and naica (when). [1][5][8][9]",
+        sources: ["[1]", "[5]", "[8]", "[9]"]
       }
-    ]
+    ],
   },
 
   "unit9": {
@@ -688,6 +720,14 @@ const LESSONS = {
         answer: 0,
         explanation: "'E donu me o vosa vaka-Vavalagi?' = Can you speak English? 'vaka-Vavalagi' = like/for English. [1][8]",
         sources: ["[1]", "[8]"]
+      },
+      {
+        type: "typing",
+        id: "unit9-6",
+        prompt: "Type the Fijian word for 'drink'",
+        answer: "gunu",
+        explanation: "'Gunu' means drink — one of the basic action verbs taught in unit9-1-a's matching exercise alongside kana (eat), lako (go), and mai (come). [1][5][7][9]",
+        sources: ["[1]", "[5]", "[7]", "[9]"]
       }
     ]
   },
@@ -817,8 +857,16 @@ const LESSONS = {
         note: "In Fijian, adjectives follow nouns: 'kolī levu' = big dog (noun + adjective order, consistent with Units 12-13). [7][10]",
         sources: ["[7]", "[10]"],
         explanation: 'Kolī plus levu = kolī levu (big dog) — the adjective follows the noun, the standard Fijian noun phrase word order.',
+      },
+      {
+        type: "typing",
+        id: "unit11-6",
+        prompt: "Type the Fijian word for 'dog'",
+        answer: "kolī",
+        explanation: "'Kolī' means dog — the singular form (note the long vowel); the plural 'kolī' is taught in unit11-1's matching exercise alongside manumanu (animal), ika (fish), and gata (snake). [7][10]",
+        sources: ["[7]", "[10]"]
       }
-    ]
+    ],
   },
 
   "unit12": {
@@ -892,8 +940,16 @@ const LESSONS = {
         note: "'Siga levu' = big sun / shining sun. In Fijian, modifiers follow the noun. [7]",
         sources: ["[7]"],
         explanation: 'Siga plus levu = siga levu (big sun) — the adjective follows the noun, as with other Fijian noun phrases.',
+      },
+      {
+        type: "typing",
+        id: "unit12-6",
+        prompt: "What is 'siga' in English?",
+        answer: "sun",
+        explanation: "'Siga' means sun or day — one of the six nature words taught in unit12-1-a's matching exercise alongside vula (moon), kalokalo (star), and uca (rain). [7]",
+        sources: ["[7]"]
       }
-    ]
+    ],
   },
 
   "unit13": {
@@ -967,8 +1023,16 @@ const LESSONS = {
         note: "'Wai vinaka' = good water. In Fijian, the modifier follows the noun: '[noun] [adjective]'. [7]",
         sources: ["[7]"],
         explanation: 'Wai plus vinaka = wai vinaka (good water) — the adjective follows the noun, consistent with Fijian noun phrase structure.',
+      },
+      {
+        type: "typing",
+        id: "unit13-6",
+        prompt: "Type the Fijian word for 'big'",
+        answer: "levu",
+        explanation: "'Levu' means big or many — one of the six basic adjectives taught in unit13-1-a's matching exercise alongside lailai (small), balavu (long), and leka (short). [7]",
+        sources: ["[7]"]
       }
-    ]
+    ],
   },
 
   "unit14": {
