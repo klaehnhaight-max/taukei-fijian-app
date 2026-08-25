@@ -1005,6 +1005,7 @@
           // Wrong answer on an already-tracked item: reset to shortest interval
           existing.timestamp = now;
           existing.reviewCount = 0;
+          existing.intervalIndex = 0; // Must reset intervalIndex!
           existing.nextReviewAt = now + 1 * dayInMs; // review again in 1 day
           existing.correctStreak = 0;
           existing.mastered = false; // un-graduate: a mastered item got wrong again
@@ -1030,19 +1031,26 @@
 
         if (existing) {
           // Already in pool — correct answer means advance the interval
-          const intervals = [1, 3, 7, 14, 30, 90]; // days: Leitner-like
-          existing.intervalIndex = Math.min(existing.intervalIndex + 1, intervals.length - 1);
-          existing.nextReviewAt = now + intervals[existing.intervalIndex] * dayInMs;
-          existing.lastCorrect = now;
-          // Graduation: after 2 consecutive correct at max interval, mark mastered
-          if (existing.intervalIndex >= intervals.length - 1) {
-            existing.correctStreak = (existing.correctStreak || 0) + 1;
-            if (existing.correctStreak >= 2) {
-              existing.mastered = true;
+          // BUT only if the item was actually due (or never had a lastCorrect)
+          const nowTime = Date.now();
+          const wasDue = !existing.lastCorrect || existing.nextReviewAt <= nowTime;
+          
+          if (wasDue) {
+            const intervals = [1, 3, 7, 14, 30, 90]; // days: Leitner-like
+            existing.intervalIndex = Math.min(existing.intervalIndex + 1, intervals.length - 1);
+            existing.nextReviewAt = nowTime + intervals[existing.intervalIndex] * dayInMs;
+            existing.lastCorrect = nowTime;
+            // Graduation: after 2 consecutive correct at max interval, mark mastered
+            if (existing.intervalIndex >= intervals.length - 1) {
+              existing.correctStreak = (existing.correctStreak || 0) + 1;
+              if (existing.correctStreak >= 2) {
+                existing.mastered = true;
+              }
+            } else {
+              existing.correctStreak = 0;
             }
-          } else {
-            existing.correctStreak = 0;
           }
+          // If not due yet, this correct answer is a no-op for scheduling
         } else {
           // Correct answer on first encounter — add to pool with longer delay
           p.wrongAnswers.push(this._buildTrackedEntry(exercise, {
@@ -1062,23 +1070,29 @@
         const p = this.progress;
         const trackedId = `${exerciseId}::pair::${pairIndex}`;
         const existing = p.wrongAnswers.find(wa => wa.exerciseId === trackedId);
-        const now = Date.now();
+        const nowTime = Date.now();
         const dayInMs = 24 * 60 * 60 * 1000;
         const intervals = [1, 3, 7, 14, 30, 90]; // days: Leitner-like
 
         if (existing) {
           // Already in pool — correct answer means advance the interval
-          existing.intervalIndex = Math.min(existing.intervalIndex + 1, intervals.length - 1);
-          existing.nextReviewAt = now + intervals[existing.intervalIndex] * dayInMs;
-          existing.lastCorrect = now;
-          if (existing.intervalIndex >= intervals.length - 1) {
-            existing.correctStreak = (existing.correctStreak || 0) + 1;
-            if (existing.correctStreak >= 2) {
-              existing.mastered = true;
+          // BUT only if the item was actually due (or never had a lastCorrect)
+          const wasDue = !existing.lastCorrect || existing.nextReviewAt <= nowTime;
+          
+          if (wasDue) {
+            existing.intervalIndex = Math.min(existing.intervalIndex + 1, intervals.length - 1);
+            existing.nextReviewAt = nowTime + intervals[existing.intervalIndex] * dayInMs;
+            existing.lastCorrect = nowTime;
+            if (existing.intervalIndex >= intervals.length - 1) {
+              existing.correctStreak = (existing.correctStreak || 0) + 1;
+              if (existing.correctStreak >= 2) {
+                existing.mastered = true;
+              }
+            } else {
+              existing.correctStreak = 0;
             }
-          } else {
-            existing.correctStreak = 0;
           }
+          // If not due yet, this correct answer is a no-op for scheduling
         } else {
           // First encounter — add to pool with initial delay
           const syntheticExercise = {
@@ -1088,11 +1102,11 @@
             id: trackedId
           };
           p.wrongAnswers.push(this._buildTrackedEntry(syntheticExercise, {
-            timestamp: now,
+            timestamp: nowTime,
             reviewCount: 0,
-            nextReviewAt: now + 7 * dayInMs,
+            nextReviewAt: nowTime + 7 * dayInMs,
             intervalIndex: 2,
-            lastCorrect: now
+            lastCorrect: nowTime
           }));
         }
         this.saveProgress();
@@ -1109,6 +1123,7 @@
           // Wrong answer on already-tracked item: reset to shortest interval
           existing.timestamp = now;
           existing.reviewCount = 0;
+          existing.intervalIndex = 0; // MUST reset intervalIndex!
           existing.nextReviewAt = now + 1 * dayInMs;
           existing.correctStreak = 0;
           existing.mastered = false;
@@ -1134,7 +1149,6 @@
         const p = this.progress;
         const today = new Date().toDateString();
         const yesterday = new Date(Date.now() - 86400000).toDateString();
-        const dayInMs = 24 * 60 * 60 * 1000;
 
         // Already active today, nothing to change
         if (p.lastActive === today) {
@@ -1142,9 +1156,12 @@
         }
 
         if (p.lastActive && p.lastActive !== today) {
-          // Calculate how many days were missed
+          // Calculate days since using calendar dates (not elapsed ms) to handle DST
           const lastDate = new Date(p.lastActive);
-          const daysSince = Math.floor((Date.now() - lastDate.getTime()) / dayInMs);
+          const todayDate = new Date();
+          const lastDateOnly = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
+          const todayDateOnly = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
+          const daysSince = Math.floor((todayDateOnly - lastDateOnly) / (24 * 60 * 60 * 1000));
 
           if (daysSince === 1) {
             // Just yesterday — streak continues
@@ -1155,16 +1172,16 @@
             if ((p.streakFreezes || 0) >= freezesNeeded) {
               p.streakFreezes -= freezesNeeded;
               p.streak += 1; // Streak saved (only counts today as active)
-            } else if ((p.streakFreezes || 0) > 0) {
-              // Partial freeze coverage — cover some missed days, streak still breaks
-              const covered = p.streakFreezes;
-              p.streakFreezes = 0;
-              p.streak = 1;
-              console.log(`Partial freeze: covered ${covered} of ${freezesNeeded} missed days`);
             } else {
-              // No freezes — streak broken
+              // Insufficient freezes to cover all missed days — streak breaks
+              // IMPORTANT: Do NOT consume freezes when coverage is partial.
+              // They should remain available for future use.
               p.streak = 1;
+              console.log(`Streak broken: need ${freezesNeeded} freezes, have ${(p.streakFreezes || 0)}`);
             }
+          } else {
+            // Same calendar day transition (shouldn't happen normally but handle gracefully)
+            p.streak += 0; // no change
           }
         } else {
           // First day ever
@@ -1411,14 +1428,15 @@
     }
 
     // Normalize text for answer-comparison: lowercase, collapse whitespace,
-    // and strip diacritics (e.g. macrons like "ū") via Unicode NFD
+    // strip diacritics (e.g. macrons like "ū") and punctuation via Unicode NFD
     // decomposition so answers typed on a plain keyboard ("tu") still match
     // an answer key that uses the correct diacritic ("tū"). Exposed on
     // window so the regression harness (test.html) can exercise the exact
-    // comparison logic the typing exercise uses, not a re-implementation.
+    // comparison logic the typing exercise uses, not a reimplementation.
     function normalizeForCompare(s) {
       return s.trim().toLowerCase().replace(/\s+/g, ' ')
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^\w\s]/g, ''); // Strip punctuation (matching normalizeSentence behavior)
     }
     window.normalizeForCompare = normalizeForCompare;
 
@@ -2210,6 +2228,8 @@
         let correctCount = 0;
         // Track wrong attempts per pair for individual spaced-repetition tracking
         const wrongPerPair = {};
+        // Track which pairs are matched (to disable their tiles)
+        const matchedPairs = new Set();
 
         // Render English column (right side / answers)
         englishWords.forEach((word, i) => {
@@ -2226,6 +2246,11 @@
           const handleMatch = () => {
             if (completed || !selectedLeft) return;
             const pairKey = selectedLeft.dataset.pairKey;
+            
+            // Skip if either tile is already matched
+            if (matchedPairs.has(pairKey)) return;
+            if (matchedPairs.has(item.dataset.pairKey)) return;
+            
             const isMatch = pairKey === item.dataset.pairKey;
 
             if (isMatch) {
@@ -2234,6 +2259,7 @@
               selectedLeft.classList.remove('selected');
               selectedLeft = null;
               matches[pairKey] = true;
+              matchedPairs.add(pairKey);
               correctCount++;
 
               // Record this pair result for spaced repetition
@@ -2294,6 +2320,8 @@
 
           const handleSelect = () => {
             if (completed) return;
+            // Don't allow selecting an already-matched pair
+            if (matchedPairs.has(item.dataset.pairKey)) return;
             if (selectedLeft && selectedLeft !== item) {
               selectedLeft.classList.remove('selected');
             }
@@ -2733,12 +2761,20 @@
             // Review this session's mistakes directly, not the scheduled
             // due-queue (those items have nextReviewAt = now + 1 day and
             // won't show up via getWrongAnswersForReview()).
-            this.startReviewWith(sessionMistakes.map(ex => ({
-              type: ex.type, prompt: ex.prompt, answer: ex.answer,
-              exerciseId: ex.id,
-              choices: ex.choices, pairs: ex.pairs, words: ex.words,
-              explanation: ex.explanation, note: ex.note, sources: ex.sources
-            })));
+            // Build proper review entries with all fields _buildTrackedEntry expects
+            const reviewEntries = sessionMistakes.map(ex => {
+              const entry = {
+                type: ex.type, prompt: ex.prompt, answer: ex.answer,
+                exerciseId: ex.id,
+                choices: ex.choices, pairs: ex.pairs, words: ex.words,
+                explanation: ex.explanation, note: ex.note, sources: ex.sources
+              };
+              // Include altAnswers and translation if present
+              if (ex.altAnswers) entry.altAnswers = ex.altAnswers;
+              if (ex.translation) entry.translation = ex.translation;
+              return entry;
+            });
+            this.startReviewWith(reviewEntries);
             this.render();
           });
           div.appendChild(reviewBtn);
