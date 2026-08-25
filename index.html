@@ -3051,14 +3051,19 @@
 
     // ─── Initialize ─────────────────────────────────────────────
     function loadFirebaseSDK(callback) {
-      // Always call App.init() first to render the app from cache
-      // Firebase SDK loading is background-only and won't affect core functionality
-      App.init();
+      // Offline short-circuit: skip Firebase loading if offline
+      if (!navigator.onLine) {
+        callback();
+        return;
+      }
+
+      const failed = false;
       
       // Timeout fallback: if Firebase hasn't loaded in 8s, proceed anyway
       const timeout = setTimeout(() => {
         console.log('Firebase SDK timeout - proceeding without cloud sync');
-        if (!failed) callback();
+        failed = true;
+        callback();
       }, 8000);
       
       const urls = [
@@ -3067,7 +3072,6 @@
         'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js'
       ];
       let loaded = 0;
-      let failed = false;
       urls.forEach(src => {
         const s = document.createElement('script');
         s.src = src;
@@ -3090,6 +3094,7 @@
     }
     window.loadFirebaseSDK = loadFirebaseSDK;
 
+    App.init();
     loadFirebaseSDK(() => {
       FirebaseSync.init();
     });
