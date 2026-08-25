@@ -2270,13 +2270,14 @@
             if (isMatch) {
               item.classList.add('correct');
               selectedLeft.classList.add('correct');
-              if (selectedLeft) selectedLeft.removeAttribute('aria-pressed');
-            selectedLeft.classList.remove('selected');
+              if (selectedLeft) {
+                selectedLeft.removeAttribute('aria-pressed');
+                selectedLeft.classList.remove('selected');
+                selectedLeft.removeAttribute('tabindex');
+              }
               selectedLeft = null;
               matches[pairKey] = true;
               matchedPairs.add(pairKey);
-              // Remove tabindex from matched tiles so keyboard users don't tab through them
-              if (selectedLeft) selectedLeft.removeAttribute('tabindex');
               item.removeAttribute('tabindex');
 
               // Record this pair result for spaced repetition
@@ -3056,6 +3057,7 @@
 
         const errorEl = document.createElement('div');
         errorEl.id = 'auth-error';
+        errorEl.setAttribute('role', 'alert');
         errorEl.className = 'auth-error';
         errorEl.setAttribute('role', 'alert');
         errorEl.setAttribute('aria-live', 'polite');
@@ -3096,7 +3098,7 @@
         return;
       }
 
-      const failed = false;
+      let failed = false;
       
       // Timeout fallback: if Firebase hasn't loaded in 8s, proceed anyway
       const timeout = setTimeout(() => {

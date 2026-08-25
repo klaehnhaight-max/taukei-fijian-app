@@ -209,13 +209,15 @@
           }
         },
         {
-          name: 'recordCorrectAnswer() advances the spaced-repetition interval',
+          name: 'recordCorrectAnswer() advances the spaced-repetition interval when due',
           fn: () => {
             resetProgress();
             const ex = { id: '__test_ex_interval__', type: 'typing', prompt: 'p', answer: 'a' };
             win.DataManager.recordCorrectAnswer(ex);
             let wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
             assert(wa && wa.intervalIndex === 2, `expected intervalIndex 2 after first correct, got ${wa && wa.intervalIndex}`);
+            // Make item due so next correct advances it
+            wa.nextReviewAt = Date.now() - 1000;
             win.DataManager.recordCorrectAnswer(ex);
             wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
             assert(wa.intervalIndex === 3, `expected intervalIndex 3 after second correct, got ${wa.intervalIndex}`);
@@ -264,16 +266,26 @@
           }
         },
         {
-          name: 'spaced-repetition item graduates to mastered after 2 consecutive correct at max interval',
+          name: 'spaced-repetition item graduates to mastered after 2 consecutive correct at max interval (when due)',
           fn: () => {
             resetProgress();
             const ex = { id: '__test_ex_graduate__', type: 'typing', prompt: 'p', answer: 'a' };
-            for (let i = 0; i < 4; i++) win.DataManager.recordCorrectAnswer(ex);
+            // First correct - due immediately
+            win.DataManager.recordCorrectAnswer(ex);
             let wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
-            assert(!wa.mastered, `should not be mastered yet after 4 correct answers (got mastered=${wa.mastered})`);
-            win.DataManager.recordCorrectAnswer(ex); // 5th correct: 2nd in a row at max interval
+            // Make it due and repeat correct until max interval
+            for (let i = 0; i < 4; i++) {
+              wa.nextReviewAt = Date.now() - 1000;
+              win.DataManager.recordCorrectAnswer(ex);
+              wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
+            }
+            assert(wa.intervalIndex === 4, `expected intervalIndex 4, got ${wa.intervalIndex}`);
+            assert(!wa.mastered, `should not be mastered yet`);
+            // Make it due and get 2nd consecutive correct at max interval
+            wa.nextReviewAt = Date.now() - 1000;
+            win.DataManager.recordCorrectAnswer(ex);
             wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
-            assert(wa.mastered === true, `expected mastered=true after 5 correct answers, got ${wa.mastered}`);
+            assert(wa.mastered === true, `expected mastered=true after 2 consecutive correct at max interval, got ${wa.mastered}`);
           }
         },
         {
@@ -281,11 +293,16 @@
           fn: () => {
             resetProgress();
             const ex = { id: '__test_ex_ungraduate__', type: 'typing', prompt: 'p', answer: 'a' };
-            for (let i = 0; i < 5; i++) win.DataManager.recordCorrectAnswer(ex);
-            let wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
+            // Build up to mastered by making each correct due
+            let wa;
+            for (let i = 0; i < 6; i++) {
+              if (wa) wa.nextReviewAt = Date.now() - 1000;
+              win.DataManager.recordCorrectAnswer(ex);
+              wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
+            }
             assert(wa.mastered === true, 'setup failed: item should be mastered before this check');
 
-            wa.nextReviewAt = Date.now() - 1000; // force "due"
+            // Mastered items should never show in review queue
             let due = win.DataManager.getWrongAnswersForReview().map(w => w.exerciseId);
             assert(!due.includes(ex.id), 'a mastered item should NOT show up for review even if nextReviewAt is due');
 
