@@ -101,6 +101,24 @@ const LESSONS = {
         answer: "yadra",
         explanation: "'Yadra' means morning — as in 'Ni sa yadra' (good morning), a standard greeting taught alongside 'Ni sa bula' (good day). [1][8][9]",
         sources: ["[1]", "[8]", "[9]"]
+      },
+      {
+        type: "multiple_choice",
+        id: "unit1-7",
+        prompt: "What does 'Vinaka' mean?",
+        choices: ["hello", "thank you", "goodbye", "see you later"],
+        answer: 1,
+        explanation: "'Vinaka' is the standard Fijian word for 'thank you' — a core greeting taught alongside 'io' (yes), 'sega' (no), and 'moce' (goodbye) in unit1-1's matching exercise. [1][8]",
+        sources: ["[1]", "[8]"]
+      },
+      {
+        type: "multiple_choice",
+        id: "unit1-8",
+        prompt: "What does 'Moce' mean?",
+        choices: ["hello", "good morning", "goodbye", "see you later"],
+        answer: 2,
+        explanation: "'Moce' means goodbye — one of the six basic greetings taught in unit1-1's matching exercise, paired with 'bula' (hello) and 'sota tale' (see you later). [1][8]",
+        sources: ["[1]", "[8]"]
       }
     ],
   },
@@ -174,6 +192,15 @@ const LESSONS = {
         answer: "tini",
         explanation: "Tini is the Fijian word for ten; combined with dua (one) it forms tini dua, following the number compounding pattern shown in this unit's sentence_builder. [2][7]",
         sources: ["[2]", "[7]"]
+      },
+      {
+        type: "multiple_choice",
+        id: "unit2-6",
+        prompt: "What does 'lima' mean?",
+        choices: ["one", "two", "five", "six"],
+        answer: 2,
+        explanation: "'Lima' means five — one of the basic numbers 1-20 taught in unit2-1's matching exercise; it also means 'hand' in some contexts. [2][7]",
+        sources: ["[2]", "[7]"]
       }
     ],
   },
@@ -245,6 +272,24 @@ const LESSONS = {
         translation: "I go",
         answer: "Au",
         explanation: "Au is the Fijian first-person singular pronoun meaning 'I' — it attaches directly to the verb with no space in spoken Fijian, but is written separately, as in 'Au lako' (I go). [2][5]",
+        sources: ["[2]", "[5]"]
+      },
+      {
+        type: "multiple_choice",
+        id: "unit3-6",
+        prompt: "What does 'koya' mean?",
+        choices: ["I", "you", "he/she", "we (inclusive)"],
+        answer: 2,
+        explanation: "'Koya' means he or she — the third-person singular pronoun taught in unit3-1-a's matching exercise alongside au (I), iko (you), and keda (we inclusive). [2][5]",
+        sources: ["[2]", "[5]"]
+      },
+      {
+        type: "multiple_choice",
+        id: "unit3-7",
+        prompt: "What does 'iko' mean?",
+        choices: ["I", "you", "he/she", "they"],
+        answer: 1,
+        explanation: "'Iko' means you (singular) — the second-person pronoun taught in unit3-1-a's matching exercise; it also functions as a verb in 'e vica na isau?' constructions. [2][5]",
         sources: ["[2]", "[5]"]
       }
     ],
