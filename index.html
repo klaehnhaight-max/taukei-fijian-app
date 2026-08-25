@@ -899,6 +899,7 @@
     const DataManager = {
       // Progress is stored in localStorage under key 'taukei_progress'
       _progressCache: null,
+      _progressVersion: 1,
 
       get progress() {
         if (this._progressCache) {
@@ -907,7 +908,9 @@
         const raw = localStorage.getItem('taukei_progress');
         if (raw) {
           try {
-            return this._progressCache = JSON.parse(raw);
+            const parsed = JSON.parse(raw);
+            // Merge parsed progress over defaults to ensure all fields exist
+            return this._progressCache = { ...this._defaultProgress(), ...parsed };
           } catch(e) {
             console.warn('Corrupted progress data in localStorage, resetting to defaults', e);
             localStorage.removeItem('taukei_progress');
@@ -931,7 +934,8 @@
           completedLessons: [],
           lessonMastery: {},
           wrongAnswers: [],
-          totalXP: {}
+          totalXP: {},
+          version: 1
         };
       },
 
@@ -1233,9 +1237,10 @@
       // Overwrite all progress with an imported object (see Export/Import
       // Progress in the home screen). Caller is responsible for confirming
       // with the user first, since this clobbers whatever's here now.
+      // Merges over defaults to ensure all required fields exist.
       importProgress(newProgress) {
-        this._progressCache = newProgress;
-        localStorage.setItem('taukei_progress', JSON.stringify(newProgress));
+        this._progressCache = { ...this._defaultProgress(), ...newProgress };
+        localStorage.setItem('taukei_progress', JSON.stringify(this._progressCache));
       },
 
       getMasteredWords() {
@@ -1297,8 +1302,8 @@
             const localTime = localProgress.lastModified || 0;
             // Most-recent-modified wins
             if (cloudTime > localTime) {
-              // Cloud is newer — use it
-              DataManager._progressCache = { ...cloudProgress };
+              // Cloud is newer — use it (merge over defaults to ensure all fields exist)
+              DataManager._progressCache = { ...DataManager._defaultProgress(), ...cloudProgress };
               // Re-save to localStorage to keep them in sync
               localStorage.setItem('taukei_progress', JSON.stringify(DataManager.progress));
               // Update streak check with new data
@@ -1986,7 +1991,11 @@
       // Set up App state for a review session from a list of due
       // wrongAnswers entries. Does not render — callers render afterward
       // in whichever way fits their context (see startReview/renderReview).
+      // If wrongAnswers is empty, this is a no-op (never renders).
       startReviewWith(wrongAnswers) {
+        if (!wrongAnswers || wrongAnswers.length === 0) {
+          return;
+        }
         this.currentLesson = {
           title: 'Review',
           description: 'Practice answers you got wrong',
@@ -2390,9 +2399,13 @@
           target.classList.remove('drag-over');
           const word = e.dataTransfer.getData('text/plain');
 
-          // Check if word is already used
-          if (target.dataset.used && target.dataset.used.includes(word)) {
-            return;
+          // Check if word is already used (token-based comparison to avoid substring false positives)
+          // e.g., words ["o","cei","ko","iko"] - .includes("o") would match "iko" and "ko" as substrings
+          if (target.dataset.used) {
+            const usedWords = target.dataset.used.split(',').filter(w => w);
+            if (usedWords.includes(word)) {
+              return;
+            }
           }
 
           // Track attempts
@@ -2704,7 +2717,13 @@
         });
         div.appendChild(btn);
 
-        if (data.accuracy < 100 && !this.reviewMode) {
+        // Compute session mistakes first - skipped exercises affect accuracy but aren't mistakes
+        const sessionMistakes = this.exerciseResults
+          .filter(r => !r.correct)
+          .map(r => r.exercise);
+        const hasMistakes = sessionMistakes.length > 0;
+
+        if (data.accuracy < 100 && hasMistakes && !this.reviewMode) {
           const reviewBtn = document.createElement('button');
           reviewBtn.className = 'btn btn-secondary';
           reviewBtn.textContent = 'Review Mistakes';
@@ -2714,9 +2733,6 @@
             // Review this session's mistakes directly, not the scheduled
             // due-queue (those items have nextReviewAt = now + 1 day and
             // won't show up via getWrongAnswersForReview()).
-            const sessionMistakes = this.exerciseResults
-              .filter(r => !r.correct)
-              .map(r => r.exercise);
             this.startReviewWith(sessionMistakes.map(ex => ({
               type: ex.type, prompt: ex.prompt, answer: ex.answer,
               exerciseId: ex.id,
@@ -3047,7 +3063,16 @@
 
     // ─── Initialize ─────────────────────────────────────────────
     function loadFirebaseSDK(callback) {
-      if (!navigator.onLine) { callback(); return; }
+      // Always call App.init() first to render the app from cache
+      // Firebase SDK loading is background-only and won't affect core functionality
+      App.init();
+      
+      // Timeout fallback: if Firebase hasn't loaded in 8s, proceed anyway
+      const timeout = setTimeout(() => {
+        console.log('Firebase SDK timeout - proceeding without cloud sync');
+        if (!failed) callback();
+      }, 8000);
+      
       const urls = [
         'https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js',
         'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js',
@@ -3058,8 +3083,20 @@
       urls.forEach(src => {
         const s = document.createElement('script');
         s.src = src;
-        s.onload = () => { if (++loaded === urls.length && !failed) callback(); };
-        s.onerror = () => { if (!failed) { failed = true; callback(); } };
+        s.async = false; // Ensure scripts execute in order (auth-compat depends on app-compat)
+        s.onload = () => {
+          if (++loaded === urls.length && !failed) {
+            clearTimeout(timeout);
+            callback();
+          }
+        };
+        s.onerror = () => {
+          if (!failed) {
+            failed = true;
+            clearTimeout(timeout);
+            if (loaded < urls.length) callback();
+          }
+        };
         document.head.appendChild(s);
       });
     }
@@ -3067,7 +3104,6 @@
 
     loadFirebaseSDK(() => {
       FirebaseSync.init();
-      App.init();
     });
 
     // ─── PWA Service Worker Registration ─────────────────────────

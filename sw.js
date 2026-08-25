@@ -9,16 +9,22 @@
  * so a content-only update (same script, new HTML/JS) won't reach users
  * until APP_VERSION is bumped — which changes CACHE_NAME, which triggers
  * a new install/activate cycle and clears the old cache. */
-const APP_VERSION = 'v2';
+const APP_VERSION = 'v3';
 const CACHE_NAME = 'taukei-fijian-app-' + APP_VERSION;
 const OFFLINE_URL = 'index.html';
+
+// Core assets that are cache-first (icons, manifest)
 const CORE_ASSETS = [
-  'index.html',
-  'data.js',
   'manifest.json',
   'icons/icon-192.png',
   'icons/icon-512.png',
   'icons/apple-touch-icon.png'
+];
+
+// Dynamic assets that are network-first (index.html, data.js) - always fresh
+const DYNAMIC_ASSETS = [
+  'index.html',
+  'data.js'
 ];
 
 // Install: pre-cache core assets
@@ -45,7 +51,7 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch: serve from cache first for core assets, fall back to network
+// Fetch: serve from cache first for core assets, network-first for dynamic
 self.addEventListener('fetch', event => {
   // Only handle GET requests
   if (event.request.method !== 'GET') return;
@@ -54,6 +60,18 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
+  // Check if this is a dynamic asset to fetch network-first
+  const requestUrl = url.pathname.split('?')[0];
+  if (DYNAMIC_ASSETS.includes(requestUrl || url.pathname)) {
+    // Network-first for index.html and data.js
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => caches.match(event.request) || caches.match(OFFLINE_URL))
+    );
+    return;
+  }
+
+  // Cache-first for everything else
   event.respondWith(
     caches.match(event.request)
       .then(cachedResponse => {
@@ -78,10 +96,8 @@ self.addEventListener('fetch', event => {
           }
           return networkResponse;
         }).catch(() => {
-          // If network fails and it's a navigation, serve the SPA shell
-          if (event.request.mode === 'navigate') {
-            return caches.match(OFFLINE_URL);
-          }
+          // If network fails, serve Response.error() to avoid "undefined" issues
+          return Response.error();
         });
       })
   );
