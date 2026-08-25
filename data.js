@@ -108,7 +108,7 @@ const LESSONS = {
         prompt: "What does 'Vinaka' mean?",
         choices: ["hello", "thank you", "goodbye", "see you later"],
         answer: 1,
-        explanation: "'Vinaka' is the standard Fijian word for 'thank you' — a core greeting taught alongside 'io' (yes), 'sega' (no), and 'moce' (goodbye) in unit1-1's matching exercise. [1][8]",
+        explanation: "'Vinaka' is the standard Fijian word for 'thank you' — first tested in unit1-2's multiple choice exercise. [1][8]",
         sources: ["[1]", "[8]"]
       },
       {
@@ -289,7 +289,7 @@ const LESSONS = {
         prompt: "What does 'iko' mean?",
         choices: ["I", "you", "he/she", "they"],
         answer: 1,
-        explanation: "'Iko' means you (singular) — the second-person pronoun taught in unit3-1-a's matching exercise; it also functions as a verb in 'e vica na isau?' constructions. [2][5]",
+        explanation: "'Iko' means you (singular) — the second-person pronoun taught in unit3-1-a's matching exercise alongside au (I), koya (he/she), and keda (we inclusive). [2][5]",
         sources: ["[2]", "[5]"]
       }
     ],
