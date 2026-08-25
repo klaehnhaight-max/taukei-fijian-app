@@ -71,20 +71,12 @@
       /* Removed outline: none to allow visible focus ring */
     }
 
-    header h1#home-logo:hover,
-    header h1#home-logo button.home-btn {
-      all: unset;
-      font-size: inherit;
-      font-weight: inherit;
+    header h1#home-logo {
       cursor: pointer;
-      padding: 0;
+      user-select: none;
     }
 
-    header h1#home-logo button.home-btn:focus-visible,
-    header h1#home-logo button.home-btn:hover {
-      background: var(--surface-alt);
-    }
-
+    header h1#home-logo:hover,
     header h1#home-logo button.home-btn {
       all: unset;
       font-size: inherit;
