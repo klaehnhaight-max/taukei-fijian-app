@@ -1,0 +1,3112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4A90D9">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="iTaukei">
+  <title>iTaukei | Na Vosa Vaka-Viti</title>
+  <style>
+    /* ============================================================
+       iTaukei Language Learning App — Duolingo-style
+       Single self-contained web app, no external services
+       ============================================================ */
+
+    :root {
+      --primary: #1976D2;      /* Darkened: 4.65:1 on white, 4.53:1 on primary button */
+      --primary-dark: #1565C0;
+      --secondary: #F57C00;    /* Darkened orange: 4.52:1 on white */
+      --accent: #2EE59D;
+      --bg: #F0F2F5;
+      --surface: #FFFFFF;
+      --surface-alt: #F8F9FA;
+      --text: #1A1A1A;
+      --text-secondary: #333333;  /* Darker for better contrast on light backgrounds */
+      --border: #E5E7EB;
+      --correct: #158a65;        /* Darker green for 4.5+ contrast on light bg */
+      --incorrect: #C62828;      /* Darker red for 4.5+ contrast on light bg */
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+      --shadow-lg: 0 4px 20px rgba(0,0,0,0.12);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    header {
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      color: var(--primary);
+    }
+
+    header h1#home-logo {
+      cursor: pointer;
+      user-select: none;
+      border-radius: 8px;
+      padding: 2px 6px;
+      margin: -2px -6px;
+      /* Removed outline: none to allow visible focus ring */
+    }
+
+    header h1#home-logo:hover,
+    header h1#home-logo:focus-visible {
+      background: var(--surface-alt);
+    }
+
+    header h1#home-logo:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    .header-stats {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stat-value {
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* Main content */
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 24px 16px 80px;
+    }
+
+    /* Home / Skill Tree */
+    .home-screen {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .user-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border-radius: 16px;
+      color: white;
+    }
+
+    .user-header .avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .user-info h2 {
+      font-size: 1.2rem;
+    }
+
+    .user-info p {
+      font-size: 0.9rem;
+      opacity: 0.85;
+    }
+
+    /* Skill Tree Grid */
+    .skill-tree {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 16px;
+    }
+
+    .skill-node {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .skill-node:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .skill-node.locked {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .skill-node.completed .skill-icon {
+      color: var(--accent);
+    }
+
+    .skill-node .skill-icon {
+      font-size: 2.2rem;
+      margin-bottom: 8px;
+    }
+
+    .skill-node .skill-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .skill-node .skill-desc {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .skill-node .skill-xp {
+      font-size: 0.8rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .skill-node.locked .skill-icon {
+      color: var(--text-secondary);
+    }
+
+    /* Lesson Screen */
+    .lesson-screen {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .lesson-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .lesson-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .lesson-progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--surface-alt);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .lesson-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    /* Exercise Cards */
+    .exercise-card {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .exercise-prompt {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      text-align: center;
+      color: var(--text);
+    }
+
+    /* Matching Exercise */
+    .matching-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .match-column {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .match-item {
+      padding: 12px 16px;
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      background: var(--surface-alt);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .match-item:hover {
+      background: var(--bg);
+    }
+
+    .match-item.selected {
+      border-color: var(--primary);
+      background: rgba(74, 144, 217, 0.1);
+    }
+
+    .match-item.correct {
+      border-color: var(--correct);
+      background: rgba(16, 185, 135, 0.1);
+    }
+
+    .match-item.incorrect {
+      border-color: var(--incorrect);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    /* Multiple Choice */
+    .choice-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .choice-btn {
+      padding: 16px 20px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface-alt);
+      font-size: 1.05rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+
+    .choice-btn:hover {
+      background: var(--bg);
+      border-color: var(--primary);
+    }
+
+    .choice-btn.selected {
+      border-color: var(--primary);
+      background: rgba(74, 144, 217, 0.1);
+    }
+
+    .choice-btn.correct {
+      border-color: var(--correct);
+      background: rgba(16, 185, 135, 0.1);
+    }
+
+    .choice-btn.incorrect {
+      border-color: var(--incorrect);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .choice-btn:disabled {
+      pointer-events: none;
+    }
+
+    /* Sentence Builder */
+    .sentence-builder {
+      margin-top: 16px;
+    }
+
+    .sentence-target {
+      min-height: 60px;
+      padding: 16px 20px;
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      background: var(--surface-alt);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+
+    .sentence-target.drag-over {
+      border-color: var(--primary);
+      background: rgba(74, 144, 217, 0.05);
+    }
+
+    .sentence-target.correct {
+      border-color: var(--correct);
+    }
+
+    .sentence-target.incorrect {
+      border-color: var(--incorrect);
+    }
+
+    .drag-words {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .drag-word {
+      padding: 12px 18px;
+      background: var(--primary);
+      color: white;
+      border-radius: 20px;
+      font-weight: 600;
+      cursor: grab;
+      transition: all 0.2s ease;
+      font-size: 1.05rem;
+    }
+
+    .drag-word:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .drag-word.dragging {
+      opacity: 0.5;
+      transform: rotate(5deg);
+    }
+
+    /* Typing Exercise */
+    .typing-container {
+      margin-top: 16px;
+    }
+
+    .typing-input {
+      width: 100%;
+      padding: 14px 18px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-size: 1.2rem;
+      text-align: center;
+      margin-top: 16px;
+      transition: border-color 0.2s;
+    }
+
+    .typing-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .typing-input.correct {
+      border-color: var(--correct);
+      background: rgba(16, 185, 135, 0.1);
+    }
+
+    .typing-input.incorrect {
+      border-color: var(--incorrect);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    /* Feedback */
+    .feedback {
+      margin-top: 16px;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-size: 1rem;
+      text-align: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .feedback.correct {
+      background: rgba(16, 185, 135, 0.15);
+      color: var(--correct);
+      border: 1px solid var(--correct);
+    }
+
+    .feedback.incorrect {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--incorrect);
+      border: 1px solid var(--incorrect);
+    }
+
+    .feedback .correct-answer {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    /* Action Buttons */
+    .btn {
+      padding: 14px 28px;
+      border-radius: 30px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      margin-top: 16px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(74, 144, 217, 0.1);
+    }
+
+    .header-btn {
+      padding: 6px 16px;
+      font-size: 0.85rem;
+    }
+
+    .btn-block {
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    /* Completion Screen */
+    .completion-screen {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .completion-icon {
+      font-size: 5rem;
+      margin-bottom: 20px;
+    }
+
+    .completion-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+
+    .completion-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .xp-gain {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--secondary);
+      margin-bottom: 24px;
+    }
+
+    /* Source attribution */
+    .sources-note {
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: var(--surface-alt);
+      border-radius: 12px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .sources-note strong {
+      color: var(--text);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Streak flame */
+    .streak-active {
+      color: var(--secondary);
+      animation: flameFlicker 2s infinite;
+    }
+
+    @keyframes flameFlicker {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+
+    /* Pronunciation hint (inline phonetic guide) */
+    .pronunciation-hint {
+      margin-top: 8px;
+      padding: 6px 10px;
+      background: var(--surface-alt);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    /* Review badge */
+    .review-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: var(--secondary);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 10px;
+      min-width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0F1012;
+        --surface: #1A1B1E;
+        --surface-alt: #25262A;
+        --text: #F0F0F0;
+        --text-secondary: #A0A0A8;
+        --border: #33353A;
+        --shadow: 0 2px 8px rgba(0,0,0,0.2);
+        --shadow-lg: 0 4px 20px rgba(0,0,0,0.3);
+      }
+    }
+
+    /* Reduced motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      .streak-active {
+        animation: none;
+      }
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* Streak freeze indicator */
+    .streak-freeze-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.8rem;
+      color: var(--secondary);
+      font-weight: 600;
+    }
+
+    /* Daily goal progress bar */
+    .goal-container {
+      margin-bottom: 24px;
+    }
+    .goal-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+    .goal-bar {
+      width: 100%;
+      height: 10px;
+      background: var(--surface-alt);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .goal-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 5px;
+      transition: width 0.3s ease;
+    }
+
+    /* Modal */
+    /* Modal styles have been removed - app uses confirm()/alert() instead */
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .container { padding: 16px 8px 80px; }
+      header { padding: 8px 8px; }
+      .header-stats { gap: 10px; }
+      .stat-item span:last-child { display: none; }
+      .btn-label { display: none; }
+      #review-btn, #sync-btn, #settings-btn { padding: 8px 10px; font-size: 0.8rem; }
+      .nav-buttons { flex-direction: column; }
+    }
+
+    /* Pronunciation Guide */
+    .pronounce-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 0.95rem;
+    }
+
+    .pronounce-table th, .pronounce-table td {
+      padding: 12px 16px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .pronounce-table th {
+      background: var(--surface-alt);
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .pronounce-table .sound-cell {
+      font-family: monospace;
+      font-weight: 700;
+      color: var(--secondary);
+    }
+
+    .pronounce-tips {
+      list-style: none;
+      padding: 0;
+      margin-top: 16px;
+    }
+
+    .pronounce-tips li {
+      padding: 10px 16px;
+      background: var(--surface-alt);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      padding-left: 40px;
+      position: relative;
+    }
+
+    .pronounce-tips li:before {
+      content: "💡";
+      position: absolute;
+      left: 12px;
+      top: 10px;
+    }
+
+    /* Sources Page */
+    .sources-list {
+      list-style: none;
+      padding: 0;
+      margin-top: 16px;
+    }
+
+    /* Firebase auth screen */
+    .auth-screen {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .auth-card {
+      background: var(--surface-alt);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 360px;
+      width: 100%;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .auth-card h2 {
+      margin: 0 0 8px;
+      font-size: 1.5rem;
+      color: var(--text);
+    }
+
+    .auth-card p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin: 0 0 24px;
+      line-height: 1.5;
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .auth-form input {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+
+    .auth-form input:focus {
+      outline: 2px solid var(--primary);
+      border-color: var(--primary);
+    }
+
+    .auth-btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .auth-btn:hover { opacity: 0.9; }
+    .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .google-btn { background: #4285f4; color: white; }
+    .google-btn:hover { background: #3367d6; }
+
+    .email-btn { background: var(--primary); color: white; }
+    .email-btn:hover { background: var(--primary-dark); }
+
+    .skip-btn {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      margin-top: 16px;
+    }
+
+    .skip-btn:hover { color: var(--text); }
+
+    .auth-error {
+      color: var(--error, #ff4444);
+      font-size: 0.85rem;
+      margin-top: 8px;
+    }
+
+    .sources-list li {
+      padding: 10px 16px;
+      background: var(--surface-alt);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      border-left: 3px solid var(--primary);
+    }
+  </style>
+
+  <!-- Firebase SDK (for optional cloud sync) — loaded dynamically below when online -->
+  <script>
+    // Firebase config — replace with your own from console.firebase.google.com
+    const firebaseConfig = {
+      apiKey: "AIzaSyC41DGvskOwRMasJwpvzpLKIhMpUWa1N-U",
+      authDomain: "fijian-langue-app.firebaseapp.com",
+      projectId: "fijian-langue-app",
+      storageBucket: "fijian-langue-app.firebasestorage.app",
+      messagingSenderId: "933223655421",
+      appId: "1:933223655421:web:0409789e00cb17b16fdb94"
+    };
+  </script>
+</head>
+<body>
+  <header>
+    <h1 id="home-logo" role="button" tabindex="0" aria-label="Go to home screen">🌺 iTaukei</h1>
+    <div class="header-stats">
+      <div class="stat-item" aria-label="0 day streak">
+        <span>🔥</span>
+        <span class="stat-value" id="streak-count">0</span>
+        <span>day streak</span>
+      </div>
+      <div class="stat-item" aria-label="0 XP">
+        <span>⭐</span>
+        <span class="stat-value" id="xp-count">0</span>
+        <span>XP</span>
+      </div>
+      <button id="review-btn" class="btn btn-secondary header-btn" aria-label="Review">
+        📚<span class="btn-label"> Review</span></button>
+      <button id="sync-btn" class="btn btn-secondary header-btn" aria-label="Sync">
+        ☁️<span class="btn-label"> Sync</span></button>
+      <button id="settings-btn" class="btn btn-secondary header-btn" aria-label="Settings">
+        ⚙️<span class="btn-label"> Settings</span></button>
+    </div>
+  </header>
+
+  <div class="container" id="app-container">
+    <!-- Content loaded by app.js -->
+  </div>
+
+  <script src="data.js"></script>
+  <script>
+    // ============================================================
+    // iTaukei Language Learning App — Main JavaScript
+    // ═══════════════════════════════════════════════════════════
+    // Self-contained, uses localStorage for persistence
+    // ============================================================
+
+    // ─── Constants ──────────────────────────────────────────────
+    // Time constant for daily intervals (86400000 ms = 24 hours)
+    const DAY_MS = 24 * 60 * 60 * 1000;
+    // Spaced repetition intervals in days (Leitner-inspired)
+    const REVIEW_INTERVALS_DAYS = [1, 3, 7, 14, 30, 90];
+
+    // ─── Data Manager ──────────────────────────────────────────
+    const DataManager = {
+      // Progress is stored in localStorage under key 'taukei_progress'
+      _progressCache: null,
+      _progressVersion: 1,
+
+      get progress() {
+        if (this._progressCache) {
+          return this._progressCache;
+        }
+        const raw = localStorage.getItem('taukei_progress');
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            // Merge parsed progress over defaults to ensure all fields exist
+            return this._progressCache = { ...this._defaultProgress(), ...parsed };
+          } catch(e) {
+            console.warn('Corrupted progress data in localStorage, resetting to defaults', e);
+            localStorage.removeItem('taukei_progress');
+            this._progressCache = this._defaultProgress();
+            return this._progressCache;
+          }
+        }
+        this._progressCache = this._defaultProgress();
+        return this._progressCache;
+      },
+
+      _defaultProgress() {
+        return {
+          xp: 0,
+          streak: 0,
+          streakFreezes: 3,
+          dailyGoal: 50,
+          todayXP: 0,
+          lastXPDay: null,
+          lastActive: null,
+          completedLessons: [],
+          lessonMastery: {},
+          wrongAnswers: [],
+          totalXP: {},
+          version: 1
+        };
+      },
+
+      saveProgress() {
+        // Write to localStorage (always — this is the source of truth for offline use)
+        const p = this.progress;
+        p.lastModified = Date.now();
+        try {
+          localStorage.setItem('taukei_progress', JSON.stringify(p));
+        } catch(e) {
+          // Storage full or restricted — warn user but continue
+          if (!this._storageWarningShown) {
+            console.warn('localStorage unavailable:', e.message);
+            this._storageWarningShown = true;
+          }
+        }
+
+        // Sync to Firestore if user is signed in
+        if (window.FirebaseSync && window.FirebaseSync.isSignedIn() && !window.FirebaseSync.syncInProgress) {
+          window.FirebaseSync.syncProgress(p);
+        }
+      },
+
+      addXP(amount) {
+        const p = this.progress;
+        p.xp += amount;
+        this.saveProgress();
+        // Trigger header update
+        App.updateHeader();
+      },
+
+      completeLesson(lessonId, masteryPercent) {
+        const p = this.progress;
+        if (!p.completedLessons.includes(lessonId)) {
+          p.completedLessons.push(lessonId);
+        }
+        // Store mastery as a percentage (can decay over time later)
+        // Use != null check to handle 0% mastery correctly (0 is a valid value)
+        p.lessonMastery[lessonId] = masteryPercent != null ? masteryPercent : 100;
+        this.saveProgress();
+        App.checkUnlocks();
+      },
+
+      // Shared by recordWrongAnswer() and recordCorrectAnswer() to build
+      // the "first encounter" tracked-entry object. All fields that are
+      // identical across both branches live here in one place; callers pass
+      // only the fields that differ via extraFields.
+      _buildTrackedEntry(exercise, extraFields) {
+        return {
+          exerciseId: exercise.id || JSON.stringify(exercise),
+          prompt: exercise.prompt,
+          answer: exercise.answer,
+          type: exercise.type,
+          choices: exercise.choices || null,
+          pairs: exercise.pairs || null,
+          words: exercise.words || null,
+          translation: exercise.translation || null,
+          altAnswers: exercise.altAnswers || null,
+          explanation: exercise.explanation || null,
+          note: exercise.note || null,
+          sources: exercise.sources || null,
+          ...extraFields
+        };
+      },
+
+      recordWrongAnswer(exercise) {
+        const p = this.progress;
+        const exerciseId = exercise.id || JSON.stringify(exercise);
+        // Check if already tracked — update existing, or create new
+        const existing = p.wrongAnswers.find(wa => wa.exerciseId === exerciseId);
+        const now = Date.now();
+
+        if (existing) {
+          // Wrong answer on an already-tracked item: reset to shortest interval
+          existing.timestamp = now;
+          existing.reviewCount = 0;
+          existing.intervalIndex = 0; // Must reset intervalIndex!
+          existing.nextReviewAt = now + 1 * DAY_MS; // review again in 1 day
+          existing.correctStreak = 0;
+          existing.mastered = false; // un-graduate: a mastered item got wrong again
+        } else {
+          p.wrongAnswers.push(this._buildTrackedEntry(exercise, {
+            timestamp: now,
+            reviewCount: 0,
+            nextReviewAt: now + 1 * DAY_MS, // first review: 1 day
+            intervalIndex: 0
+          }));
+        }
+        this.saveProgress();
+      },
+
+      recordCorrectAnswer(exercise) {
+        // Add correctly-answered items to the spaced repetition pool
+        // with a longer initial delay
+        const p = this.progress;
+        const exerciseId = exercise.id || JSON.stringify(exercise);
+        const existing = p.wrongAnswers.find(wa => wa.exerciseId === exerciseId);
+        const now = Date.now();
+
+        if (existing) {
+          // Already in pool — correct answer means advance the interval
+          // BUT only if the item was actually due (or never had a lastCorrect)
+          const nowTime = Date.now();
+          const wasDue = !existing.lastCorrect || existing.nextReviewAt <= nowTime;
+          
+          if (wasDue) {
+            existing.intervalIndex = Math.min(existing.intervalIndex + 1, REVIEW_INTERVALS_DAYS.length - 1);
+            existing.nextReviewAt = nowTime + REVIEW_INTERVALS_DAYS[existing.intervalIndex] * DAY_MS;
+            existing.lastCorrect = nowTime;
+            // Graduation: after 2 consecutive correct at max interval, mark mastered
+            if (existing.intervalIndex >= REVIEW_INTERVALS_DAYS.length - 1) {
+              existing.correctStreak = (existing.correctStreak || 0) + 1;
+              if (existing.correctStreak >= 2) {
+                existing.mastered = true;
+              }
+            } else {
+              existing.correctStreak = 0;
+            }
+          }
+          // If not due yet, this correct answer is a no-op for scheduling
+        } else {
+          // Correct answer on first encounter — add to pool with longer delay
+          p.wrongAnswers.push(this._buildTrackedEntry(exercise, {
+            timestamp: now,
+            reviewCount: 0,
+            nextReviewAt: now + 7 * DAY_MS, // first review for correct: 7 days
+            intervalIndex: 2,
+            lastCorrect: now
+          }));
+        }
+        this.saveProgress();
+      },
+
+      // Per-pair tracking for matching exercises
+      // Uses the same interval logic as recordCorrectAnswer/recordWrongAnswer
+      
+      // Helper to build synthetic exercise object for pair tracking
+      _pairExercise(exerciseId, pairIndex, pair) {
+        return {
+          type: 'typing',
+          prompt: `Type the Fijian word for '${pair.english}'`,
+          answer: pair.fijian,
+          id: `${exerciseId}::pair::${pairIndex}`
+        };
+      },
+
+      recordPairCorrect(exerciseId, pairIndex, pair) {
+        const p = this.progress;
+        const trackedId = `${exerciseId}::pair::${pairIndex}`;
+        const existing = p.wrongAnswers.find(wa => wa.exerciseId === trackedId);
+        const nowTime = Date.now();
+
+        if (existing) {
+          // Already in pool — correct answer means advance the interval
+          // BUT only if the item was actually due (or never had a lastCorrect)
+          const wasDue = !existing.lastCorrect || existing.nextReviewAt <= nowTime;
+          
+          if (wasDue) {
+            existing.intervalIndex = Math.min(existing.intervalIndex + 1, REVIEW_INTERVALS_DAYS.length - 1);
+            existing.nextReviewAt = nowTime + REVIEW_INTERVALS_DAYS[existing.intervalIndex] * DAY_MS;
+            existing.lastCorrect = nowTime;
+            if (existing.intervalIndex >= REVIEW_INTERVALS_DAYS.length - 1) {
+              existing.correctStreak = (existing.correctStreak || 0) + 1;
+              if (existing.correctStreak >= 2) {
+                existing.mastered = true;
+              }
+            } else {
+              existing.correctStreak = 0;
+            }
+          }
+          // If not due yet, this correct answer is a no-op for scheduling
+        } else {
+          // First encounter — add to pool with initial delay
+          p.wrongAnswers.push(this._buildTrackedEntry(
+            this._pairExercise(exerciseId, pairIndex, pair), {
+              timestamp: nowTime,
+              reviewCount: 0,
+              nextReviewAt: nowTime + 7 * DAY_MS,
+              intervalIndex: 2,
+              lastCorrect: nowTime
+            }
+          ));
+        }
+        this.saveProgress();
+      },
+
+      recordPairWrong(exerciseId, pairIndex, pair) {
+        const p = this.progress;
+        const trackedId = `${exerciseId}::pair::${pairIndex}`;
+        const existing = p.wrongAnswers.find(wa => wa.exerciseId === trackedId);
+        const now = Date.now();
+
+        if (existing) {
+          // Wrong answer on already-tracked item: reset to shortest interval
+          existing.timestamp = now;
+          existing.reviewCount = 0;
+          existing.intervalIndex = 0; // MUST reset intervalIndex!
+          existing.nextReviewAt = now + 1 * DAY_MS;
+          existing.correctStreak = 0;
+          existing.mastered = false;
+        } else {
+          // First wrong attempt — add to pool for review
+          p.wrongAnswers.push(this._buildTrackedEntry(
+            this._pairExercise(exerciseId, pairIndex, pair), {
+              timestamp: now,
+              reviewCount: 0,
+              nextReviewAt: now + 1 * DAY_MS,
+              intervalIndex: 0
+            }
+          ));
+        }
+        this.saveProgress();
+      },
+
+      updateStreak() {
+        const p = this.progress;
+        const today = new Date().toDateString();
+        const yesterday = new Date(Date.now() - DAY_MS).toDateString();
+
+        // Already active today, nothing to change
+        if (p.lastActive === today) {
+          return;
+        }
+
+        if (p.lastActive && p.lastActive !== today) {
+          // Calculate days since using calendar dates (not elapsed ms) to handle DST
+          const lastDate = new Date(p.lastActive);
+          const todayDate = new Date();
+          const lastDateOnly = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
+          const todayDateOnly = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
+          const daysSince = Math.floor((todayDateOnly - lastDateOnly) / (24 * 60 * 60 * 1000));
+
+          if (daysSince === 1) {
+            // Just yesterday — streak continues
+            p.streak += 1;
+          } else if (daysSince > 1) {
+            // Missed days — use a freeze for each missed day
+            const freezesNeeded = daysSince - 1;
+            if ((p.streakFreezes || 0) >= freezesNeeded) {
+              p.streakFreezes -= freezesNeeded;
+              p.streak += 1; // Streak saved (only counts today as active)
+            } else {
+              // Insufficient freezes to cover all missed days — streak breaks
+              // IMPORTANT: Do NOT consume freezes when coverage is partial.
+              // They should remain available for future use.
+              p.streak = 1;
+              console.log(`Streak broken: need ${freezesNeeded} freezes, have ${(p.streakFreezes || 0)}`);
+            }
+          } else {
+            // Same calendar day transition (shouldn't happen normally but handle gracefully)
+            p.streak += 0; // no change
+          }
+        } else {
+          // First day ever
+          p.streak = 1;
+        }
+
+        p.lastActive = today;
+        this.saveProgress();
+        App.updateHeader();
+      },
+
+      getWrongAnswersForReview() {
+        const now = Date.now();
+        return this.progress.wrongAnswers.filter(wa =>
+          !wa.mastered && wa.nextReviewAt && wa.nextReviewAt <= now
+        );
+      },
+
+      getReviewCount() {
+        return this.getWrongAnswersForReview().length;
+      },
+
+      addStreakFreeze(count = 1) {
+        // Can be called as a reward for completing lessons
+        const p = this.progress;
+        p.streakFreezes = (p.streakFreezes || 0) + count;
+        this.saveProgress();
+      },
+
+      getDailyXP() {
+        const p = this.progress;
+        const today = new Date().toDateString();
+        if (p.lastXPDay === today) {
+          return p.todayXP || 0;
+        }
+        return 0;
+      },
+
+      addDailyXP(amount) {
+        const p = this.progress;
+        const today = new Date().toDateString();
+        if (p.lastXPDay !== today) {
+          p.lastXPDay = today;
+          p.todayXP = 0;
+        }
+        p.todayXP = (p.todayXP || 0) + amount;
+        this.saveProgress();
+      },
+
+      getDailyGoal() {
+        return this.progress.dailyGoal || 50; // default 50 XP/day
+      },
+
+      setDailyGoal(goal) {
+        const p = this.progress;
+        p.dailyGoal = goal;
+        this.saveProgress();
+      },
+
+      // Overwrite all progress with an imported object (see Export/Import
+      // Progress in the home screen). Caller is responsible for confirming
+      // with the user first, since this clobbers whatever's here now.
+      // Merges over defaults to ensure all required fields exist.
+      importProgress(newProgress) {
+        this._progressCache = { ...this._defaultProgress(), ...newProgress };
+        localStorage.setItem('taukei_progress', JSON.stringify(this._progressCache));
+      },
+
+      getMasteredWords() {
+        const p = this.progress;
+        return (p.wrongAnswers || []).filter(wa => wa.mastered);
+      }
+    };
+
+    // Exposed on window so the standalone regression harness (test.html) can
+    // exercise these functions against the real app instance running in an
+    // iframe, without duplicating any of this logic.
+    window.DataManager = DataManager;
+    window.SKILL_TREE = SKILL_TREE;
+    window.LESSONS = LESSONS;
+
+    // Listen for storage events from other tabs (multi-tab sync)
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'taukei_progress' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          DataManager._progressCache = parsed;
+          // Re-render if needed (e.g., stats changed)
+          if (App.currentScreen === 'home') {
+            App.render();
+          }
+        } catch(err) {
+          console.warn('Failed to parse synced progress:', err);
+        }
+      }
+    });
+
+    // ─── Firebase Sync (Optional Cloud Sync) ─────────────────────
+    // Sign-in is OPTIONAL. The app works fully offline with just localStorage.
+    // Firebase sync is an opt-in feature for cross-device progress sync.
+    const FirebaseSync = {
+      db: null,
+      auth: null,
+      currentUser: null,
+      syncInProgress: false,
+
+      init() {
+        if (typeof firebase === 'undefined') {
+          console.log('Firebase SDK not loaded — running in offline-only mode');
+          return;
+        }
+        try {
+          firebase.initializeApp(firebaseConfig);
+          this.auth = firebase.auth();
+          this.db = firebase.firestore();
+          // Listen for auth state changes
+          this.auth.onAuthStateChanged(user => {
+            this.currentUser = user;
+            if (user) {
+              this.onSignIn(user);
+            } else {
+              this.onSignOut();
+            }
+          });
+        } catch(e) {
+          console.error('Firebase init failed:', e);
+        }
+      },
+
+      isSignedIn() {
+        return !!this.currentUser;
+      },
+
+      async onSignIn(user) {
+        const localProgress = DataManager.progress;
+        try {
+          const doc = await this.db.collection('users').doc(user.uid).get();
+          if (doc.exists) {
+            const cloudProgress = doc.data().progress;
+            const cloudTime = cloudProgress.lastModified || 0;
+            const localTime = localProgress.lastModified || 0;
+            // Most-recent-modified wins
+            if (cloudTime > localTime) {
+              // Cloud is newer — use it (merge over defaults to ensure all fields exist)
+              DataManager._progressCache = { ...DataManager._defaultProgress(), ...cloudProgress };
+              // Re-save to localStorage to keep them in sync
+              localStorage.setItem('taukei_progress', JSON.stringify(DataManager.progress));
+              // Update streak check with new data
+              DataManager.updateStreak();
+            } else {
+              // Local is newer or same — push to cloud
+              await this.saveToFirestore(localProgress);
+            }
+          } else {
+            // New user — create their document
+            await this.saveToFirestore(localProgress);
+          }
+          App.updateHeader(); // Refresh header with sync status
+          // Navigate back to home if currently on auth screen
+          if (App.currentScreen === 'auth') {
+            App.currentScreen = 'home';
+            App.render();
+          }
+        } catch(e) {
+          console.error('Sign-in sync failed:', e);
+          // Fall back to local-only mode
+          App.updateHeader();
+          if (App.currentScreen === 'auth') {
+            App.currentScreen = 'home';
+            App.render();
+          }
+        }
+      },
+
+      onSignOut() {
+        // Nothing to do — local data stays in localStorage
+        App.updateHeader();
+        // If currently on auth screen, redirect to home
+        if (App.currentScreen === 'auth') {
+          App.currentScreen = 'home';
+          App.render();
+        }
+      },
+
+      async saveToFirestore(progress) {
+        if (!this.currentUser || this.syncInProgress) return;
+        this.syncInProgress = true;
+        try {
+          await this.db.collection('users').doc(this.currentUser.uid).set({
+            progress: progress,
+            lastModified: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+        } catch(e) {
+          console.error('Firestore write failed:', e);
+          // Data stays in localStorage — retry on next save
+        } finally {
+          this.syncInProgress = false;
+        }
+      },
+
+      // Trailing debounce sync — writes only the final state within the throttle window
+      syncProgress(progress) {
+        const now = Date.now();
+        clearTimeout(this._syncDebounceTimer);
+        this._pendingProgress = progress;
+        this._pendingSyncTime = now;
+        
+        this._syncDebounceTimer = setTimeout(() => {
+          if (this._pendingProgress && this._pendingSyncTime === now) {
+            this.saveToFirestore(this._pendingProgress);
+          }
+        }, 2000);
+      },
+
+      signUpWithEmail(email, password) {
+        return this.auth.createUserWithEmailAndPassword(email, password);
+      },
+
+      signInWithEmail(email, password) {
+        return this.auth.signInWithEmailAndPassword(email, password);
+      },
+
+      signInWithGoogle() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        return this.auth.signInWithPopup(provider);
+      },
+
+      signOut() {
+        return this.auth.signOut();
+      }
+    };
+
+    window.FirebaseSync = FirebaseSync;
+
+    // ─── Phonetic Helper ──────────────────────────────────────
+    // Convert Fijian words to English-approximate respelling
+    function fijianToPhonetic(text) {
+      if (!text) return text;
+      let result = text.toLowerCase();
+      // Fijian consonant pronunciations: c=th, q=ng, d=nd, g=ng, b=mb
+      // Note: these replacements are context-sensitive in real Fijian,
+      // but this gives a reasonable approximation for learning purposes
+      result = result.replace(/c/g, 'th');   // c -> th (as in "thin")
+      result = result.replace(/q/g, 'ng');   // q -> ng (as in "sing")
+      result = result.replace(/d/g, 'nd');   // d -> nd (as in "candy")
+      result = result.replace(/g/g, 'ng');   // g -> ng (as in "finger")
+      result = result.replace(/b/g, 'mb');   // b -> mb (prenasalized)
+      // Vowels are straightforward
+      // au -> ow (as in "how")
+      result = result.replace(/au/g, 'ow');
+      return result;
+    }
+
+    // Normalize text for answer-comparison: lowercase, collapse whitespace,
+    // strip diacritics (e.g. macrons like "ū") and punctuation via Unicode NFD
+    // decomposition so answers typed on a plain keyboard ("tu") still match
+    // an answer key that uses the correct diacritic ("tū"). Exposed on
+    // window so the regression harness (test.html) can exercise the exact
+    // comparison logic the typing exercise uses, not a reimplementation.
+    function normalizeForCompare(s) {
+      return s.trim().toLowerCase().replace(/\s+/g, ' ')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^\w\s]/g, ''); // Strip punctuation (matching normalizeSentence behavior)
+    }
+    window.normalizeForCompare = normalizeForCompare;
+
+    // Like normalizeForCompare but also strips ALL whitespace and punctuation.
+    // Used by renderSentenceBuilder where placed words are concatenated
+    // without spaces, so word boundaries come from separate tiles, not
+    // from spaces or punctuation in the text content.
+    function normalizeSentence(s) {
+      return normalizeForCompare(s).replace(/[^\w]/g, '');
+    }
+    window.normalizeSentence = normalizeSentence;
+
+    // ─── App Router ────────────────────────────────────────────
+    const App = {
+      currentScreen: 'home',
+      currentLesson: null,
+      currentExerciseIndex: 0,
+      exerciseResults: [],
+      reviewMode: false,
+
+      init() {
+        App.updateHeader();
+        App.checkUnlocks();
+        App.render();
+      },
+
+      updateHeader() {
+        const p = DataManager.progress;
+        const streakEl = document.getElementById('streak-count');
+        streakEl.textContent = p.streak;
+        streakEl.className = p.streak > 0 ? 'streak-active' : '';
+        const xpEl = document.getElementById('xp-count');
+        xpEl.textContent = p.xp;
+        // Update aria-labels on stat items for screen reader accessibility
+        const streakItem = streakEl.closest('.stat-item');
+        const xpItem = xpEl.closest('.stat-item');
+        if (streakItem) streakItem.setAttribute('aria-label', p.streak + ' day streak');
+        if (xpItem) xpItem.setAttribute('aria-label', p.xp + ' XP');
+        document.getElementById('review-btn').style.display =
+          DataManager.getReviewCount() > 0 ? 'inline-block' : 'none';
+
+        // Update sync button label based on auth state
+        // Preserve the span structure: ☁️<span class="btn-label">...</span>
+        const syncBtn = document.getElementById('sync-btn');
+        if (syncBtn) {
+          const labelSpan = syncBtn.querySelector('.btn-label');
+          if (window.FirebaseSync && FirebaseSync.isSignedIn()) {
+            const user = FirebaseSync.currentUser;
+            const displayName = user.displayName || user.email.split('@')[0];
+            if (labelSpan) labelSpan.textContent = displayName;
+          } else {
+            if (labelSpan) labelSpan.textContent = 'Sync';
+          }
+        }
+      },
+
+      checkUnlocks() {
+        const p = DataManager.progress;
+        // Check prerequisite completion
+        Object.keys(LESSONS).forEach(lessonId => {
+          const lesson = LESSONS[lessonId];
+          // Unlock based on completed prerequisites
+          const skillNode = SKILL_TREE.find(s => s.id === lessonId);
+          if (skillNode) {
+            const prereqsMet = skillNode.prerequisites.every(prereq =>
+              p.completedLessons.includes(prereq)
+            );
+            skillNode.unlocked = prereqsMet || skillNode.prerequisites.length === 0;
+            skillNode.completed = p.completedLessons.includes(lessonId);
+          }
+        });
+      },
+
+      // Record only the exercise result for display (without feeding into spaced repetition)
+      // Used by matching exercises to preserve completion screen behavior
+      recordExerciseResultOnly(exercise, isCorrect) {
+        this.exerciseResults.push({ exercise, correct: isCorrect });
+      },
+
+      // Record a pair result from a matching exercise for spaced repetition
+      recordPairResult(exercise, pairIndex, isCorrect) {
+        const pair = exercise.pairs[pairIndex];
+        if (isCorrect) {
+          DataManager.recordPairCorrect(exercise.id, pairIndex, pair);
+        } else {
+          DataManager.recordPairWrong(exercise.id, pairIndex, pair);
+        }
+      },
+
+      // Shared by every exercise type (multiple choice, matching, sentence
+      // builder, typing): record the outcome into exerciseResults + the
+      // spaced-repetition pool. Kept in one place so a fix here applies
+      // everywhere instead of needing to be repeated per exercise type.
+      recordResult(exercise, isCorrect) {
+        this.exerciseResults.push({ exercise, correct: isCorrect });
+        if (isCorrect) {
+          DataManager.recordCorrectAnswer(exercise); // Feed into spaced repetition
+        } else {
+          DataManager.recordWrongAnswer(exercise);
+        }
+      },
+
+      // Shared feedback renderer. `cssClass` is passed explicitly (rather than
+      // derived from a single correct/incorrect flag) because some exercise
+      // types intentionally show a "correct" style even when there were wrong
+      // attempts along the way (e.g. matching, sentence builder).
+      showFeedback(container, cssClass, html) {
+        let feedback = container.querySelector('.feedback');
+        if (!feedback) {
+          feedback = document.createElement('div');
+          feedback.setAttribute('aria-live', 'polite');
+          container.appendChild(feedback);
+        }
+        feedback.className = `feedback ${cssClass}`;
+        feedback.innerHTML = html;
+        return feedback;
+      },
+
+      // Extracted so the floor/step logic is a plain, testable function
+      // rather than living only inside a button's onclick handler.
+      decreaseDailyGoal() {
+        const current = DataManager.getDailyGoal();
+        DataManager.setDailyGoal(Math.max(10, current - 10));
+      },
+
+      increaseDailyGoal() {
+        const current = DataManager.getDailyGoal();
+        DataManager.setDailyGoal(current + 10);
+      },
+
+      render() {
+        const container = document.getElementById('app-container');
+        container.innerHTML = '';
+
+        if (this.currentScreen === 'home') {
+          container.appendChild(this.renderHome());
+        } else if (this.currentScreen === 'lesson') {
+          container.appendChild(this.renderLesson());
+        } else if (this.currentScreen === 'review') {
+          container.appendChild(this.renderReview());
+        } else if (this.currentScreen === 'completion') {
+          container.appendChild(this.renderCompletion());
+        } else if (this.currentScreen === 'pronunciation') {
+          container.appendChild(this.renderPronunciation());
+        } else if (this.currentScreen === 'sources') {
+          container.appendChild(this.renderSources());
+        } else if (this.currentScreen === 'auth') {
+          container.appendChild((window.AuthScreen || AuthScreen).render());
+        } else if (this.currentScreen === 'settings') {
+          container.appendChild(this.renderSettings());
+        }
+      },
+
+      renderIntroCard() {
+        const card = this.renderNoteCard(
+          '<strong>Welcome to iTaukei!</strong><br>' +
+          '<small style="color:#666">' +
+          'Tap a lesson to start. Wrong answers come back later for review. ' +
+          'Progress saves automatically on this device — signing in is ' +
+          'optional, only needed for cross-device sync.' +
+          '</small>'
+        );
+        const dismissBtn = document.createElement('button');
+        dismissBtn.className = 'btn btn-secondary';
+        dismissBtn.textContent = 'Got it';
+        dismissBtn.style.marginTop = '8px';
+        dismissBtn.onclick = () => {
+          localStorage.setItem('taukei_intro_dismissed', 'true');
+          card.remove();
+        };
+        card.appendChild(dismissBtn);
+        return card;
+      },
+
+      renderHome() {
+        const div = document.createElement('div');
+        div.className = 'home-screen';
+
+        // First-run intro card: shown only when there's no saved progress
+        // (checked via localStorage directly to avoid lazily creating
+        // default progress inside DataManager.progress getter) and the
+        // user hasn't already dismissed it.
+        if (localStorage.getItem('taukei_progress') === null &&
+            localStorage.getItem('taukei_intro_dismissed') !== 'true') {
+          div.appendChild(this.renderIntroCard());
+        }
+
+        const p = DataManager.progress;
+
+        // User header
+        const userHeader = document.createElement('div');
+        userHeader.className = 'user-header';
+        userHeader.innerHTML = `
+          <div class="avatar">🌺</div>
+          <div class="user-info">
+            <h2>iTaukei Learner</h2>
+            <p>${p.xp} XP • ${p.streak} day streak</p>
+            ${p.streakFreezes > 0 ? `<span class="streak-freeze-indicator">❄️${p.streakFreezes} freeze${p.streakFreezes > 1 ? 's' : ''}</span>` : ''}
+          </div>
+        `;
+        div.appendChild(userHeader);
+
+        // Title
+        const title = document.createElement('h2');
+        title.textContent = 'Learn iTaukei (Na Vosa Vaka-Viti)';
+        title.style.marginBottom = '8px';
+        div.appendChild(title);
+
+        const subtitle = document.createElement('p');
+        subtitle.textContent = 'The indigenous language of Fiji';
+        subtitle.style.color = 'var(--text-secondary)';
+        subtitle.style.marginBottom = '20px';
+        div.appendChild(subtitle);
+
+        // Daily goal progress
+        const dailyXP = DataManager.getDailyXP();
+        const dailyGoal = DataManager.getDailyGoal();
+        const goalProgress = Math.min(100, Math.round((dailyXP / dailyGoal) * 100));
+        const goalContainer = document.createElement('div');
+        goalContainer.className = 'goal-container';
+        goalContainer.innerHTML = `
+          <div class="goal-label">
+            <span>Daily Goal</span>
+            <span>${dailyXP}/${dailyGoal} XP</span>
+          </div>
+          <div class="goal-bar">
+            <div class="goal-fill" style="width: ${goalProgress}%"></div>
+          </div>
+        `;
+
+        div.appendChild(goalContainer);
+
+        // Skill tree title
+        const skillTitle = document.createElement('h3');
+        skillTitle.textContent = 'Learning Path';
+        skillTitle.style.fontSize = '1.2rem';
+        skillTitle.style.marginBottom = '12px';
+        div.appendChild(skillTitle);
+
+        // Skill tree
+        const tree = document.createElement('div');
+        tree.className = 'skill-tree';
+
+        SKILL_TREE.forEach(skill => {
+          const node = document.createElement('div');
+          node.className = `skill-node ${skill.completed ? 'completed' : ''} ${!skill.unlocked ? 'locked' : ''}`;
+          const mastery = DataManager.progress.lessonMastery[skill.id];
+          const masteryText = mastery != null ? `${mastery}% mastered` : `${skill.xp} XP`;
+          node.innerHTML = `
+            <div class="skill-icon">${skill.icon}</div>
+            <div class="skill-title">${skill.title}</div>
+            <div class="skill-desc">${skill.description}</div>
+            <div class="skill-xp">${masteryText}</div>
+          `;
+
+          if (skill.unlocked) {
+            // Make keyboard-accessible: role, tabindex, and key handler
+            node.setAttribute('role', 'button');
+            node.setAttribute('tabindex', '0');
+            node.setAttribute('aria-label', `Start lesson: ${skill.title}`);
+            const startNode = () => {
+              App.startLesson(skill.id);
+              App.render();
+            };
+            node.addEventListener('click', startNode);
+            node.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                startNode();
+              }
+            });
+          } else {
+            node.setAttribute('aria-disabled', 'true');
+          }
+          tree.appendChild(node);
+        });
+
+        div.appendChild(tree);
+
+        // Sources note + Quick links
+        const note = document.createElement('div');
+        note.className = 'sources-note';
+        note.innerHTML = '<strong>Note:</strong> All vocabulary verified from Peace Corps Fijian, Schütz Reference Grammar, Vosavakaviti dictionary, and Pacific Learners sources. Click any lesson to review source attributions.';
+
+        div.appendChild(note);
+
+        // Quick links
+        const quickLinks = document.createElement('div');
+        quickLinks.style.display = 'flex';
+        quickLinks.style.flexWrap = 'wrap';
+        quickLinks.style.gap = '12px';
+        quickLinks.style.marginTop = '16px';
+
+        const pronBtn = document.createElement('button');
+        pronBtn.className = 'btn btn-secondary';
+        pronBtn.textContent = '🔤 Pronunciation Guide';
+        pronBtn.onclick = () => { App.currentScreen = 'pronunciation'; App.render(); };
+        quickLinks.appendChild(pronBtn);
+
+        const srcBtn = document.createElement('button');
+        srcBtn.className = 'btn btn-secondary';
+        srcBtn.textContent = '📄 Sources';
+        srcBtn.onclick = () => { App.currentScreen = 'sources'; App.render(); };
+        quickLinks.appendChild(srcBtn);
+
+        // Review button with count badge
+        const reviewCount = DataManager.getReviewCount();
+        const reviewBtn = document.createElement('button');
+        reviewBtn.className = 'btn btn-secondary';
+        reviewBtn.textContent = reviewCount > 0
+          ? `🔄 Review (${reviewCount} due)`
+          : '🔄 Review';
+        reviewBtn.style.position = 'relative';
+        if (reviewCount > 0) {
+          const badge = document.createElement('span');
+          badge.className = 'review-badge';
+          badge.textContent = reviewCount;
+          reviewBtn.appendChild(badge);
+        }
+        reviewBtn.onclick = () => { App.startReview(); };
+        quickLinks.appendChild(reviewBtn);
+
+        div.appendChild(quickLinks);
+
+        // Pointer to Settings screen
+        const settingsBtn = document.createElement('button');
+        settingsBtn.className = 'btn btn-secondary';
+        settingsBtn.textContent = '⚙️ Settings';
+        settingsBtn.style.marginTop = '12px';
+        settingsBtn.onclick = () => { App.currentScreen = 'settings'; App.render(); };
+        div.appendChild(settingsBtn);
+
+        return div;
+      },
+
+      // Helper: create a standard note-card div used in settings sections.
+      // Interactive elements (buttons, file inputs) are appended after the
+      // note card, exactly as they are today — only the scaffolding changes.
+      renderNoteCard(html) {
+        const div = document.createElement('div');
+        div.className = 'sources-note';
+        div.style.marginBottom = '20px';
+        div.innerHTML = html;
+        return div;
+      },
+
+      // Settings screen — consolidates daily goal, streak freezes,
+      // account/sync, backup, and mastered words.
+      renderSettings() {
+        const div = document.createElement('div');
+        div.className = 'home-screen';
+
+        const p = DataManager.progress;
+        const dailyGoal = DataManager.getDailyGoal();
+        const dailyXP = DataManager.getDailyXP();
+        const goalProgress = Math.min(100, (dailyXP / dailyGoal) * 100);
+
+        // Section: Daily Goal
+        div.appendChild(this.renderNoteCard('<strong>Daily Goal: ' + dailyXP + '/' + dailyGoal + ' XP</strong>'));
+
+        const goalControls = document.createElement('div');
+        goalControls.style.display = 'flex';
+        goalControls.style.justifyContent = 'flex-start';
+        goalControls.style.gap = '12px';
+
+        const decreaseBtn = document.createElement('button');
+        decreaseBtn.className = 'btn btn-secondary';
+        decreaseBtn.textContent = '−';
+        decreaseBtn.setAttribute('aria-label', 'Decrease daily goal by 10 XP');
+        decreaseBtn.onclick = () => { this.decreaseDailyGoal(); this.render(); };
+        goalControls.appendChild(decreaseBtn);
+
+        const increaseBtn = document.createElement('button');
+        increaseBtn.className = 'btn btn-secondary';
+        increaseBtn.textContent = '+';
+        increaseBtn.setAttribute('aria-label', 'Increase daily goal by 10 XP');
+        increaseBtn.onclick = () => { this.increaseDailyGoal(); this.render(); };
+        goalControls.appendChild(increaseBtn);
+
+        div.appendChild(goalControls);
+
+        // Section: Streak Freezes
+        div.appendChild(this.renderNoteCard('<strong>Streak Freezes: ' + p.streakFreezes + '</strong>' +
+          '<br><small style="color:#666">Each freeze covers one missed day so your streak doesn\u0027t reset.</small>'));
+
+        // Section: Account & Sync
+        let accountText;
+        if (window.FirebaseSync && FirebaseSync.isSignedIn()) {
+          const user = FirebaseSync.currentUser;
+          accountText = 'Signed in as ' + (user.displayName || user.email);
+        } else {
+          accountText = 'Not signed in — progress is saved locally only';
+        }
+        div.appendChild(this.renderNoteCard('<strong>Account & Sync</strong><br><small style="color:#666">' + accountText + '</small>'));
+
+        const accountBtn = document.createElement('button');
+        accountBtn.className = 'btn btn-secondary';
+        if (window.FirebaseSync && FirebaseSync.isSignedIn()) {
+          accountBtn.textContent = '🔓 Sign Out';
+          accountBtn.onclick = () => {
+            if (confirm('Sign out? You will stop syncing to the cloud.')) {
+              FirebaseSync.signOut();
+              this.render();
+            }
+          };
+        } else {
+          accountBtn.textContent = '☁️ Sign In / Enable Sync';
+          accountBtn.onclick = () => { App.currentScreen = 'auth'; App.render(); };
+        }
+        div.appendChild(accountBtn);
+
+        // Section: Backup
+        div.appendChild(this.renderNoteCard('<strong>Backup</strong><br><small style="color:#666">Export or import your progress as a JSON file. Useful for switching devices or making a manual backup.</small>'));
+
+        const backupRow = document.createElement('div');
+        backupRow.style.display = 'flex';
+        backupRow.style.flexWrap = 'wrap';
+        backupRow.style.gap = '12px';
+
+        const exportBtn = document.createElement('button');
+        exportBtn.className = 'btn btn-secondary';
+        exportBtn.textContent = '⬇️ Export Progress';
+        exportBtn.onclick = () => { App.exportProgress(); };
+        backupRow.appendChild(exportBtn);
+
+        const importBtn = document.createElement('button');
+        importBtn.className = 'btn btn-secondary';
+        importBtn.textContent = '⬆️ Import Progress';
+
+        const importInput = document.createElement('input');
+        importInput.type = 'file';
+        importInput.accept = 'application/json';
+        importInput.style.display = 'none';
+        importInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          importInput.value = '';
+          if (file) App.importProgressFile(file);
+        });
+
+        importBtn.onclick = () => importInput.click();
+        backupRow.appendChild(importBtn);
+        backupRow.appendChild(importInput);
+        div.appendChild(backupRow);
+
+        // Section: Mastered Words
+        const mastered = DataManager.getMasteredWords();
+        div.appendChild(this.renderNoteCard('<strong>Mastered Words (' + mastered.length + ')</strong>'));
+
+        if (mastered.length === 0) {
+          const emptyMsg = document.createElement('div');
+          emptyMsg.style.color = '#666';
+          emptyMsg.textContent = '\u2713 Nothing mastered yet — keep practicing!';
+          div.appendChild(emptyMsg);
+        } else {
+          const list = document.createElement('div');
+          list.style.maxHeight = '200px';
+          list.style.overflowY = 'auto';
+          mastered.forEach(wa => {
+            const item = document.createElement('div');
+            item.style.padding = '6px 0';
+            item.style.borderBottom = '1px solid #e0e0e0';
+            item.innerHTML = '<strong>' + wa.prompt + '</strong>' +
+              (wa.answer ? ' \u2192 ' + wa.answer : '') +
+              (wa.type ? ' <small>(' + wa.type + ')</small>' : '');
+            list.appendChild(item);
+          });
+          div.appendChild(list);
+        }
+
+        // Back button
+        const backBtn = document.createElement('button');
+        backBtn.className = 'btn btn-secondary';
+        backBtn.textContent = '← Back to Skills';
+        backBtn.style.marginTop = '20px';
+        backBtn.onclick = () => { App.currentScreen = 'home'; App.render(); };
+        div.appendChild(backBtn);
+
+        return div;
+      },
+
+      // Downloads the current progress object as a timestamped JSON file.
+      exportProgress() {
+        const data = JSON.stringify(DataManager.progress, null, 2);
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const dateStamp = new Date().toISOString().slice(0, 10);
+        a.download = `taukei-progress-${dateStamp}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      },
+
+      // Reads a user-selected JSON file, does a light sanity check that it
+      // looks like a progress export, confirms with the user (this
+      // overwrites current progress), then hands it to DataManager.
+      importProgressFile(file) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          let parsed;
+          try {
+            parsed = JSON.parse(evt.target.result);
+          } catch (err) {
+            alert("That file isn't valid JSON — import cancelled.");
+            return;
+          }
+          const looksValid = parsed && typeof parsed === 'object' &&
+            typeof parsed.xp === 'number' && Array.isArray(parsed.completedLessons);
+          if (!looksValid) {
+            alert("That file doesn't look like a taukei progress export — import cancelled.");
+            return;
+          }
+          const ok = confirm(
+            'Importing will replace your current progress (XP, streak, completed lessons, review queue) ' +
+            'with the contents of this file. This cannot be undone. Continue?'
+          );
+          if (!ok) return;
+          DataManager.importProgress(parsed);
+          this.checkUnlocks();
+          this.updateHeader();
+          this.render();
+          alert('Progress imported successfully.');
+        };
+        reader.onerror = () => {
+          alert('Could not read that file — import cancelled.');
+        };
+        reader.readAsText(file);
+      },
+
+      startLesson(lessonId) {
+        this.currentLesson = LESSONS[lessonId];
+        this.currentLesson.id = lessonId;
+        this.currentExerciseIndex = 0;
+        this.exerciseResults = [];
+        this.reviewMode = false;
+        this.currentScreen = 'lesson';
+        this.render();
+      },
+
+      // Reconstruct exercise objects from stored wrongAnswers entries, so a
+      // review session shows the same prompt/choices/explanation as the
+      // original lesson. Shared by both entry points into review mode
+      // (the header/skill-tree "Review" button and the review screen itself)
+      // so there's exactly one place that knows how to rebuild an exercise
+      // from a wrongAnswers record.
+      buildReviewExercises(wrongAnswers) {
+        return wrongAnswers.map(wa => {
+          const exercise = {
+            type: wa.type,
+            prompt: wa.prompt,
+            answer: wa.answer,
+            id: wa.exerciseId
+          };
+          if (wa.choices) exercise.choices = wa.choices;
+          if (wa.pairs) exercise.pairs = wa.pairs;
+          if (wa.words) exercise.words = wa.words;
+          if (wa.translation) exercise.translation = wa.translation;
+          if (wa.altAnswers) exercise.altAnswers = wa.altAnswers;
+          if (wa.explanation) exercise.explanation = wa.explanation;
+          if (wa.note) exercise.note = wa.note;
+          if (wa.sources) exercise.sources = wa.sources;
+          return exercise;
+        });
+      },
+
+      // Set up App state for a review session from a list of due
+      // wrongAnswers entries. Does not render — callers render afterward
+      // in whichever way fits their context (see startReview/renderReview).
+      // If wrongAnswers is empty, this is a no-op (never renders).
+      startReviewWith(wrongAnswers) {
+        if (!wrongAnswers || wrongAnswers.length === 0) {
+          return;
+        }
+        this.currentLesson = {
+          title: 'Review',
+          description: 'Practice answers you got wrong',
+          xp: 50,
+          exercises: this.buildReviewExercises(wrongAnswers),
+          isReview: true,
+          id: 'review'
+        };
+        this.currentExerciseIndex = 0;
+        this.exerciseResults = [];
+        this.reviewMode = true;
+        this.currentScreen = 'lesson';
+      },
+
+      startReview() {
+        const wrong = DataManager.getWrongAnswersForReview();
+        if (wrong.length === 0) return;
+        this.startReviewWith(wrong);
+        this.render();
+      },
+
+      renderLesson() {
+        const lesson = this.currentLesson;
+        const exercise = lesson.exercises[this.currentExerciseIndex];
+        const isLast = this.currentExerciseIndex === lesson.exercises.length - 1;
+
+        const div = document.createElement('div');
+        div.className = 'lesson-screen';
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'lesson-header';
+        header.innerHTML = `
+          <div class="lesson-title">${lesson.title}</div>
+        `;
+
+        // Progress bar
+        const totalExercises = lesson.exercises.length;
+        const progressPercent = ((this.currentExerciseIndex + 1) / totalExercises) * 100;
+        header.innerHTML += `
+          <div class="lesson-progress-bar">
+            <div class="lesson-progress-fill" style="width: ${progressPercent}%"></div>
+          </div>
+        `;
+        div.appendChild(header);
+
+        // Lesson-level intro note (grammar-heavy units only, first exercise)
+        if (lesson.note && this.currentExerciseIndex === 0) {
+          const note = document.createElement('div');
+          note.className = 'sources-note';
+          note.innerHTML = `<strong>Note:</strong> ${lesson.note}`;
+          div.appendChild(note);
+        }
+
+        // Exercise
+        const exerciseDiv = this.renderExercise(exercise);
+        div.appendChild(exerciseDiv);
+
+        // Navigation
+        const nav = document.createElement('div');
+        nav.className = 'nav-buttons';
+
+        if (isLast) {
+          const completeBtn = document.createElement('button');
+          completeBtn.className = 'btn btn-primary btn-block';
+          completeBtn.textContent = 'Finish Lesson';
+          completeBtn.addEventListener('click', () => {
+            this.finishLesson();
+          });
+          nav.appendChild(completeBtn);
+        } else {
+          const nextBtn = document.createElement('button');
+          nextBtn.className = 'btn btn-primary btn-block';
+          nextBtn.textContent = 'Next';
+          nextBtn.addEventListener('click', () => {
+            this.nextExercise();
+          });
+          nav.appendChild(nextBtn);
+        }
+
+        div.appendChild(nav);
+
+        return div;
+      },
+
+      renderExercise(exercise) {
+        const card = document.createElement('div');
+        card.className = 'exercise-card';
+        card.id = `exercise-${this.currentExerciseIndex}`;
+
+        const promptEl = document.createElement('div');
+        promptEl.className = 'exercise-prompt';
+        promptEl.id = `exercise-prompt-${this.currentExerciseIndex}`;
+        promptEl.textContent = exercise.prompt;
+        // Cloze exercises show both the Fijian sentence (with blank) and an
+        // English translation line so the learner has meaning context without
+        // the blank becoming a translation exercise.
+        if (exercise.type === 'cloze' && exercise.translation) {
+          promptEl.style.whiteSpace = 'pre-line';
+          promptEl.textContent = exercise.prompt + '\n' + exercise.translation;
+        }
+        card.appendChild(promptEl);
+
+        switch (exercise.type) {
+          case 'multiple_choice':
+            card.appendChild(this.renderMultipleChoice(exercise));
+            break;
+          case 'matching':
+            card.appendChild(this.renderMatching(exercise));
+            break;
+          case 'sentence_builder':
+            card.appendChild(this.renderSentenceBuilder(exercise));
+            break;
+          case 'typing':
+          case 'cloze':
+            card.appendChild(this.renderTyping(exercise));
+            break;
+        }
+
+        // Sources
+        if (exercise.sources) {
+          const src = document.createElement('div');
+          src.className = 'sources-note';
+          src.innerHTML = `<strong>Sources:</strong> ${exercise.sources.map(s => SOURCES[s] || s).join(', ')}`;
+          card.appendChild(src);
+        }
+
+        return card;
+      },
+
+      // Shared text-answer comparison logic for typing and cloze exercises.
+      // Returns true if the typed value matches the answer or any altAnswer.
+      checkTextAnswer(exercise, typedValue) {
+        const typed = normalizeForCompare(typedValue);
+        const answer = normalizeForCompare(exercise.answer);
+        const altAnswers = (exercise.altAnswers || []).map(a => normalizeForCompare(a));
+        return typed === answer || altAnswers.some(a => typed === a);
+      },
+
+      renderMultipleChoice(exercise) {
+        const div = document.createElement('div');
+        div.className = 'choice-list';
+
+        exercise.choices.forEach((choice, i) => {
+          const btn = document.createElement('button');
+          btn.className = 'choice-btn';
+          btn.textContent = choice;
+          btn.dataset.index = i;
+          btn.addEventListener('click', () => {
+            this.selectChoice(exercise, i);
+          });
+          div.appendChild(btn);
+        });
+
+        return div;
+      },
+
+      selectChoice(exercise, index) {
+        const buttons = document.querySelectorAll('.choice-btn');
+        buttons.forEach(b => b.disabled = true);
+
+        const selected = buttons[index];
+        const isCorrect = index === exercise.answer;
+
+        if (isCorrect) {
+          selected.classList.add('correct');
+        } else {
+          selected.classList.add('incorrect');
+          buttons[exercise.answer].classList.add('correct');
+        }
+        this.recordResult(exercise, isCorrect);
+
+        // Show feedback and restore focus to the feedback region
+        const card = document.getElementById(`exercise-${this.currentExerciseIndex}`);
+        let message = isCorrect ? '✓ Correct!' : `✗ Incorrect. ${exercise.explanation || ''}`;
+        if (!isCorrect && exercise.explanation) {
+          message += ` <br><strong>Correct answer:</strong> ${exercise.choices[exercise.answer]}`;
+        }
+        const feedback = this.showFeedback(card, isCorrect ? 'correct' : 'incorrect', message);
+        feedback.focus();
+      },
+
+      renderMatching(exercise) {
+        const container = document.createElement('div');
+        container.className = 'matching-container';
+
+        const leftColumn = document.createElement('div');
+        leftColumn.className = 'match-column';
+        leftColumn.style.order = '1';
+
+        const rightColumn = document.createElement('div');
+        rightColumn.className = 'match-column';
+        rightColumn.style.order = '2';
+
+        // Shuffle pairs independently for each column
+        const fijianWords = [...exercise.pairs].map(p => p.fijian || p.english).sort(() => Math.random() - 0.5);
+        const englishWords = [...exercise.pairs].map(p => p.english || p.fijian).sort(() => Math.random() - 0.5);
+
+        // Create a lookup to map words back to their pair index
+        const pairMap = {};
+        exercise.pairs.forEach((pair, idx) => {
+          const fijian = pair.fijian || pair.english;
+          const english = pair.english || pair.fijian;
+          pairMap[fijian] = idx;
+          pairMap[english] = idx;
+        });
+
+        let selectedLeft = null;
+        let matches = {};
+        let completed = false;
+        let wrongCount = 0;
+        // Track wrong attempts per pair for individual spaced-repetition tracking
+        const wrongPerPair = {};
+        // Track which pairs are matched (to disable their tiles)
+        const matchedPairs = new Set();
+
+        // Render English column (right side / answers)
+        englishWords.forEach((word, i) => {
+          const item = document.createElement('div');
+          item.className = 'match-item';
+          item.textContent = word;
+          item.dataset.pairKey = pairMap[word];
+          item.dataset.column = 'right';
+          item.setAttribute('role', 'button');
+          item.setAttribute('tabindex', '0');
+          item.setAttribute('aria-label', `English meaning: ${word}. Click or press Enter to match.`);
+          rightColumn.appendChild(item);
+
+          const handleMatch = () => {
+            if (completed || !selectedLeft) return;
+            const pairKey = selectedLeft.dataset.pairKey;
+            
+            // Skip if either tile is already matched
+            if (matchedPairs.has(pairKey)) return;
+            if (matchedPairs.has(item.dataset.pairKey)) return;
+            
+            const isMatch = pairKey === item.dataset.pairKey;
+
+            if (isMatch) {
+              item.classList.add('correct');
+              selectedLeft.classList.add('correct');
+              selectedLeft.classList.remove('selected');
+              selectedLeft = null;
+              matches[pairKey] = true;
+              matchedPairs.add(pairKey);
+
+              // Record this pair result for spaced repetition
+              const pairIndex = parseInt(pairKey);
+              const pair = exercise.pairs[pairIndex];
+              const pairWasWrong = wrongPerPair[pairKey] > 0;
+              this.recordPairResult(exercise, pairIndex, !(pairWasWrong));
+
+              // Check if all matched
+              const allMatched = Object.keys(matches).length === exercise.pairs.length;
+              if (allMatched) {
+                completed = true;
+                const card = document.getElementById(`exercise-${this.currentExerciseIndex}`);
+                // Record exercise result only (for completion screen), plus per-pair results above
+                this.recordExerciseResultOnly(exercise, wrongCount === 0);
+                const message = wrongCount > 0
+                  ? `✓ All matched! (${wrongCount} incorrect attempt${wrongCount > 1 ? 's' : ''} — review recommended)${exercise.explanation ? ' ' + exercise.explanation : ''}`
+                  : '✓ All matched correctly!';
+                this.showFeedback(card, 'correct', message);
+              }
+            } else {
+              wrongCount++;
+              // Track wrong attempt for this specific pair (the one user was trying to place)
+              wrongPerPair[pairKey] = (wrongPerPair[pairKey] || 0) + 1;
+
+              selectedLeft.classList.remove('selected');
+              selectedLeft = null;
+
+              // Brief flash then reset
+              item.classList.add('incorrect');
+              setTimeout(() => {
+                item.classList.remove('incorrect');
+              }, 500);
+            }
+          };
+
+          item.addEventListener('click', handleMatch);
+          item.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleMatch();
+            }
+          });
+        });
+
+        // Render Fijian column (left side / prompts)
+        fijianWords.forEach((word, i) => {
+          const item = document.createElement('div');
+          item.className = 'match-item';
+          item.dataset.pairKey = pairMap[word];
+          item.dataset.fijianWord = word;
+          item.textContent = word;
+          item.setAttribute('role', 'button');
+          item.setAttribute('tabindex', '0');
+          item.setAttribute('aria-label', `Fijian word: ${word}. Click or press Enter to select.`);
+
+          leftColumn.appendChild(item);
+
+          const handleSelect = () => {
+            if (completed) return;
+            // Don't allow selecting an already-matched pair
+            if (matchedPairs.has(item.dataset.pairKey)) return;
+            if (selectedLeft && selectedLeft !== item) {
+              selectedLeft.classList.remove('selected');
+            }
+            selectedLeft = item;
+            item.classList.add('selected');
+          };
+
+          item.addEventListener('click', handleSelect);
+          item.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleSelect();
+            }
+          });
+        });
+
+        container.appendChild(leftColumn);
+        container.appendChild(rightColumn);
+
+        return container;
+      },
+
+      renderSentenceBuilder(exercise) {
+        const div = document.createElement('div');
+        div.className = 'sentence-builder';
+
+        // Target area
+        const target = document.createElement('div');
+        target.className = 'sentence-target';
+        target.dataset.answer = normalizeSentence(exercise.answer);
+        div.appendChild(target);
+
+        // Drag words
+        const dragContainer = document.createElement('div');
+        dragContainer.className = 'drag-words';
+
+        let completed = false;
+        let resultPushed = false;
+        let wrongAttempts = 0;
+
+        // Shuffle words
+        const shuffledWords = [...exercise.words].sort(() => Math.random() - 0.5);
+
+        shuffledWords.forEach((word, i) => {
+          const wordEl = document.createElement('div');
+          wordEl.className = 'drag-word';
+          wordEl.draggable = true;
+          wordEl.dataset.index = i;
+          wordEl.textContent = word;
+          wordEl.setAttribute('role', 'button');
+          wordEl.setAttribute('tabindex', '0');
+          wordEl.setAttribute('aria-label', `Word: ${word}. Drag or press Enter to place.`);
+
+          // Click-to-place as keyboard alternative to drag-and-drop
+          wordEl.addEventListener('click', () => {
+            if (completed) return;
+            if (wordEl.style.visibility === 'hidden') return;
+            // Simulate drag-and-drop by dispatching a drop event
+            const dropEvent = new DragEvent('drop', {
+              dataTransfer: new DataTransfer(),
+              bubbles: true
+            });
+            dropEvent.dataTransfer.setData('text/plain', word);
+            target.dispatchEvent(dropEvent);
+          });
+
+          wordEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              wordEl.click();
+            }
+          });
+          wordEl.addEventListener('dragstart', (e) => {
+            wordEl.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', word);
+          });
+
+          wordEl.addEventListener('dragend', () => {
+            wordEl.classList.remove('dragging');
+          });
+
+          dragContainer.appendChild(wordEl);
+        });
+
+        div.appendChild(dragContainer);
+
+        // Target drop handler
+        target.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          if (!completed) {
+            target.classList.add('drag-over');
+          }
+        });
+
+        target.addEventListener('dragleave', () => {
+          target.classList.remove('drag-over');
+        });
+
+        target.addEventListener('drop', (e) => {
+          if (completed) return;
+          e.preventDefault();
+          target.classList.remove('drag-over');
+          const word = e.dataTransfer.getData('text/plain');
+
+          // Check if word is already used (token-based comparison to avoid substring false positives)
+          // e.g., words ["o","cei","ko","iko"] - .includes("o") would match "iko" and "ko" as substrings
+          if (target.dataset.used) {
+            const usedWords = target.dataset.used.split(',').filter(w => w);
+            if (usedWords.includes(word)) {
+              return;
+            }
+          }
+
+          // Track attempts
+          const placedWords = target.querySelectorAll('.sentence-word');
+          const current = Array.from(placedWords).map(w => w.textContent).join('');
+          const answer = normalizeSentence(exercise.answer);
+
+          // If we have more words than the answer, it's a wrong attempt
+          const normalizedTyped = normalizeSentence(current + ' ' + word);
+          if (normalizedTyped !== answer && normalizedTyped.length > answer.length) {
+            wrongAttempts++;
+          }
+
+          const span = document.createElement('span');
+          span.textContent = word;
+          span.className = 'sentence-word';
+          target.appendChild(span);
+
+          if (!target.dataset.used) target.dataset.used = '';
+          target.dataset.used += word + ',';
+
+          // Hide the original drag word
+          const dragWords = dragContainer.querySelectorAll('.drag-word');
+          dragWords.forEach(w => {
+            if (w.textContent === word && !w.closest('.sentence-target')) {
+              w.style.visibility = 'hidden';
+            }
+          });
+
+          // Check if correct — recheck with all placed words
+          const words = target.querySelectorAll('.sentence-word');
+          const current2 = Array.from(words).map(w => w.textContent).join('');
+          const answer2 = normalizeSentence(exercise.answer);
+
+          if (normalizeSentence(current2) === answer2 && current2.length > 0) {
+            completed = true;
+            target.classList.add('correct');
+            target.classList.remove('incorrect');
+
+            if (!resultPushed) {
+              resultPushed = true;
+              // Record wrong attempts for review, or correct first-try for spaced rep
+              this.recordResult(exercise, wrongAttempts === 0);
+            }
+
+            // Show feedback
+            const card = target.closest('.exercise-card');
+            const message = wrongAttempts > 0
+              ? `✓ Correct! (${wrongAttempts} wrong attempt${wrongAttempts > 1 ? 's' : ''} — review recommended) <span class="pronunciation-hint">Answer pronunciation: ${fijianToPhonetic(exercise.answer)}</span>${exercise.explanation ? ' ' + exercise.explanation : ''}`
+              : `✓ Correct! <span class="pronunciation-hint">Answer pronunciation: ${fijianToPhonetic(exercise.answer)}</span>`;
+            const feedback = this.showFeedback(card, 'correct', message);
+            feedback.focus();
+          } else if (words.length === exercise.words.length) {
+            // All tiles placed but arrangement is wrong — soft-lock recovery
+            wrongAttempts++;
+            target.classList.add('incorrect');
+            target.classList.remove('correct');
+            setTimeout(() => {
+              target.classList.remove('incorrect');
+              target.dataset.used = '';
+              target.innerHTML = '';
+              dragContainer.querySelectorAll('.drag-word').forEach(w => {
+                w.style.visibility = 'visible';
+              });
+              // Restore focus to first draggable word after reset
+              const firstDraggable = dragContainer.querySelector('.drag-word');
+              if (firstDraggable) firstDraggable.focus();
+            }, 700);
+          }
+        });
+
+        return div;
+      },
+
+      renderTyping(exercise) {
+        const div = document.createElement('div');
+        div.className = 'typing-container';
+
+        const promptId = `exercise-prompt-${this.currentExerciseIndex}`;
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'typing-input';
+        input.placeholder = 'Type your answer here...';
+        input.setAttribute('aria-labelledby', promptId);
+
+        const checkAnswer = () => {
+          if (input.disabled) return;
+          const trimmed = input.value.trim();
+          if (!trimmed) {
+            // Empty submission — do nothing
+            input.focus();
+            return;
+          }
+          const isCorrect = this.checkTextAnswer(exercise, input.value);
+          if (isCorrect) {
+            input.classList.add('correct');
+            input.classList.remove('incorrect');
+          } else {
+            input.classList.add('incorrect');
+            input.classList.remove('correct');
+          }
+          this.recordResult(exercise, isCorrect);
+
+          // Show feedback and restore focus
+          const card = document.getElementById(`exercise-${this.currentExerciseIndex}`);
+
+          if (isCorrect) {
+            this.showFeedback(card, 'correct', `✓ Correct! <span class="pronunciation-hint">Pronunciation: ${fijianToPhonetic(exercise.answer)}</span>`);
+          } else {
+            this.showFeedback(card, 'incorrect', `✗ Incorrect. The correct answer is: <span class="correct-answer">${exercise.answer}</span> <span class="pronunciation-hint">Pronunciation: ${fijianToPhonetic(exercise.answer)}</span>${exercise.explanation ? ' ' + exercise.explanation : ''}`);
+          }
+
+          input.disabled = true;
+          // Focus the Check button as a convenient next step
+          checkBtn.focus();
+        };
+
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            checkAnswer();
+          }
+        });
+
+        div.appendChild(input);
+
+        // Add Check button as a redundant submit path for touch devices
+        const checkBtn = document.createElement('button');
+        checkBtn.className = 'btn btn-secondary btn-block';
+        checkBtn.textContent = 'Check Answer';
+        checkBtn.style.marginTop = '12px';
+        checkBtn.addEventListener('click', checkAnswer);
+        div.appendChild(checkBtn);
+
+        if (exercise.note) {
+          const note = document.createElement('div');
+          note.className = 'sources-note';
+          note.innerHTML = `<strong>💡 Note:</strong> ${exercise.note}`;
+          div.appendChild(note);
+        }
+
+        return div;
+      },
+
+      nextExercise() {
+        // Update streak when user progresses to next exercise (real practice)
+        DataManager.updateStreak();
+        this.currentExerciseIndex++;
+        this.render();
+      },
+
+      finishLesson() {
+        const lesson = this.currentLesson;
+        let totalXP = 0;
+
+        // Calculate XP based on accuracy
+        const correct = this.exerciseResults.filter(r => r.correct).length;
+        const total = lesson.exercises.length;
+        const accuracy = total > 0 ? correct / total : 0;
+
+        if (accuracy >= 1) {
+          // XP based on mastery (full XP at 100%, proportional otherwise)
+          totalXP = lesson.xp;
+        } else if (accuracy >= 0.8) {
+          totalXP = Math.round(lesson.xp * 0.9);
+        } else if (accuracy > 0) {
+          totalXP = Math.round(lesson.xp * accuracy);
+        }
+
+        DataManager.addXP(totalXP);
+
+        if (lesson.id && !lesson.isReview) {
+          DataManager.completeLesson(lesson.id, Math.round(accuracy * 100));
+          // Reward: completing a lesson with 80%+ accuracy earns a streak freeze
+          if (accuracy >= 0.8) {
+            DataManager.addStreakFreeze(1);
+          }
+        }
+
+        if (this.reviewMode) {
+          // Spaced repetition intervals are updated during exercise rendering
+          // (via recordCorrectAnswer/recordWrongAnswer), so no double-processing here.
+          // Just mark review complete.
+        }
+
+        // Update streak
+        DataManager.updateStreak();
+
+        // Track daily XP for goal progress
+        if (totalXP > 0) {
+          DataManager.addDailyXP(totalXP);
+        }
+
+        // Go to completion screen
+        this.completionData = {
+          lessonId: lesson.id,
+          lessonTitle: lesson.title,
+          xpEarned: totalXP,
+          accuracy: Math.round(accuracy * 100),
+          correct,
+          total
+        };
+
+        this.currentScreen = 'completion';
+        this.render();
+      },
+
+      renderExerciseTypeBreakdown() {
+        const results = this.exerciseResults || [];
+        const typeMap = {};
+        const typeLabels = {
+          matching: 'Matching',
+          multiple_choice: 'Multiple Choice',
+          typing: 'Typing',
+          sentence_builder: 'Sentence Building',
+          cloze: 'Cloze'
+        };
+        for (const r of results) {
+          const type = r.exercise?.type || 'unknown';
+          if (!typeMap[type]) typeMap[type] = { correct: 0, total: 0 };
+          typeMap[type].total++;
+          if (r.correct) typeMap[type].correct++;
+        }
+        const parts = Object.keys(typeMap).map(type => {
+          const counts = typeMap[type];
+          const label = typeLabels[type] || type;
+          return `${label} ${counts.correct}/${counts.total}`;
+        });
+        return parts.join(' · ');
+      },
+
+      renderCompletion() {
+        const data = this.completionData;
+        const div = document.createElement('div');
+        div.className = 'completion-screen';
+
+        div.innerHTML = `
+          <div class="completion-icon">🎉</div>
+          <div class="completion-title">Lesson Complete!</div>
+          <div class="completion-subtitle">${data.lessonTitle}</div>
+          <div class="xp-gain">+${data.xpEarned} XP</div>
+          <p style="margin-bottom: 8px; color: var(--text-secondary);">
+            Accuracy: ${data.accuracy}% (${data.correct}/${data.total} correct)
+          </p>
+          <p class="sources-note" style="font-size: 0.85em; margin-bottom: 12px;">
+            ${this.renderExerciseTypeBreakdown()}
+          </p>
+          <div class="sources-note">
+            ${data.accuracy === 100 ? 'Perfect! All answers correct.' :
+              data.accuracy >= 80 ? 'Great job! Review the mistakes to improve.' :
+              'Keep practicing! Try reviewing this lesson again.'}
+          </div>
+        `;
+
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-primary';
+        btn.textContent = 'Back to Skills';
+        btn.style.marginTop = '20px';
+        btn.addEventListener('click', () => {
+          this.currentScreen = 'home';
+          this.render();
+        });
+        div.appendChild(btn);
+
+        // Compute session mistakes first - skipped exercises affect accuracy but aren't mistakes
+        const sessionMistakes = this.exerciseResults
+          .filter(r => !r.correct)
+          .map(r => r.exercise);
+        const hasMistakes = sessionMistakes.length > 0;
+
+        if (data.accuracy < 100 && hasMistakes && !this.reviewMode) {
+          const reviewBtn = document.createElement('button');
+          reviewBtn.className = 'btn btn-secondary';
+          reviewBtn.textContent = 'Review Mistakes';
+          reviewBtn.style.marginTop = '12px';
+          reviewBtn.style.marginLeft = '12px';
+          reviewBtn.addEventListener('click', () => {
+            // Review this session's mistakes directly, not the scheduled
+            // due-queue (those items have nextReviewAt = now + 1 day and
+            // won't show up via getWrongAnswersForReview()).
+            // Build proper review entries with all fields _buildTrackedEntry expects
+            const reviewEntries = sessionMistakes.map(ex => {
+              const entry = {
+                type: ex.type, prompt: ex.prompt, answer: ex.answer,
+                exerciseId: ex.id,
+                choices: ex.choices, pairs: ex.pairs, words: ex.words,
+                explanation: ex.explanation, note: ex.note, sources: ex.sources
+              };
+              // Include altAnswers and translation if present
+              if (ex.altAnswers) entry.altAnswers = ex.altAnswers;
+              if (ex.translation) entry.translation = ex.translation;
+              return entry;
+            });
+            this.startReviewWith(reviewEntries);
+            this.render();
+          });
+          div.appendChild(reviewBtn);
+        }
+
+        if (!this.reviewMode) {
+          const practiceBtn = document.createElement('button');
+          practiceBtn.className = 'btn btn-secondary';
+          practiceBtn.textContent = 'Practice Again';
+          practiceBtn.style.marginTop = '12px';
+          practiceBtn.style.marginLeft = '12px';
+          practiceBtn.addEventListener('click', () => {
+            this.startLesson(this.completionData.lessonId);
+            this.render();
+          });
+          div.appendChild(practiceBtn);
+        }
+
+        return div;
+      },
+
+      renderReview() {
+        const due = DataManager.getWrongAnswersForReview();
+        if (due.length === 0) {
+          const div = document.createElement('div');
+          div.className = 'lesson-screen';
+          div.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px;">
+              <div style="font-size: 3rem; margin-bottom: 20px;">✅</div>
+              <h2>No Reviews Due</h2>
+              <p style="color: var(--text-secondary); margin-bottom: 24px;">
+                You have no items scheduled for review today. Keep practicing to build your review queue!
+              </p>
+              <button class="btn btn-primary" onclick="App.currentScreen='home';App.render();">
+                Back to Skills
+              </button>
+            </div>
+          `;
+          return div;
+        }
+
+        this.startReviewWith(due);
+        return this.renderLesson();
+      },
+
+      renderPronunciation() {
+        const div = document.createElement('div');
+        div.className = 'home-screen';
+
+        const title = document.createElement('h2');
+        title.textContent = 'Pronunciation Guide';
+        title.style.marginBottom = '8px';
+        div.appendChild(title);
+
+        const subtitle = document.createElement('p');
+        subtitle.textContent = 'How to speak Fijian sounds';
+        subtitle.style.color = 'var(--text-secondary)';
+        subtitle.style.marginBottom = '20px';
+        div.appendChild(subtitle);
+
+        // Vowels table
+        const vowelTitle = document.createElement('h3');
+        vowelTitle.textContent = 'Vowels';
+        vowelTitle.style.marginBottom = '8px';
+        vowelTitle.style.color = 'var(--primary)';
+        div.appendChild(vowelTitle);
+
+        const vowelTable = document.createElement('table');
+        vowelTable.className = 'pronounce-table';
+        vowelTable.innerHTML = '<tr><th>Letter</th><th>Sound</th><th>Example</th></tr>';
+        PRONUNCIATION.vowels.forEach(v => {
+          const row = document.createElement('tr');
+          row.innerHTML = `<td><strong>${v.char}</strong></td><td class="sound-cell">/${v.sound}/</td><td>${v.example}</td>`;
+          vowelTable.appendChild(row);
+        });
+        div.appendChild(vowelTable);
+
+        // Consonants table
+        const consonantTitle = document.createElement('h3');
+        consonantTitle.textContent = 'Tricky Consonants';
+        consonantTitle.style.marginTop = '24px';
+        consonantTitle.style.marginBottom = '8px';
+        consonantTitle.style.color = 'var(--primary)';
+        div.appendChild(consonantTitle);
+
+        const consonantTable = document.createElement('table');
+        consonantTable.className = 'pronounce-table';
+        consonantTable.innerHTML = '<tr><th>Letter</th><th>Sound</th><th>Example</th></tr>';
+        PRONUNCIATION.consonants.forEach(c => {
+          const row = document.createElement('tr');
+          row.innerHTML = `<td><strong>${c.char}</strong></td><td class="sound-cell">/${c.sound}/</td><td>${c.example}</td>`;
+          consonantTable.appendChild(row);
+        });
+        div.appendChild(consonantTable);
+
+        // Tips
+        const tipsTitle = document.createElement('h3');
+        tipsTitle.textContent = 'Pronunciation Tips';
+        tipsTitle.style.marginTop = '24px';
+        tipsTitle.style.marginBottom = '8px';
+        tipsTitle.style.color = 'var(--primary)';
+        div.appendChild(tipsTitle);
+
+        const tipsList = document.createElement('ul');
+        tipsList.className = 'pronounce-tips';
+        PRONUNCIATION.tips.forEach(tip => {
+          const li = document.createElement('li');
+          li.textContent = tip;
+          tipsList.appendChild(li);
+        });
+        div.appendChild(tipsList);
+
+        // Back button
+        const backBtn = document.createElement('button');
+        backBtn.className = 'btn btn-secondary';
+        backBtn.textContent = '← Back to Skills';
+        backBtn.style.marginTop = '20px';
+        backBtn.onclick = () => { App.currentScreen = 'home'; App.render(); };
+        div.appendChild(backBtn);
+
+        return div;
+      },
+
+      renderSources() {
+        const div = document.createElement('div');
+        div.className = 'home-screen';
+
+        const title = document.createElement('h2');
+        title.textContent = 'Language Sources';
+        title.style.marginBottom = '8px';
+        div.appendChild(title);
+
+        const subtitle = document.createElement('p');
+        subtitle.textContent = 'All vocabulary verified from these authoritative sources:';
+        subtitle.style.color = 'var(--text-secondary)';
+        subtitle.style.marginBottom = '20px';
+        div.appendChild(subtitle);
+
+        const list = document.createElement('ul');
+        list.className = 'sources-list';
+        for (const [key, desc] of Object.entries(SOURCES)) {
+          const li = document.createElement('li');
+          li.innerHTML = `<strong>${key}</strong> — ${desc}`;
+          list.appendChild(li);
+        }
+        div.appendChild(list);
+
+        const disclaimer = document.createElement('p');
+        disclaimer.style.marginTop = '20px';
+        disclaimer.style.fontSize = '0.85rem';
+        disclaimer.style.color = 'var(--text-secondary)';
+        disclaimer.innerHTML = '<strong>Note:</strong> All vocabulary is verified from at least two independent sources where possible. Words that could not be cross-verified are flagged in the sources section.<br><strong>Color discrepancy:</strong> PolyglotClub [4] lists different color words that conflict with cross-verified sources [7,12]. We use the cross-verified set (vulavula=white, loaloa=black, etc.) based on Glosbe confirming drau=leaf, not white.';
+        div.appendChild(disclaimer);
+
+        // Back button
+        const backBtn = document.createElement('button');
+        backBtn.className = 'btn btn-secondary';
+        backBtn.textContent = '← Back to Skills';
+        backBtn.style.marginTop = '20px';
+        backBtn.onclick = () => { App.currentScreen = 'home'; App.render(); };
+        div.appendChild(backBtn);
+
+        return div;
+      }
+    };
+
+    // Exposed on window for the same reason as DataManager above — lets
+    // test.html drive App's methods against the real running app.
+    window.App = App;
+
+    // ─── Event Listeners ─────────────────────────────────────────
+    const homeLogo = document.getElementById('home-logo');
+    const goHome = () => { App.currentScreen = 'home'; App.render(); };
+    homeLogo.addEventListener('click', goHome);
+    homeLogo.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        goHome();
+      }
+    });
+
+    document.getElementById('review-btn').addEventListener('click', () => {
+      if (DataManager.getWrongAnswersForReview().length > 0) {
+        App.currentScreen = 'review';
+        App.render();
+      }
+    });
+
+    document.getElementById('sync-btn').addEventListener('click', () => {
+          // Check if Firebase SDK is loaded at all
+          if (!window.FirebaseSync || !FirebaseSync.db) {
+            alert('Sync needs a connection. Please check your internet connection.');
+            return;
+          }
+          if (FirebaseSync.isSignedIn()) {
+            // If signed in, show sign-out option
+            if (confirm('Signed in as ' + FirebaseSync.currentUser.email + '\n\nClick OK to sign out, or Cancel to cancel.')) {
+              FirebaseSync.signOut();
+            }
+          } else {
+            App.currentScreen = 'auth';
+            App.render();
+          }
+        });
+
+        document.getElementById('settings-btn').addEventListener('click', () => {
+      App.currentScreen = 'settings';
+      App.render();
+    });
+
+  // ─── Auth Screen Renderer ───────────────────────────────────
+  const AuthScreen = {
+      render: () => {
+        const div = document.createElement('div');
+        div.className = 'auth-screen';
+
+        const card = document.createElement('div');
+        card.className = 'auth-card';
+
+        const title = document.createElement('h2');
+        title.textContent = '☁️ Sync Progress';
+
+        const desc = document.createElement('p');
+        desc.textContent = 'Sign in to sync your progress across devices. Your data is stored securely and only you can access it. The app works offline without an account — sign in only if you want cloud sync.';
+
+        card.appendChild(title);
+        card.appendChild(desc);
+
+        // Email form
+        const form = document.createElement('div');
+        form.className = 'auth-form';
+
+        const emailInput = document.createElement('input');
+        emailInput.type = 'email';
+        emailInput.placeholder = 'you@example.com';
+        emailInput.id = 'auth-email';
+
+        const passwordInput = document.createElement('input');
+        passwordInput.type = 'password';
+        passwordInput.placeholder = 'Password';
+        passwordInput.id = 'auth-password';
+
+        const signInBtn = document.createElement('button');
+        signInBtn.className = 'auth-btn email-btn';
+        signInBtn.textContent = 'Sign In';
+        signInBtn.onclick = async () => {
+          const email = emailInput.value;
+          const password = passwordInput.value;
+          const errorEl = document.getElementById('auth-error');
+          try {
+            await FirebaseSync.signInWithEmail(email, password);
+          } catch(e) {
+            errorEl.textContent = e.message;
+            errorEl.style.display = 'block';
+          }
+        };
+
+        const signUpBtn = document.createElement('button');
+        signUpBtn.className = 'auth-btn email-btn';
+        signUpBtn.textContent = 'Sign Up';
+        signUpBtn.onclick = async () => {
+          const email = emailInput.value;
+          const password = passwordInput.value;
+          const errorEl = document.getElementById('auth-error');
+          if (password.length < 6) {
+            errorEl.textContent = 'Password must be at least 6 characters';
+            errorEl.style.display = 'block';
+            return;
+          }
+          try {
+            await FirebaseSync.signUpWithEmail(email, password);
+          } catch(e) {
+            errorEl.textContent = e.message;
+            errorEl.style.display = 'block';
+          }
+        };
+
+        const divider = document.createElement('div');
+        divider.textContent = '— or —';
+        divider.style.textAlign = 'center';
+        divider.style.color = 'var(--text-secondary)';
+        divider.style.fontSize = '0.85rem';
+
+        const googleBtn = document.createElement('button');
+        googleBtn.className = 'auth-btn google-btn';
+        googleBtn.innerHTML = 'Sign in with Google';
+        googleBtn.onclick = async () => {
+          const errorEl = document.getElementById('auth-error');
+          try {
+            await FirebaseSync.signInWithGoogle();
+          } catch(e) {
+            errorEl.textContent = e.message;
+            errorEl.style.display = 'block';
+          }
+        };
+
+        const errorEl = document.createElement('div');
+        errorEl.id = 'auth-error';
+        errorEl.className = 'auth-error';
+        errorEl.style.display = 'none';
+
+        form.appendChild(emailInput);
+        form.appendChild(passwordInput);
+        form.appendChild(signInBtn);
+        form.appendChild(signUpBtn);
+        form.appendChild(divider);
+        form.appendChild(googleBtn);
+        form.appendChild(errorEl);
+
+        const skipBtn = document.createElement('button');
+        skipBtn.className = 'auth-btn skip-btn';
+        skipBtn.textContent = 'Continue without an account';
+        skipBtn.onclick = () => {
+          App.currentScreen = 'home';
+          App.render();
+        };
+
+        card.appendChild(form);
+        card.appendChild(skipBtn);
+        div.appendChild(card);
+
+        return div;
+      }
+    };
+
+    window.AuthScreen = AuthScreen;
+
+    // ─── Initialize ─────────────────────────────────────────────
+    function loadFirebaseSDK(callback) {
+      // Offline short-circuit: skip Firebase loading if offline
+      if (!navigator.onLine) {
+        callback();
+        return;
+      }
+
+      const failed = false;
+      // Always call App.init() first to render the app from cache
+      // Firebase SDK loading is background-only and won't affect core functionality
+      App.init();
+      
+      // Timeout fallback: if Firebase hasn't loaded in 8s, proceed anyway
+      const timeout = setTimeout(() => {
+        console.log('Firebase SDK timeout - proceeding without cloud sync');
+        if (!failed) callback();
+      }, 8000);
+      
+      const urls = [
+        'https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js',
+        'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js',
+        'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js'
+      ];
+      let loaded = 0;
+      let failed = false;
+      urls.forEach(src => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.async = false; // Ensure scripts execute in order (auth-compat depends on app-compat)
+        s.onload = () => {
+          if (++loaded === urls.length && !failed) {
+            clearTimeout(timeout);
+            callback();
+          }
+        };
+        s.onerror = () => {
+          if (!failed) {
+            failed = true;
+            clearTimeout(timeout);
+            if (loaded < urls.length) callback();
+          }
+        };
+        document.head.appendChild(s);
+      });
+    }
+    window.loadFirebaseSDK = loadFirebaseSDK;
+
+    loadFirebaseSDK(() => {
+      FirebaseSync.init();
+    });
+
+    // ─── PWA Service Worker Registration ─────────────────────────
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('SW registered:', reg.scope))
+        .catch(err => console.error('SW registration failed:', err));
+    }
+  </script>
+</body>
+</html>
