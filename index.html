@@ -1056,6 +1056,17 @@
 
       // Per-pair tracking for matching exercises
       // Uses the same interval logic as recordCorrectAnswer/recordWrongAnswer
+      
+      // Helper to build synthetic exercise object for pair tracking
+      _pairExercise(exerciseId, pairIndex, pair) {
+        return {
+          type: 'typing',
+          prompt: `Type the Fijian word for '${pair.english}'`,
+          answer: pair.fijian,
+          id: `${exerciseId}::pair::${pairIndex}`
+        };
+      },
+
       recordPairCorrect(exerciseId, pairIndex, pair) {
         const p = this.progress;
         const trackedId = `${exerciseId}::pair::${pairIndex}`;
@@ -1083,13 +1094,15 @@
           // If not due yet, this correct answer is a no-op for scheduling
         } else {
           // First encounter — add to pool with initial delay
-          p.wrongAnswers.push(this._buildTrackedEntry(exercise, {
-            timestamp: nowTime,
-            reviewCount: 0,
-            nextReviewAt: nowTime + 7 * DAY_MS,
-            intervalIndex: 2,
-            lastCorrect: nowTime
-          }));
+          p.wrongAnswers.push(this._buildTrackedEntry(
+            this._pairExercise(exerciseId, pairIndex, pair), {
+              timestamp: nowTime,
+              reviewCount: 0,
+              nextReviewAt: nowTime + 7 * DAY_MS,
+              intervalIndex: 2,
+              lastCorrect: nowTime
+            }
+          ));
         }
         this.saveProgress();
       },
@@ -1110,12 +1123,14 @@
           existing.mastered = false;
         } else {
           // First wrong attempt — add to pool for review
-          p.wrongAnswers.push(this._buildTrackedEntry(exercise, {
-            timestamp: now,
-            reviewCount: 0,
-            nextReviewAt: now + 1 * DAY_MS,
-            intervalIndex: 0
-          }));
+          p.wrongAnswers.push(this._buildTrackedEntry(
+            this._pairExercise(exerciseId, pairIndex, pair), {
+              timestamp: now,
+              reviewCount: 0,
+              nextReviewAt: now + 1 * DAY_MS,
+              intervalIndex: 0
+            }
+          ));
         }
         this.saveProgress();
       },
@@ -1500,16 +1515,8 @@
       },
 
       // Record a pair result from a matching exercise for spaced repetition
-      // Creates a synthetic typing-like exercise for the review system
       recordPairResult(exercise, pairIndex, isCorrect) {
         const pair = exercise.pairs[pairIndex];
-        // Build a synthetic exercise object with type: 'typing' for the review system
-        const syntheticExercise = {
-          type: 'typing',
-          prompt: `Type the Fijian word for '${pair.english}'`,
-          answer: pair.fijian,
-          id: `${exercise.id}::pair::${pairIndex}`
-        };
         if (isCorrect) {
           DataManager.recordPairCorrect(exercise.id, pairIndex, pair);
         } else {
