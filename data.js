@@ -863,7 +863,7 @@ const LESSONS = {
         id: "unit11-6",
         prompt: "Type the Fijian word for 'dog'",
         answer: "kolī",
-        explanation: "'Kolī' means dog — the singular form (note the long vowel); the plural 'kolī' is taught in unit11-1's matching exercise alongside manumanu (animal), ika (fish), and gata (snake). [7][10]",
+        explanation: "'Kolī' means dog — one of the animal words taught in unit11-1's matching exercise alongside manumanu (animal), ika (fish), and gata (snake). [7][10]",
         sources: ["[7]", "[10]"]
       }
     ],
