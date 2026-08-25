@@ -1138,20 +1138,17 @@
       updateStreak() {
         const p = this.progress;
         const today = new Date().toDateString();
-        const yesterday = new Date(Date.now() - DAY_MS).toDateString();
-
         // Already active today, nothing to change
         if (p.lastActive === today) {
           return;
         }
 
         if (p.lastActive && p.lastActive !== today) {
-          // Calculate days since using calendar dates (not elapsed ms) to handle DST
-          const lastDate = new Date(p.lastActive);
-          const todayDate = new Date();
-          const lastDateOnly = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
-          const todayDateOnly = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
-          const daysSince = Math.floor((todayDateOnly - lastDateOnly) / (24 * 60 * 60 * 1000));
+          // Calculate days since using UTC dates (DST-safe)
+          const toUTCDay = d => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+          const daysSince = Math.round(
+            (toUTCDay(new Date()) - toUTCDay(new Date(p.lastActive))) / 86400000
+          );
 
           if (daysSince === 1) {
             // Just yesterday — streak continues
@@ -1169,9 +1166,6 @@
               p.streak = 1;
               console.log(`Streak broken: need ${freezesNeeded} freezes, have ${(p.streakFreezes || 0)}`);
             }
-          } else {
-            // Same calendar day transition (shouldn't happen normally but handle gracefully)
-            p.streak += 0; // no change
           }
         } else {
           // First day ever
