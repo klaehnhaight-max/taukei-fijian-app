@@ -496,6 +496,11 @@
       background: rgba(74, 144, 217, 0.1);
     }
 
+    .header-btn {
+      padding: 6px 16px;
+      font-size: 0.85rem;
+    }
+
     .btn-block {
       width: 100%;
       margin-top: 8px;
@@ -891,11 +896,11 @@
         <span class="stat-value" id="xp-count">0</span>
         <span>XP</span>
       </div>
-      <button id="review-btn" class="btn btn-secondary" style="padding: 6px 16px; font-size: 0.85rem;" aria-label="Review">
+      <button id="review-btn" class="btn btn-secondary header-btn" aria-label="Review">
         📚<span class="btn-label"> Review</span></button>
-      <button id="sync-btn" class="btn btn-secondary" style="padding: 6px 16px; font-size: 0.85rem;" aria-label="Sync">
+      <button id="sync-btn" class="btn btn-secondary header-btn" aria-label="Sync">
         ☁️<span class="btn-label"> Sync</span></button>
-      <button id="settings-btn" class="btn btn-secondary" style="padding: 6px 16px; font-size: 0.85rem;" aria-label="Settings">
+      <button id="settings-btn" class="btn btn-secondary header-btn" aria-label="Settings">
         ⚙️<span class="btn-label"> Settings</span></button>
     </div>
   </header>
@@ -960,7 +965,15 @@
         // Write to localStorage (always — this is the source of truth for offline use)
         const p = this.progress;
         p.lastModified = Date.now();
-        localStorage.setItem('taukei_progress', JSON.stringify(p));
+        try {
+          localStorage.setItem('taukei_progress', JSON.stringify(p));
+        } catch(e) {
+          // Storage full or restricted — warn user but continue
+          if (!this._storageWarningShown) {
+            console.warn('localStorage unavailable:', e.message);
+            this._storageWarningShown = true;
+          }
+        }
 
         // Sync to Firestore if user is signed in
         if (window.FirebaseSync && window.FirebaseSync.isSignedIn() && !window.FirebaseSync.syncInProgress) {
@@ -1290,6 +1303,22 @@
     window.SKILL_TREE = SKILL_TREE;
     window.LESSONS = LESSONS;
 
+    // Listen for storage events from other tabs (multi-tab sync)
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'taukei_progress' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          DataManager._progressCache = parsed;
+          // Re-render if needed (e.g., stats changed)
+          if (App.currentScreen === 'home') {
+            App.render();
+          }
+        } catch(err) {
+          console.warn('Failed to parse synced progress:', err);
+        }
+      }
+    });
+
     // ─── Firebase Sync (Optional Cloud Sync) ─────────────────────
     // Sign-in is OPTIONAL. The app works fully offline with just localStorage.
     // Firebase sync is an opt-in feature for cross-device progress sync.
@@ -1393,16 +1422,18 @@
         }
       },
 
-      // Throttled sync — only writes if not recently synced
+      // Trailing debounce sync — writes only the final state within the throttle window
       syncProgress(progress) {
-        const lastSync = localStorage.getItem('last_firestore_sync');
         const now = Date.now();
-        if (lastSync && now - parseInt(lastSync) < 2000) {
-          // Throttle to once per 2 seconds
-          return;
-        }
-        localStorage.setItem('last_firestore_sync', now.toString());
-        this.saveToFirestore(progress);
+        clearTimeout(this._syncDebounceTimer);
+        this._pendingProgress = progress;
+        this._pendingSyncTime = now;
+        
+        this._syncDebounceTimer = setTimeout(() => {
+          if (this._pendingProgress && this._pendingSyncTime === now) {
+            this.saveToFirestore(this._pendingProgress);
+          }
+        }, 2000);
       },
 
       signUpWithEmail(email, password) {
@@ -1506,14 +1537,16 @@
           DataManager.getReviewCount() > 0 ? 'inline-block' : 'none';
 
         // Update sync button label based on auth state
+        // Preserve the span structure: ☁️<span class="btn-label">...</span>
         const syncBtn = document.getElementById('sync-btn');
         if (syncBtn) {
+          const labelSpan = syncBtn.querySelector('.btn-label');
           if (window.FirebaseSync && FirebaseSync.isSignedIn()) {
             const user = FirebaseSync.currentUser;
             const displayName = user.displayName || user.email.split('@')[0];
-            syncBtn.textContent = '☁️ ' + displayName;
+            if (labelSpan) labelSpan.textContent = displayName;
           } else {
-            syncBtn.textContent = '☁️ Sync';
+            if (labelSpan) labelSpan.textContent = 'Sync';
           }
         }
       },
@@ -2556,6 +2589,12 @@
 
         const checkAnswer = () => {
           if (input.disabled) return;
+          const trimmed = input.value.trim();
+          if (!trimmed) {
+            // Empty submission — do nothing
+            input.focus();
+            return;
+          }
           const isCorrect = this.checkTextAnswer(exercise, input.value);
           if (isCorrect) {
             input.classList.add('correct');
@@ -2621,6 +2660,12 @@
 
         const checkAnswer = () => {
           if (input.disabled) return;
+          const trimmed = input.value.trim();
+          if (!trimmed) {
+            // Empty submission — do nothing
+            input.focus();
+            return;
+          }
           const isCorrect = this.checkTextAnswer(exercise, input.value);
           if (isCorrect) {
             input.classList.add('correct');
@@ -3011,24 +3056,29 @@
     });
 
     document.getElementById('sync-btn').addEventListener('click', () => {
-      if (window.FirebaseSync && FirebaseSync.isSignedIn()) {
-        // If signed in, show sign-out option
-        if (confirm('Signed in as ' + FirebaseSync.currentUser.email + '\n\nClick OK to sign out, or Cancel to cancel.')) {
-          FirebaseSync.signOut();
-        }
-      } else {
-        App.currentScreen = 'auth';
-        App.render();
-      }
-    });
+          // Check if Firebase SDK is loaded at all
+          if (!window.FirebaseSync || !FirebaseSync.db) {
+            alert('Sync needs a connection. Please check your internet connection.');
+            return;
+          }
+          if (FirebaseSync.isSignedIn()) {
+            // If signed in, show sign-out option
+            if (confirm('Signed in as ' + FirebaseSync.currentUser.email + '\n\nClick OK to sign out, or Cancel to cancel.')) {
+              FirebaseSync.signOut();
+            }
+          } else {
+            App.currentScreen = 'auth';
+            App.render();
+          }
+        });
 
-    document.getElementById('settings-btn').addEventListener('click', () => {
+        document.getElementById('settings-btn').addEventListener('click', () => {
       App.currentScreen = 'settings';
       App.render();
     });
 
-    // ─── Auth Screen Renderer ───────────────────────────────────
-    const AuthScreen = {
+  // ─── Auth Screen Renderer ───────────────────────────────────
+  const AuthScreen = {
       render: () => {
         const div = document.createElement('div');
         div.className = 'auth-screen';
