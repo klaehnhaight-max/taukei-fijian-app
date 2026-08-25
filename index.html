@@ -1052,6 +1052,80 @@
         this.saveProgress();
       },
 
+      // Per-pair tracking for matching exercises
+      // Uses the same interval logic as recordCorrectAnswer/recordWrongAnswer
+      recordPairCorrect(exerciseId, pairIndex, pair) {
+        const p = this.progress;
+        const trackedId = `${exerciseId}::pair::${pairIndex}`;
+        const existing = p.wrongAnswers.find(wa => wa.exerciseId === trackedId);
+        const now = Date.now();
+        const dayInMs = 24 * 60 * 60 * 1000;
+        const intervals = [1, 3, 7, 14, 30, 90]; // days: Leitner-like
+
+        if (existing) {
+          // Already in pool — correct answer means advance the interval
+          existing.intervalIndex = Math.min(existing.intervalIndex + 1, intervals.length - 1);
+          existing.nextReviewAt = now + intervals[existing.intervalIndex] * dayInMs;
+          existing.lastCorrect = now;
+          if (existing.intervalIndex >= intervals.length - 1) {
+            existing.correctStreak = (existing.correctStreak || 0) + 1;
+            if (existing.correctStreak >= 2) {
+              existing.mastered = true;
+            }
+          } else {
+            existing.correctStreak = 0;
+          }
+        } else {
+          // First encounter — add to pool with initial delay
+          const syntheticExercise = {
+            type: 'typing',
+            prompt: `Type the Fijian word for '${pair.english}'`,
+            answer: pair.fijian,
+            id: trackedId
+          };
+          p.wrongAnswers.push(this._buildTrackedEntry(syntheticExercise, {
+            timestamp: now,
+            reviewCount: 0,
+            nextReviewAt: now + 7 * dayInMs,
+            intervalIndex: 2,
+            lastCorrect: now
+          }));
+        }
+        this.saveProgress();
+      },
+
+      recordPairWrong(exerciseId, pairIndex, pair) {
+        const p = this.progress;
+        const trackedId = `${exerciseId}::pair::${pairIndex}`;
+        const existing = p.wrongAnswers.find(wa => wa.exerciseId === trackedId);
+        const now = Date.now();
+        const dayInMs = 24 * 60 * 60 * 1000;
+
+        if (existing) {
+          // Wrong answer on already-tracked item: reset to shortest interval
+          existing.timestamp = now;
+          existing.reviewCount = 0;
+          existing.nextReviewAt = now + 1 * dayInMs;
+          existing.correctStreak = 0;
+          existing.mastered = false;
+        } else {
+          // First wrong attempt — add to pool for review
+          const syntheticExercise = {
+            type: 'typing',
+            prompt: `Type the Fijian word for '${pair.english}'`,
+            answer: pair.fijian,
+            id: trackedId
+          };
+          p.wrongAnswers.push(this._buildTrackedEntry(syntheticExercise, {
+            timestamp: now,
+            reviewCount: 0,
+            nextReviewAt: now + 1 * dayInMs,
+            intervalIndex: 0
+          }));
+        }
+        this.saveProgress();
+      },
+
       updateStreak() {
         const p = this.progress;
         const today = new Date().toDateString();
@@ -1419,6 +1493,30 @@
             skillNode.completed = p.completedLessons.includes(lessonId);
           }
         });
+      },
+
+      // Record only the exercise result for display (without feeding into spaced repetition)
+      // Used by matching exercises to preserve completion screen behavior
+      recordExerciseResultOnly(exercise, isCorrect) {
+        this.exerciseResults.push({ exercise, correct: isCorrect });
+      },
+
+      // Record a pair result from a matching exercise for spaced repetition
+      // Creates a synthetic typing-like exercise for the review system
+      recordPairResult(exercise, pairIndex, isCorrect) {
+        const pair = exercise.pairs[pairIndex];
+        // Build a synthetic exercise object with type: 'typing' for the review system
+        const syntheticExercise = {
+          type: 'typing',
+          prompt: `Type the Fijian word for '${pair.english}'`,
+          answer: pair.fijian,
+          id: `${exercise.id}::pair::${pairIndex}`
+        };
+        if (isCorrect) {
+          DataManager.recordPairCorrect(exercise.id, pairIndex, pair);
+        } else {
+          DataManager.recordPairWrong(exercise.id, pairIndex, pair);
+        }
       },
 
       // Shared by every exercise type (multiple choice, matching, sentence
@@ -2101,6 +2199,8 @@
         let completed = false;
         let wrongCount = 0;
         let correctCount = 0;
+        // Track wrong attempts per pair for individual spaced-repetition tracking
+        const wrongPerPair = {};
 
         // Render English column (right side / answers)
         englishWords.forEach((word, i) => {
@@ -2127,13 +2227,19 @@
               matches[pairKey] = true;
               correctCount++;
 
+              // Record this pair result for spaced repetition
+              const pairIndex = parseInt(pairKey);
+              const pair = exercise.pairs[pairIndex];
+              const pairWasWrong = wrongPerPair[pairKey] > 0;
+              this.recordPairResult(exercise, pairIndex, !(pairWasWrong));
+
               // Check if all matched
               const allMatched = Object.keys(matches).length === exercise.pairs.length;
               if (allMatched) {
                 completed = true;
                 const card = document.getElementById(`exercise-${this.currentExerciseIndex}`);
-                // Record wrong attempts for review, or correct first-try for spaced rep
-                this.recordResult(exercise, wrongCount === 0);
+                // Record exercise result only (for completion screen), plus per-pair results above
+                this.recordExerciseResultOnly(exercise, wrongCount === 0);
                 const message = wrongCount > 0
                   ? `✓ All matched! (${wrongCount} incorrect attempt${wrongCount > 1 ? 's' : ''} — review recommended)${exercise.explanation ? ' ' + exercise.explanation : ''}`
                   : '✓ All matched correctly!';
@@ -2141,6 +2247,9 @@
               }
             } else {
               wrongCount++;
+              // Track wrong attempt for this specific pair (the one user was trying to place)
+              wrongPerPair[pairKey] = (wrongPerPair[pairKey] || 0) + 1;
+
               selectedLeft.classList.remove('selected');
               selectedLeft = null;
 
