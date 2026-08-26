@@ -972,9 +972,40 @@
         if (!p.completedLessons.includes(lessonId)) {
           p.completedLessons.push(lessonId);
         }
-        // Store mastery as a percentage (can decay over time later)
-        // Use != null check to handle 0% mastery correctly (0 is a valid value)
-        p.lessonMastery[lessonId] = masteryPercent != null ? masteryPercent : 100;
+        
+        // If masteryPercent not provided, compute from correctReps
+        let finalMastery = masteryPercent;
+        if (finalMastery == null) {
+          const lessons = LESSONS[lessonId];
+          if (lessons && lessons.exercises) {
+            // Count total items in lesson (pairs = 1 each, other types = 1 each)
+            const itemIds = [];
+            lessons.exercises.forEach(ex => {
+              if (ex.type === 'matching') {
+                ex.pairs.forEach((pair, idx) => {
+                  itemIds.push(\`\${ex.id}::pair::\${idx}\`);
+                });
+              } else {
+                itemIds.push(ex.id);
+              }
+            });
+            
+            // Count items with correctReps >= 3
+            let masteredItems = 0;
+            itemIds.forEach(itemId => {
+              const wa = p.wrongAnswers.find(w => w.exerciseId === itemId);
+              if (wa && (wa.correctReps || 0) >= 3) {
+                masteredItems++;
+              }
+            });
+            
+            finalMastery = itemIds.length > 0 
+              ? Math.round((masteredItems / itemIds.length) * 100) 
+              : 0;
+          }
+        }
+        
+        p.lessonMastery[lessonId] = finalMastery != null ? finalMastery : 100;
         this.saveProgress();
         App.checkUnlocks();
       },
@@ -997,6 +1028,8 @@
           explanation: exercise.explanation || null,
           note: exercise.note || null,
           sources: exercise.sources || null,
+          correctReps: 0,
+          lastRepDay: null,
           ...extraFields
         };
       },
@@ -1015,6 +1048,8 @@
           existing.intervalIndex = 0; // Must reset intervalIndex!
           existing.nextReviewAt = now + 1 * DAY_MS; // review again in 1 day
           existing.correctStreak = 0;
+          existing.correctReps = 0; // Reset reps on wrong answer
+          existing.lastRepDay = null;
           existing.mastered = false; // un-graduate: a mastered item got wrong again
         } else {
           p.wrongAnswers.push(this._buildTrackedEntry(exercise, {
@@ -1053,6 +1088,12 @@
               }
             } else {
               existing.correctStreak = 0;
+            }
+            // Increment correctReps ONCE PER DAY (prevents cramming)
+            const today = new Date().toDateString();
+            if ((existing.lastRepDay || '') !== today) {
+              existing.correctReps = (existing.correctReps || 0) + 1;
+              existing.lastRepDay = today;
             }
           }
           // If not due yet, this correct answer is a no-op for scheduling
@@ -1105,6 +1146,12 @@
             } else {
               existing.correctStreak = 0;
             }
+            // Increment correctReps once per calendar day
+            const today = new Date().toDateString();
+            if ((existing.lastRepDay || '') !== today) {
+              existing.correctReps = (existing.correctReps || 0) + 1;
+              existing.lastRepDay = today;
+            }
           }
           // If not due yet, this correct answer is a no-op for scheduling
         } else {
@@ -1135,6 +1182,8 @@
           existing.intervalIndex = 0; // MUST reset intervalIndex!
           existing.nextReviewAt = now + 1 * DAY_MS;
           existing.correctStreak = 0;
+          existing.correctReps = 0;
+          existing.lastRepDay = null;
           existing.mastered = false;
         } else {
           // First wrong attempt — add to pool for review
