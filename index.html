@@ -1988,8 +1988,34 @@
       },
 
       startLesson(lessonId) {
-        this.currentLesson = LESSONS[lessonId];
-        this.currentLesson.id = lessonId;
+        // Shuffle exercises once per lesson start (not on render)
+        // Keep Part 1/2/3 groups together: same base ID (before -a/-b/-c) stays ordered
+        const rawLesson = LESSONS[lessonId];
+        if (rawLesson && rawLesson.exercises && rawLesson.exercises.length > 1) {
+          const getBaseId = (id) => {
+            const m = id.match(/^(.+?)-[a-z]$/);
+            return m ? m[1] : id;
+          };
+          const groups = {};
+          rawLesson.exercises.forEach(ex => {
+            const baseId = getBaseId(ex.id);
+            (groups[baseId] = groups[baseId] || []).push(ex);
+          });
+          const keys = Object.keys(groups);
+          // Fisher-Yates shuffle on group keys
+          for (let i = keys.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [keys[i], keys[j]] = [keys[j], keys[i]];
+          }
+          this.currentLesson = {
+            ...rawLesson,
+            id: lessonId,
+            exercises: keys.flatMap(k => groups[k])
+          };
+        } else {
+          this.currentLesson = rawLesson;
+          if (rawLesson) this.currentLesson.id = lessonId;
+        }
         this.currentExerciseIndex = 0;
         this.exerciseResults = [];
         this.reviewMode = false;
@@ -2170,47 +2196,55 @@
         return typed === answer || altAnswers.some(a => typed === a);
       },
 
+      // Fisher-Yates shuffle helper - proper algorithm
+      shuffleArray(arr) {
+        if (!arr || arr.length <= 1) return arr;
+        const result = [...arr];
+        for (let i = result.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [result[i], result[j]] = [result[j], result[i]];
+        }
+        return result;
+      },
+
       renderMultipleChoice(exercise) {
         const div = document.createElement('div');
         div.className = 'choice-list';
 
-        exercise.choices.forEach((choice, i) => {
+        // Shuffle choices and compute answer mapping
+        const shuffledChoices = this.shuffleArray([...exercise.choices]);
+        const correctIdx = shuffledChoices.indexOf(exercise.choices[exercise.answer]);
+
+        shuffledChoices.forEach((choice, shuffledIdx) => {
           const btn = document.createElement('button');
           btn.className = 'choice-btn';
           btn.textContent = choice;
-          btn.dataset.index = i;
+          btn.dataset.shuffledIdx = shuffledIdx;
           btn.addEventListener('click', () => {
-            this.selectChoice(exercise, i);
+            const isCorrect = shuffledIdx === correctIdx;
+            const buttons = document.querySelectorAll('.choice-btn');
+            buttons.forEach(b => b.disabled = true);
+            
+            if (isCorrect) {
+              btn.classList.add('correct');
+            } else {
+              btn.classList.add('incorrect');
+              buttons[correctIdx].classList.add('correct');
+            }
+            this.recordResult(exercise, isCorrect);
+            
+            const card = document.getElementById(`exercise-${this.currentExerciseIndex}`);
+            let message = isCorrect ? '✓ Correct!' : `✗ Incorrect. ${exercise.explanation || ''}`;
+            if (!isCorrect && exercise.explanation) {
+              message += ` <br><strong>Correct answer:</strong> ${exercise.choices[exercise.answer]}`;
+            }
+            const feedback = this.showFeedback(card, isCorrect ? 'correct' : 'incorrect', message);
+            feedback.focus();
           });
           div.appendChild(btn);
         });
 
         return div;
-      },
-
-      selectChoice(exercise, index) {
-        const buttons = document.querySelectorAll('.choice-btn');
-        buttons.forEach(b => b.disabled = true);
-
-        const selected = buttons[index];
-        const isCorrect = index === exercise.answer;
-
-        if (isCorrect) {
-          selected.classList.add('correct');
-        } else {
-          selected.classList.add('incorrect');
-          buttons[exercise.answer].classList.add('correct');
-        }
-        this.recordResult(exercise, isCorrect);
-
-        // Show feedback and restore focus to the feedback region
-        const card = document.getElementById(`exercise-${this.currentExerciseIndex}`);
-        let message = isCorrect ? '✓ Correct!' : `✗ Incorrect. ${exercise.explanation || ''}`;
-        if (!isCorrect && exercise.explanation) {
-          message += ` <br><strong>Correct answer:</strong> ${exercise.choices[exercise.answer]}`;
-        }
-        const feedback = this.showFeedback(card, isCorrect ? 'correct' : 'incorrect', message);
-        feedback.focus();
       },
 
       renderMatching(exercise) {
@@ -2226,8 +2260,8 @@
         rightColumn.style.order = '2';
 
         // Shuffle pairs independently for each column
-        const fijianWords = [...exercise.pairs].map(p => p.fijian || p.english).sort(() => Math.random() - 0.5);
-        const englishWords = [...exercise.pairs].map(p => p.english || p.fijian).sort(() => Math.random() - 0.5);
+        const fijianWords = this.shuffleArray(exercise.pairs.map(p => p.fijian || p.english));
+        const englishWords = this.shuffleArray(exercise.pairs.map(p => p.english || p.fijian));
 
         // Create a lookup to map words back to their pair index
         const pairMap = {};
@@ -2384,7 +2418,7 @@
         let wrongAttempts = 0;
 
         // Shuffle words
-        const shuffledWords = [...exercise.words].sort(() => Math.random() - 0.5);
+        const shuffledWords = this.shuffleArray([...exercise.words]);
 
         shuffledWords.forEach((word, i) => {
           const wordEl = document.createElement('div');
