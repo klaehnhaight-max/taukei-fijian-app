@@ -983,7 +983,7 @@
             lessons.exercises.forEach(ex => {
               if (ex.type === 'matching') {
                 ex.pairs.forEach((pair, idx) => {
-                  itemIds.push(\`\${ex.id}::pair::\${idx}\`);
+                  itemIds.push(`${ex.id}::pair::${idx}`);
                 });
               } else {
                 itemIds.push(ex.id);
@@ -1099,12 +1099,16 @@
           // If not due yet, this correct answer is a no-op for scheduling
         } else {
           // Correct answer on first encounter — add to pool with longer delay
+          // correctReps starts at 1 (this is one correct rep), lastRepDay is today
+          const today = new Date().toDateString();
           p.wrongAnswers.push(this._buildTrackedEntry(exercise, {
             timestamp: now,
             reviewCount: 0,
             nextReviewAt: now + 7 * DAY_MS, // first review for correct: 7 days
             intervalIndex: 2,
-            lastCorrect: now
+            lastCorrect: now,
+            correctReps: 1,
+            lastRepDay: today
           }));
         }
         this.saveProgress();

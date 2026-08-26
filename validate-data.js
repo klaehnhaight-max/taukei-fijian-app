@@ -66,30 +66,26 @@ function normalizeSentence(s) {
 //   can we permute words so that concatenated lowercase words ==
 //   answer with spaces/punctuation removed?
 function canFormAnswer(words, answer) {
-  const normAnswer = normalizeSentence(answer);
-  const normWords = words.map(normalizeSentence);
-
-  // Count character frequencies in answer
-  const answerCounts = {};
-  for (const ch of normAnswer) {
-    answerCounts[ch] = (answerCounts[ch] || 0) + 1;
-  }
-
-  // Count character frequencies in given words
-  const wordCounts = {};
-  for (const w of normWords) {
-    for (const ch of w) {
-      wordCounts[ch] = (wordCounts[ch] || 0) + 1;
+  // Split answer into tokens (by whitespace), normalize each
+  const answerTokens = String(answer).split(/\s+/).map(normalizeSentence).filter(Boolean);
+  
+  // Build character frequency map from the tiles
+  const tileCounts = {};
+  for (const w of words) {
+    const norm = normalizeSentence(w);
+    if (norm) {
+      tileCounts[norm] = (tileCounts[norm] || 0) + 1;
     }
   }
-
-  // Check if words contain at least as many of each character as answer
-  for (const ch in answerCounts) {
-    if ((wordCounts[ch] || 0) < answerCounts[ch]) {
-      return false;  // Missing character or not enough occurrences
+  
+  // Check if we have enough of each answer token
+  for (const token of answerTokens) {
+    if (!tileCounts[token]) {
+      return false;  // Tile for this answer word not available
     }
+    tileCounts[token]--;  // Consume one tile (handles duplicates)
   }
-  return true;  // All answer characters are present (words is a superset)
+  return true;  // All answer tokens are available; leftover tiles are allowed (distractors)
 }
 
 let failures = [];
