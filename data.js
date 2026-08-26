@@ -97,7 +97,7 @@ const LESSONS = {
         type: "cloze",
         id: "unit1-6b",
         prompt: "Ni sa ___",
-        translation: "Good ___",
+        translation: "Good morning",
         answer: "yadra",
         explanation: "'Yadra' means morning — as in 'Ni sa yadra' (good morning), a standard greeting taught alongside 'Ni sa bula' (good day). [1][8][9]",
         sources: ["[1]", "[8]", "[9]"]
@@ -188,7 +188,7 @@ const LESSONS = {
         type: "cloze",
         id: "unit2-5",
         prompt: "___ dua",
-        translation: "___ one",
+        translation: "Eleven",
         answer: "tini",
         explanation: "Tini is the Fijian word for ten; combined with dua (one) it forms tini dua, following the number compounding pattern shown in this unit's sentence_builder. [2][7]",
         sources: ["[2]", "[7]"]
@@ -600,7 +600,7 @@ const LESSONS = {
         type: "cloze",
         id: "unit7-6",
         prompt: "Au ___ na dalo",
-        translation: "I ___ the taro",
+        translation: "I eat the taro",
         answer: "kana",
         explanation: "Kana means 'eat' — as in 'Au kana' (I eat). The structure is subject (Au) + verb (kana) + article (na) + object (dalo = taro). [1][6][7][8]",
         sources: ["[1]", "[6]", "[7]", "[8]"]

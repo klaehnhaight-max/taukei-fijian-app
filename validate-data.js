@@ -215,6 +215,10 @@ for (const unitId of Object.keys(LESSONS)) {
         failures.push(`cloze ${ex.id}: missing translation field`);
       }
       checked++;
+      if (ex.translation && ex.translation.includes('___')) {
+        failures.push(`cloze ${ex.id}: translation contains blank marker — the translation must be complete`);
+      }
+      checked++;
       if (!ex.prompt.includes('___')) {
         failures.push(`cloze ${ex.id}: prompt must contain '___' blank marker`);
       }

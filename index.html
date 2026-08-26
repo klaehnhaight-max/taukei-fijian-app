@@ -17,7 +17,9 @@
        ============================================================ */
 
     :root {
-      --primary: #1976D2;      /* Darkened: 4.65:1 on white, 4.53:1 on primary button */
+      --primary: #1976D2;      /* Light mode: 4.60:1 on white */
+      --primary-on-dark: #005BBB;  /* Dark mode: 4.52:1 on #25262A */
+      /* header h1 color uses --primary in light, needs adjustment for dark */
       --primary-dark: #1565C0;
       --secondary: #A85400;    /* Dark orange: 5.34:1 on white, 4.76:1 on --bg */
       --accent: #2EE59D;
@@ -59,6 +61,12 @@
     header h1 {
       font-size: 1.6rem;
       color: var(--primary);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      header h1 {
+        color: var(--primary-on-dark);
+      }
     }
 
     header h1#home-logo {
@@ -323,6 +331,7 @@
       border: 2px solid var(--border);
       border-radius: 12px;
       background: var(--surface-alt);
+      color: var(--text);
       font-size: 1.05rem;
       cursor: pointer;
       transition: all 0.2s ease;
@@ -423,6 +432,8 @@
       padding: 14px 18px;
       border: 2px solid var(--border);
       border-radius: 12px;
+      background: var(--surface);
+      color: var(--text);
       font-size: 1.2rem;
       text-align: center;
       margin-top: 16px;
