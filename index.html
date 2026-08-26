@@ -1267,7 +1267,7 @@
       if (e.key === 'taukei_progress' && e.newValue) {
         try {
           const parsed = JSON.parse(e.newValue);
-          DataManager._progressCache = parsed;
+          DataManager._progressCache = { ...DataManager._defaultProgress(), ...parsed };
           // Re-render if needed (e.g., stats changed)
           if (App.currentScreen === 'home') {
             App.render();
@@ -1493,9 +1493,9 @@
           if (window.FirebaseSync && FirebaseSync.isSignedIn()) {
             const user = FirebaseSync.currentUser;
             const displayName = user.displayName || user.email.split('@')[0];
-            if (labelSpan) labelSpan.textContent = displayName;
+            if (labelSpan) labelSpan.textContent = ' ' + displayName;
           } else {
-            if (labelSpan) labelSpan.textContent = 'Sync';
+            if (labelSpan) labelSpan.textContent = ' Sync';
           }
         }
       },
@@ -3059,7 +3059,6 @@
         errorEl.id = 'auth-error';
         errorEl.setAttribute('role', 'alert');
         errorEl.className = 'auth-error';
-        errorEl.setAttribute('role', 'alert');
         errorEl.setAttribute('aria-live', 'polite');
         errorEl.style.display = 'none';
 
