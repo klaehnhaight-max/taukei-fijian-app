@@ -2593,7 +2593,7 @@
               : `✓ Correct! <span class="pronunciation-hint">Answer pronunciation: ${fijianToPhonetic(exercise.answer)}</span>`;
             const feedback = this.showFeedback(card, 'correct', message);
             feedback.focus();
-          } else if (words.length === exercise.answer.split(/\\s+/).filter(w => w).length) {
+          } else if (words.length === exercise.answer.split(/\s+/).filter(w => w).length) {
             // All answer tiles placed but arrangement is wrong — soft-lock recovery
             wrongAttempts++;
             target.classList.add('incorrect');
