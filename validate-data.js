@@ -66,37 +66,30 @@ function normalizeSentence(s) {
 //   can we permute words so that concatenated lowercase words ==
 //   answer with spaces/punctuation removed?
 function canFormAnswer(words, answer) {
-  const normAnswer = normalizeSentence(answer);  // spaces/punct/diacritics/whitespace all stripped
+  const normAnswer = normalizeSentence(answer);
   const normWords = words.map(normalizeSentence);
 
-  // Generate all permutations and check if any permutation's
-  // concatenated join equals the normalized answer.
-  function permutations(arr) {
-    if (arr.length <= 1) return [arr];
-    const result = [];
-    for (let i = 0; i < arr.length; i++) {
-      const rest = arr.slice(0, i).concat(arr.slice(i + 1));
-      for (const perm of permutations(rest)) {
-        result.push([arr[i]].concat(perm));
-      }
-    }
-    return result;
+  // Count character frequencies in answer
+  const answerCounts = {};
+  for (const ch of normAnswer) {
+    answerCounts[ch] = (answerCounts[ch] || 0) + 1;
   }
 
-  // For efficiency with >8 words, fall back to character multiset comparison
-  if (normWords.length > 8) {
-    // Character-based check: sorted chars of concatenated words == sorted chars of answer
-    const wordChars = normWords.join('').split('').sort().join('');
-    const answerChars = normAnswer.split('').sort().join('');
-    return wordChars === answerChars;
-  }
-
-  for (const perm of permutations(normWords)) {
-    if (perm.join('') === normAnswer) {
-      return true;
+  // Count character frequencies in given words
+  const wordCounts = {};
+  for (const w of normWords) {
+    for (const ch of w) {
+      wordCounts[ch] = (wordCounts[ch] || 0) + 1;
     }
   }
-  return false;
+
+  // Check if words contain at least as many of each character as answer
+  for (const ch in answerCounts) {
+    if ((wordCounts[ch] || 0) < answerCounts[ch]) {
+      return false;  // Missing character or not enough occurrences
+    }
+  }
+  return true;  // All answer characters are present (words is a superset)
 }
 
 let failures = [];
