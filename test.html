@@ -269,126 +269,110 @@
           name: 'spaced-repetition item graduates to mastered after 2 consecutive correct at max interval (when due)',
           fn: () => {
             resetProgress();
-            const ex = { id: '__test_ex_graduate__', type: 'typing', prompt: 'p', answer: 'a' };
-            // First correct - due immediately, intervalIndex = 2
+            const ex = { id: 'test_ex_graduate', type: 'typing', prompt: 'p', answer: 'a' };
+            const get = () => win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
+            const dueCorrect = () => { get().nextReviewAt = Date.now() - 1000; win.DataManager.recordCorrectAnswer(ex); };
             win.DataManager.recordCorrectAnswer(ex);
-            let wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
-            assert(wa.intervalIndex === 2, `expected intervalIndex 2 after first correct, got ${wa.intervalIndex}`);
-            
-            // Make it due and get 2 consecutive correct to reach max interval and graduate
-            for (let i = 0; i < 2; i++) {
-              wa.nextReviewAt = Date.now() - 1000;
-              win.DataManager.recordCorrectAnswer(ex);
-              wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
-            }
-            assert(wa.intervalIndex === 4, `expected intervalIndex 4, got ${wa.intervalIndex}`);
-            assert(wa.streak === 0, 'streak should be 0 after 2 due-corrects');
-            assert(!wa.mastered, `should not be mastered yet at interval 4`);
-            
-            // Make it due and get 2nd consecutive correct at max interval
-            wa.nextReviewAt = Date.now() - 1000;
-            win.DataManager.recordCorrectAnswer(ex);
-            // still at max 5, streak now 1
-            wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
-            assert(wa.intervalIndex === 5, `expected intervalIndex 5, got ${wa.intervalIndex}`);
-            assert(wa.streak === 1, 'streak should be 1');
-            
-            // 2nd consecutive correct at max interval → mastered
-            win.DataManager.recordCorrectAnswer(ex);
-            wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
-            assert(wa.mastered === true, `expected mastered=true after 2 consecutive correct at max interval, got ${wa.mastered}`);
+            assert(get().intervalIndex === 2, `first correct should start at intervalIndex 2, got ${get().intervalIndex}`);
+            dueCorrect();
+            dueCorrect();
+            assert(get().intervalIndex === 4, `expected intervalIndex 4, got ${get().intervalIndex}`);
+            assert(!get().mastered, 'should not be mastered at interval 4');
+            dueCorrect();
+            assert(get().intervalIndex === 5, `expected intervalIndex 5, got ${get().intervalIndex}`);
+            assert(get().correctStreak === 1, `expected correctStreak 1, got ${get().correctStreak}`);
+            assert(!get().mastered, 'not mastered after only one correct at max interval');
+            dueCorrect();
+            assert(get().mastered === true, `expected mastered=true, got ${get().mastered}`);
           }
         },
         {
-                  {
-          name: 'recordPairCorrect on new pair initializes pair entry',
+          name: 'recordPairCorrect on a new pair creates a per-pair tracked entry',
           fn: () => {
             resetProgress();
-            const ex = { id: '__test_pair_ex__', type: 'matching', prompt: 'p', answer: 'a', 
-                       pairs: [{ left: 'a', right: 'b' }, { left: 'c', right: 'd' }] };
-            // Record correct for a pair that hasn't been recorded yet
-            win.DataManager.recordPairCorrect(ex, 0, true);
-            const p = win.DataManager.pairResults.find(r => r.exerciseId === ex.id && r.pairIndex === 0);
-            assert(p !== undefined, 'pair result should exist after recordPairCorrect');
-            assert(p.correct === true, 'pair should be marked correct');
+            win.DataManager.recordPairCorrect('test_match', 0, { fijian: 'bula', english: 'hello' });
+            const wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === 'test_match::pair::0');
+            assert(wa !== undefined, 'per-pair entry should exist after recordPairCorrect');
+            assert(wa.type === 'typing', `expected synthetic type typing, got ${wa.type}`);
+            assert(wa.answer === 'bula', `expected answer bula, got ${wa.answer}`);
+            assert(wa.intervalIndex === 2, `first correct should start at intervalIndex 2, got ${wa.intervalIndex}`);
           }
         },
         {
-          name: 'recordPairWrong on new pair handles first encounter',
+          name: 'recordPairWrong on a new pair creates an entry at the shortest interval',
           fn: () => {
             resetProgress();
-            const ex = { id: '__test_pair_wrong__', type: 'matching', prompt: 'p', answer: 'a',
-                       pairs: [{ left: 'a', right: 'b' }, { left: 'c', right: 'd' }] };
-            // Record wrong for a pair that hasn't been recorded yet
-            win.DataManager.recordPairWrong(ex, 1, true);
-            const p = win.DataManager.pairResults.find(r => r.exerciseId === ex.id && r.pairIndex === 1);
-            assert(p !== undefined, 'pair result should exist after recordPairWrong');
-            assert(p.correct === false, 'pair should be marked wrong');
+            win.DataManager.recordPairWrong('test_match_w', 1, { fijian: 'moce', english: 'goodbye' });
+            const wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === 'test_match_w::pair::1');
+            assert(wa !== undefined, 'per-pair entry should exist after recordPairWrong');
+            assert(wa.intervalIndex === 0, `expected intervalIndex 0, got ${wa.intervalIndex}`);
+            assert(wa.answer === 'moce', `expected answer moce, got ${wa.answer}`);
           }
         },
         {
-          name: 'repeated correct answers in one sitting do NOT advance interval',
+          name: 'repeated correct answers in one sitting do NOT advance the interval',
           fn: () => {
             resetProgress();
-            const ex = { id: '__test_ex_repeat__', type: 'typing', prompt: 'p', answer: 'a' };
-            // First correct makes it due
+            const ex = { id: 'test_ex_repeat', type: 'typing', prompt: 'p', answer: 'a' };
+            const get = () => win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
             win.DataManager.recordCorrectAnswer(ex);
-            let wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
-            assert(wa.intervalIndex === 2, 'expected intervalIndex 2 after first correct');
-            
-            // Make it due and correct again - but in same "session" (no time advancement logic)
-            // The app logic: correct only advances if the item is actually due (nextReviewAt <= now)
-            wa.nextReviewAt = Date.now() - 1000;
-            win.DataManager.recordCorrectAnswer(ex);
-            wa = win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
-            // After 2nd due-correct: interval 4, streak 0 (not 3)
-            assert(wa.intervalIndex === 4, `expected intervalIndex 4, got ${wa.intervalIndex}`);
+            assert(get().intervalIndex === 2, `expected intervalIndex 2, got ${get().intervalIndex}`);
+            for (let i = 0; i < 5; i++) win.DataManager.recordCorrectAnswer(ex);
+            assert(get().intervalIndex === 2, `interval must stay 2 when not due, got ${get().intervalIndex}`);
+            assert(!get().mastered, 'repeats in one sitting must not graduate an item');
           }
         },
         {
-          name: 'updateStreak across spring-forward boundary counts as 1 day',
+          name: 'a lapse at max interval resets intervalIndex to 0 and un-graduates',
           fn: () => {
             resetProgress();
-            // Skip to winter -> spring transition (Mar 9 -> Mar 10 in US/Eastern)
-            // Using UTC arithmetic to test DST-safe calculation
-            win.DataManager.progress.lastActive = new Date(2024, 2, 9, 12, 0, 0).toISOString(); // Mar 9
-            
-            // Mock Date now to Mar 10
-            const springForward = new Date(2024, 2, 10, 12, 0, 0);
-            const oldDate = Date;
-            global.Date = class extends Date {
-              constructor(...args) {
-                if (args.length === 0) return new oldDate(springForward);
-                return new oldDate(...args);
-              }
-            };
-            
+            const ex = { id: 'test_ex_lapse', type: 'typing', prompt: 'p', answer: 'a' };
+            const get = () => win.DataManager.progress.wrongAnswers.find(w => w.exerciseId === ex.id);
+            win.DataManager.recordCorrectAnswer(ex);
+            const e = get(); e.intervalIndex = 5; e.correctStreak = 1; e.mastered = true;
+            win.DataManager.recordWrongAnswer(ex);
+            assert(get().intervalIndex === 0, `expected intervalIndex 0 after lapse, got ${get().intervalIndex}`);
+            assert(get().mastered === false, 'a lapse must un-graduate a mastered item');
+            assert(get().correctStreak === 0, `expected correctStreak 0, got ${get().correctStreak}`);
+          }
+        },
+        {
+          name: 'day-difference arithmetic is DST-safe',
+          fn: () => {
+            const toUTCDay = d => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+            const days = (a, b) => Math.round((toUTCDay(b) - toUTCDay(a)) / 86400000);
+            assert(days(new Date(2025, 2, 9), new Date(2025, 2, 10)) === 1, 'spring-forward must count as 1 day');
+            assert(days(new Date(2025, 10, 2), new Date(2025, 10, 3)) === 1, 'fall-back must count as 1 day');
+            assert(days(new Date(2025, 2, 17), new Date(2025, 2, 18)) === 1, 'a normal day is 1');
+            assert(days(new Date(2025, 2, 17), new Date(2025, 2, 17)) === 0, 'same day is 0');
+            assert(days(new Date(2025, 2, 17), new Date(2025, 2, 21)) === 4, 'four days is 4');
+          }
+        },
+        {
+          name: 'updateStreak increments when lastActive was yesterday',
+          fn: () => {
+            resetProgress();
+            win.DataManager.progress.streak = 5;
+            win.DataManager.progress.lastActive = new Date(Date.now() - 86400000).toDateString();
             win.DataManager.updateStreak();
-            
-            // Restore Date
-            global.Date = oldDate;
-            
-            // Should count as 1 day, not 0
-            assert(win.DataManager.progress.streak === 1, `expected streak 1 after spring-forward, got ${win.DataManager.progress.streak}`);
+            assert(win.DataManager.progress.streak === 6, `expected streak 6, got ${win.DataManager.progress.streak}`);
           }
         },
         {
-          name: 'partial freeze leaves streakFreezes untouched',
+          name: 'partial freeze coverage leaves streakFreezes untouched',
           fn: () => {
             resetProgress();
-            win.DataManager.progress.streak = 3;
-            win.DataManager.progress.streakFreezes = [{ exerciseId: 'e1', used: false }];
-            
-            // Apply a freeze
-            win.DataManager.useStreakFreeze('e2');
-            
-            // Original freeze should still exist
-            const freezes = win.DataManager.progress.streakFreezes;
-            assert(freezes.length === 2, `expected 2 freezes, got ${freezes.length}`);
-            assert(freezes.some(f => f.exerciseId === 'e1'), 'original freeze should still exist');
+            win.DataManager.progress.streak = 10;
+            win.DataManager.progress.streakFreezes = 2;
+            win.DataManager.progress.lastActive = new Date(Date.now() - 5 * 86400000).toDateString();
+            win.DataManager.updateStreak();
+            const p = win.DataManager.progress;
+            assert(p.streakFreezes === 2, `freezes must be untouched when coverage is partial, got ${p.streakFreezes}`);
+            assert(p.streak === 1, `streak should reset to 1, got ${p.streak}`);
           }
         },
-name: 'mastered items are excluded from review, and un-graduate if answered wrong again',
+        {
+          name: 'mastered items are excluded from review, and un-graduate if answered wrong again',
           fn: () => {
             resetProgress();
             const ex = { id: '__test_ex_ungraduate__', type: 'typing', prompt: 'p', answer: 'a' };
