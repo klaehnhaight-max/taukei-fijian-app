@@ -1338,6 +1338,7 @@
             // New user — create their document
             await this.saveToFirestore(localProgress);
           }
+          App.checkUnlocks();
           App.updateHeader(); // Refresh header with sync status
           // Navigate back to home if currently on auth screen
           if (App.currentScreen === 'auth') {
@@ -1347,6 +1348,7 @@
         } catch(e) {
           console.error('Sign-in sync failed:', e);
           // Fall back to local-only mode
+          App.checkUnlocks();
           App.updateHeader();
           if (App.currentScreen === 'auth') {
             App.currentScreen = 'home';
