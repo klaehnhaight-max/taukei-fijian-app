@@ -13,3 +13,9 @@ verify_temp.js
 *.log
 
 # Build artifacts
+node_modules/
+package.json
+package-lock.json
+*.bak
+*.bak[0-9]
+fix_*.py
