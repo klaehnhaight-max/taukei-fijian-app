@@ -2598,7 +2598,8 @@
             wrongAttempts++;
             target.classList.add('incorrect');
             target.classList.remove('correct');
-            setTimeout(() => {
+            const runReset = () => {
+              if (completed) return; // Don't reset if exercise was completed
               target.classList.remove('incorrect');
               target.dataset.used = '';
               target.innerHTML = '';
@@ -2608,7 +2609,8 @@
               // Restore focus to first draggable word after reset
               const firstDraggable = dragContainer.querySelector('.drag-word');
               if (firstDraggable) firstDraggable.focus();
-            }, 700);
+            };
+            setTimeout(runReset, 700);
           }
         });
 
