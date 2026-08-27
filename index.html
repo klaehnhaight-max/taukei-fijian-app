@@ -1590,23 +1590,23 @@
       // Record only the exercise result for display (without feeding into spaced repetition)
       // Used by matching exercises to preserve completion screen behavior
       recordExerciseResultOnly(exercise, isCorrect) {
-        if (!isCorrect) return;
-        
-        const p = this.progress;
-        
-        // Count clean runs for matching exercises (5 needed for mastery)
-        if (exercise.type === 'matching') {
-          const today = new Date().toISOString().split('T')[0];
-          if (!p.exerciseMastery[exercise.id]) {
-            p.exerciseMastery[exercise.id] = { reps: 0, lastRepDay: '' };
-          }
-          if (p.exerciseMastery[exercise.id].lastRepDay !== today) {
-            p.exerciseMastery[exercise.id].reps++;
-            p.exerciseMastery[exercise.id].lastRepDay = today;
-          }
-        }
-        
+        // ALWAYS record the result first — completion screen's accuracy
+        // and per-type breakdown are built from exerciseResults
         this.exerciseResults.push({ exercise, correct: isCorrect });
+
+        // Matching mastery: count clean runs (zero mis-matches), once per day
+        if (isCorrect && exercise.type === 'matching') {
+          const p = DataManager.progress;           // NOT this.progress — App has no progress getter
+          if (!p.exerciseMastery) p.exerciseMastery = {};
+          const today = new Date().toDateString();  // LOCAL day, not UTC
+          const em = p.exerciseMastery[exercise.id] || { reps: 0, lastRepDay: '' };
+          if (em.lastRepDay !== today) {
+            em.reps++;
+            em.lastRepDay = today;
+          }
+          p.exerciseMastery[exercise.id] = em;
+          DataManager.saveProgress();
+        }
       },
 
       // Record a pair result from a matching exercise for spaced repetition
