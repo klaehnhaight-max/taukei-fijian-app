@@ -1025,6 +1025,134 @@
               }
             }
           }
+        },
+
+        {
+          name: 'App.recordExerciseResultOnly(matchingEx, true) pushes entry, increments exerciseMastery reps',
+          fn: () => {
+            resetProgress();
+            const matchingEx = {
+              id: '__test_matching_mastery__',
+              type: 'matching',
+              prompt: 'Match greetings',
+              pairs: [{ fijian: 'bula', english: 'hello' }, { fijian: 'moce', english: 'goodbye' }],
+              answer: 0
+            };
+            win.App.exerciseResults = [];
+            win.App.recordExerciseResultOnly(matchingEx, true);
+            
+            // Check exerciseResults has one entry
+            assert(win.App.exerciseResults.length === 1, `expected 1 result, got ${win.App.exerciseResults.length}`);
+            assert(win.App.exerciseResults[0].correct === true, 'result should be marked correct');
+            
+            // Check exerciseMastery was incremented
+            const em = win.DataManager.progress.exerciseMastery;
+            assert(em && em[matchingEx.id] !== undefined, 'exerciseMastery entry should exist');
+            assert(em[matchingEx.id].reps === 1, `expected 1 rep, got ${em[matchingEx.id].reps}`);
+          }
+        },
+        {
+          name: 'App.recordExerciseResultOnly(matchingEx, false) pushes entry to exerciseResults but does NOT increment reps',
+          fn: () => {
+            resetProgress();
+            const matchingEx = {
+              id: '__test_matching_wrong__',
+              type: 'matching',
+              prompt: 'Match',
+              pairs: [{ fijian: 'au', english: 'I' }],
+              answer: 0
+            };
+            win.App.exerciseResults = [];
+            win.App.recordExerciseResultOnly(matchingEx, false);
+            
+            // exerciseResults should still have an entry
+            assert(win.App.exerciseResults.length === 1, `expected 1 result, got ${win.App.exerciseResults.length}`);
+            assert(win.App.exerciseResults[0].correct === false, 'result should be marked incorrect');
+            
+            // exerciseMastery should NOT be incremented
+            const em = win.DataManager.progress.exerciseMastery;
+            assert(!em || !em[matchingEx.id] || em[matchingEx.id].reps === 0, 'reps should be 0');
+          }
+        },
+        {
+          name: 'two matching exerciseResultOnly calls on same day increment reps only once',
+          fn: () => {
+            resetProgress();
+            const matchingEx = {
+              id: '__test_matching_same_day__',
+              type: 'matching',
+              prompt: 'Match',
+              pairs: [{ fijian: 'au', english: 'I' }],
+              answer: 0
+            };
+            win.App.exerciseResults = [];
+            win.App.recordExerciseResultOnly(matchingEx, true);
+            win.App.recordExerciseResultOnly(matchingEx, true);
+            win.App.recordExerciseResultOnly(matchingEx, true);
+            
+            const em = win.DataManager.progress.exerciseMastery[matchingEx.id];
+            assert(em.reps === 1, `expected 1 rep (same-day cap), got ${em.reps}`);
+          }
+        },
+        {
+          name: 'three matching exerciseResultOnly calls with a wrong result in between still increments reps on correct',
+          fn: () => {
+            resetProgress();
+            const matchingEx = {
+              id: '__test_matching_mixed__',
+              type: 'matching',
+              prompt: 'Match',
+              pairs: [{ fijian: 'au', english: 'I' }],
+              answer: 0
+            };
+            win.App.exerciseResults = [];
+            win.App.recordExerciseResultOnly(matchingEx, true);
+            win.App.recordExerciseResultOnly(matchingEx, false);
+            win.App.recordExerciseResultOnly(matchingEx, true);
+            
+            const em = win.DataManager.progress.exerciseMastery[matchingEx.id];
+            assert(em.reps === 2, `expected 2 reps, got ${em.reps}`);
+          }
+        },
+        {
+          name: 'non-matching exercise does not create exerciseMastery entry',
+          fn: () => {
+            resetProgress();
+            const typingEx = {
+              id: '__test_typing_no_mastery__',
+              type: 'typing',
+              prompt: 'Type hello',
+              answer: 'bula'
+            };
+            win.App.exerciseResults = [];
+            win.App.recordExerciseResultOnly(typingEx, true);
+            
+            // exerciseResults should have entry
+            assert(win.App.exerciseResults.length === 1, 'typing should still be recorded');
+            
+            // exerciseMastery should NOT have entry
+            const em = win.DataManager.progress.exerciseMastery[typingEx.id];
+            assert(em === undefined, 'non-matching should not have exerciseMastery entry');
+          }
+        },
+        {
+          name: 'matching exerciseResultOnly calls are persisted to localStorage',
+          fn: () => {
+            resetProgress();
+            const matchingEx = {
+              id: '__test_matching_persist__',
+              type: 'matching',
+              prompt: 'Match',
+              pairs: [{ fijian: 'au', english: 'I' }],
+              answer: 0
+            };
+            win.App.exerciseResults = [];
+            win.App.recordExerciseResultOnly(matchingEx, true);
+            
+            // Verify localStorage was updated
+            const stored = JSON.parse(localStorage.getItem('taukei_progress'));
+            assert(stored && stored.exerciseMastery && stored.exerciseMastery[matchingEx.id], 'exerciseMastery should be persisted');
+          }
         }
       ];
 
