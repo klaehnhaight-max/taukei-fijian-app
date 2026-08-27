@@ -944,6 +944,7 @@
           lastActive: null,
           completedLessons: [],
           lessonMastery: {},
+          exerciseMastery: {},  // Per-exercise mastery: matching needs 5 reps
           wrongAnswers: [],
           totalXP: {},
           version: 1
@@ -991,27 +992,29 @@
           if (lessons && lessons.exercises) {
             // Count total items in lesson (pairs = 1 each, other types = 1 each)
             const itemIds = [];
+            // Count exercises (not pairs) for mastery
+            let totalEx = 0;
+            let masteredEx = 0;
+            
             lessons.exercises.forEach(ex => {
+              totalEx++;
               if (ex.type === 'matching') {
-                ex.pairs.forEach((pair, idx) => {
-                  itemIds.push(`${ex.id}::pair::${idx}`);
-                });
+                // Matching: 5 clean completions needed
+                const em = p.exerciseMastery && p.exerciseMastery[ex.id];
+                if ((em && em.reps || 0) >= 5) {
+                  masteredEx++;
+                }
               } else {
-                itemIds.push(ex.id);
+                // Other: 3 correct reps needed
+                const wa = p.wrongAnswers && p.wrongAnswers.find(w => w.exerciseId === ex.id);
+                if (wa && (wa.correctReps || 0) >= 3) {
+                  masteredEx++;
+                }
               }
             });
             
-            // Count items with correctReps >= 3
-            let masteredItems = 0;
-            itemIds.forEach(itemId => {
-              const wa = p.wrongAnswers.find(w => w.exerciseId === itemId);
-              if (wa && (wa.correctReps || 0) >= 3) {
-                masteredItems++;
-              }
-            });
-            
-            finalMastery = itemIds.length > 0 
-              ? Math.round((masteredItems / itemIds.length) * 100) 
+            finalMastery = totalEx > 0
+              ? Math.round((masteredEx / totalEx) * 100)
               : 0;
           }
         }
@@ -1587,6 +1590,22 @@
       // Record only the exercise result for display (without feeding into spaced repetition)
       // Used by matching exercises to preserve completion screen behavior
       recordExerciseResultOnly(exercise, isCorrect) {
+        if (!isCorrect) return;
+        
+        const p = this.progress;
+        
+        // Count clean runs for matching exercises (5 needed for mastery)
+        if (exercise.type === 'matching') {
+          const today = new Date().toISOString().split('T')[0];
+          if (!p.exerciseMastery[exercise.id]) {
+            p.exerciseMastery[exercise.id] = { reps: 0, lastRepDay: '' };
+          }
+          if (p.exerciseMastery[exercise.id].lastRepDay !== today) {
+            p.exerciseMastery[exercise.id].reps++;
+            p.exerciseMastery[exercise.id].lastRepDay = today;
+          }
+        }
+        
         this.exerciseResults.push({ exercise, correct: isCorrect });
       },
 
