@@ -1087,6 +1087,13 @@
           const nowTime = Date.now();
           const wasDue = !existing.lastCorrect || existing.nextReviewAt <= nowTime;
           
+          // Increment correctReps ONCE PER DAY (outside wasDue - mastery counter)
+          const today = new Date().toDateString();
+          if ((existing.lastRepDay || '') !== today) {
+            existing.correctReps = (existing.correctReps || 0) + 1;
+            existing.lastRepDay = today;
+          }
+
           if (wasDue) {
             existing.intervalIndex = Math.min(existing.intervalIndex + 1, REVIEW_INTERVALS_DAYS.length - 1);
             existing.nextReviewAt = nowTime + REVIEW_INTERVALS_DAYS[existing.intervalIndex] * DAY_MS;
@@ -1099,12 +1106,6 @@
               }
             } else {
               existing.correctStreak = 0;
-            }
-            // Increment correctReps ONCE PER DAY (prevents cramming)
-            const today = new Date().toDateString();
-            if ((existing.lastRepDay || '') !== today) {
-              existing.correctReps = (existing.correctReps || 0) + 1;
-              existing.lastRepDay = today;
             }
           }
           // If not due yet, this correct answer is a no-op for scheduling
