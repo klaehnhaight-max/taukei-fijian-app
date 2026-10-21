@@ -2141,11 +2141,17 @@
         if (!wrongAnswers || wrongAnswers.length === 0) {
           return;
         }
+        // Shuffle each time a review session starts so replaying review
+        // mode (or re-entering it) doesn't always surface items in the
+        // same stored/insertion order. Mirrors the shuffle startLesson()
+        // does for regular lessons — this was the one shared entry point
+        // into review mode that never randomized its exercise order.
+        const shuffledWrongAnswers = this.shuffleArray([...wrongAnswers]);
         this.currentLesson = {
           title: 'Review',
           description: 'Practice answers you got wrong',
           xp: 50,
-          exercises: this.buildReviewExercises(wrongAnswers),
+          exercises: this.buildReviewExercises(shuffledWrongAnswers),
           isReview: true,
           id: 'review'
         };
