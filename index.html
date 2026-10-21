@@ -1534,10 +1534,13 @@
       exerciseResults: [],
       reviewMode: false,
       // In-memory only (never persisted to localStorage/progress) record of the
-      // last exercise-group order shown per lesson, so a fresh practice attempt
-      // can guarantee a different sequence from the immediately preceding one
-      // instead of relying on chance. Resets on page reload, which is fine —
-      // it only needs to prevent back-to-back repeats within a session.
+      // last exercise-group selection+order shown per lesson, so a fresh
+      // practice attempt can prefer a different question SET (not just a
+      // different order) from the immediately preceding attempt when the pool
+      // allows it. Shape per lesson: { setKey, orderKey } — set/order-
+      // independent and order-dependent fingerprints of the group keys shown.
+      // Resets on page reload, which is fine — it only needs to prevent
+      // back-to-back repeats within a session.
       lastPracticeOrder: {},
 
       init() {
@@ -2078,8 +2081,16 @@
       },
 
       startLesson(lessonId) {
-        // Shuffle exercises once per lesson start (not on render)
-        // Keep Part 1/2/3 groups together: same base ID (before -a/-b/-c) stays ordered
+        // Select and shuffle exercises once per lesson start (not on render).
+        // Keep Part 1/2/3 groups together: same base ID (before -a/-b/-c) stays ordered.
+        //
+        // Each lesson's data.js `exercises` array is a POOL that is larger than
+        // what's shown in a single attempt (see data.js `sessionSize`). Every
+        // call here draws a random subset of that pool sized `sessionSize`
+        // (falling back to the full pool if sessionSize is absent or the pool
+        // is smaller), then shuffles the chosen groups' order. This is what
+        // makes "Practice Again" present genuinely different questions, not
+        // just the same full set reordered.
         const rawLesson = LESSONS[lessonId];
         if (rawLesson && rawLesson.exercises && rawLesson.exercises.length > 1) {
           const getBaseId = (id) => {
@@ -2091,11 +2102,15 @@
             const baseId = getBaseId(ex.id);
             (groups[baseId] = groups[baseId] || []).push(ex);
           });
-          const groupKeys = Object.keys(groups);
+          const allGroupKeys = Object.keys(groups);
+          const sessionSize = Math.min(
+            rawLesson.sessionSize || allGroupKeys.length,
+            allGroupKeys.length
+          );
 
-          const shuffleGroupKeys = () => {
-            const keys = [...groupKeys];
-            // Fisher-Yates shuffle on group keys
+          const shuffleKeys = (arr) => {
+            const keys = [...arr];
+            // Fisher-Yates shuffle
             for (let i = keys.length - 1; i > 0; i--) {
               const j = Math.floor(Math.random() * (i + 1));
               [keys[i], keys[j]] = [keys[j], keys[i]];
@@ -2103,21 +2118,37 @@
             return keys;
           };
 
-          // Re-roll if the new order matches the immediately previous order for
-          // this lesson (e.g. repeated "Practice Again" clicks), so replaying a
-          // lesson doesn't present the same sequence back-to-back. Bounded retry
-          // count: with >=2 groups there's always another valid ordering to find,
-          // but cap it so a pathological 1-2 group lesson can't spin forever.
-          let keys = shuffleGroupKeys();
-          const previousOrder = this.lastPracticeOrder[lessonId];
-          if (previousOrder && groupKeys.length > 1) {
+          // Draw a random subset of sessionSize groups, then shuffle their order.
+          const drawSelection = () => shuffleKeys(allGroupKeys).slice(0, sessionSize);
+
+          // Re-roll if the new selection (as a set, order-independent) exactly
+          // matches the immediately previous attempt's selection for this
+          // lesson, so replaying a lesson doesn't present the same question
+          // SET back-to-back — not just the same order. Bounded retry count:
+          // when the pool has more groups than sessionSize there's always a
+          // different possible subset to find; when the pool is too small to
+          // guarantee a different subset (sessionSize >= allGroupKeys.length),
+          // the loop harmlessly exhausts its attempts and we fall back to
+          // varying only the order, which is the best available in that case.
+          let keys = drawSelection();
+          const toSetKey = (arr) => [...arr].sort().join('|');
+          const previousSelection = this.lastPracticeOrder[lessonId];
+          if (previousSelection && sessionSize < allGroupKeys.length) {
             let attempts = 0;
-            while (keys.join('|') === previousOrder && attempts < 20) {
-              keys = shuffleGroupKeys();
+            while (toSetKey(keys) === previousSelection.setKey && attempts < 20) {
+              keys = drawSelection();
+              attempts++;
+            }
+          } else if (previousSelection && allGroupKeys.length > 1) {
+            // Pool too small to vary the selection: at least re-roll the order
+            // so it differs from the immediately previous order.
+            let attempts = 0;
+            while (keys.join('|') === previousSelection.orderKey && attempts < 20) {
+              keys = shuffleKeys(keys);
               attempts++;
             }
           }
-          this.lastPracticeOrder[lessonId] = keys.join('|');
+          this.lastPracticeOrder[lessonId] = { setKey: toSetKey(keys), orderKey: keys.join('|') };
 
           this.currentLesson = {
             ...rawLesson,
