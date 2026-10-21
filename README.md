@@ -174,6 +174,8 @@ the full source list and `index.html` → Sources screen for attribution.
 10. Glosbe — Fijian-English dictionary
 11. Wiktionary
 12. Twinkl Fijian Colour Display Posters
+13. Gatty, Ronald. *Fijian-English Dictionary: with notes on Fijian culture and
+    natural history*. Suva, Fiji: R. Gatty, 2009.
 
 ### Known Discrepancy — Colors:
 PolyglotClub [4] lists color words (drau=white, iro=black, etc.) that conflict
