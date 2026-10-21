@@ -1533,6 +1533,12 @@
       currentExerciseIndex: 0,
       exerciseResults: [],
       reviewMode: false,
+      // In-memory only (never persisted to localStorage/progress) record of the
+      // last exercise-group order shown per lesson, so a fresh practice attempt
+      // can guarantee a different sequence from the immediately preceding one
+      // instead of relying on chance. Resets on page reload, which is fine —
+      // it only needs to prevent back-to-back repeats within a session.
+      lastPracticeOrder: {},
 
       init() {
         App.updateHeader();
@@ -2085,12 +2091,34 @@
             const baseId = getBaseId(ex.id);
             (groups[baseId] = groups[baseId] || []).push(ex);
           });
-          const keys = Object.keys(groups);
-          // Fisher-Yates shuffle on group keys
-          for (let i = keys.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [keys[i], keys[j]] = [keys[j], keys[i]];
+          const groupKeys = Object.keys(groups);
+
+          const shuffleGroupKeys = () => {
+            const keys = [...groupKeys];
+            // Fisher-Yates shuffle on group keys
+            for (let i = keys.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [keys[i], keys[j]] = [keys[j], keys[i]];
+            }
+            return keys;
+          };
+
+          // Re-roll if the new order matches the immediately previous order for
+          // this lesson (e.g. repeated "Practice Again" clicks), so replaying a
+          // lesson doesn't present the same sequence back-to-back. Bounded retry
+          // count: with >=2 groups there's always another valid ordering to find,
+          // but cap it so a pathological 1-2 group lesson can't spin forever.
+          let keys = shuffleGroupKeys();
+          const previousOrder = this.lastPracticeOrder[lessonId];
+          if (previousOrder && groupKeys.length > 1) {
+            let attempts = 0;
+            while (keys.join('|') === previousOrder && attempts < 20) {
+              keys = shuffleGroupKeys();
+              attempts++;
+            }
           }
+          this.lastPracticeOrder[lessonId] = keys.join('|');
+
           this.currentLesson = {
             ...rawLesson,
             id: lessonId,
